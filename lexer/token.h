@@ -1,8 +1,10 @@
 /**
- *  @file lex-anal/token.h
+ *  @file lexer/token.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @brief definice struktury tokenu
  */
+#ifndef TOKEN_H
+#define TOKEN_H
 
 #include<stdio.h>
 
@@ -19,6 +21,7 @@ enum TokenType {
 	VARIABLE,
 	VOID,
 	WHILE,
+	ID,
 	EQUAL, //==
 	NOT_EQUAL, //!=
 	ASSIGN, //=
@@ -43,6 +46,7 @@ enum TokenType {
 	COLON, //:
 	IMPORT, //@import
 	STRING, //[]u8
+	END_OF_FILE,
 	COUNT_TOKEN_TYPE,
 };
 
@@ -51,7 +55,7 @@ typedef struct {
 	void* value;
 } Token, *TokenPtr;
 
-const char* type_keywords[]= {
+const char* tokenTypeKeywords[]= {
 	"const",
 	"if",
 	"else",
@@ -65,3 +69,5 @@ const char* type_keywords[]= {
 	"void",
 	"while",
 };
+
+#endif
