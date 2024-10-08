@@ -44,6 +44,7 @@ enum TokenType {
 	VERTICAL_BAR, //|
 	SEMICOLON, //;
 	COLON, //:
+	COMMA, //,
 	IMPORT, //@import
 	STRING, //[]u8
 	END_OF_FILE,
