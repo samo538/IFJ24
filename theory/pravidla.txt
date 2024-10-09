@@ -1,0 +1,62 @@
+<xxx> - toto hovori ze xxx je neterminal
+'xxx' - toto hovori ze xxx je terminal
+
+
+<start> -> <import_def> <functions>
+<import_def> -> <const> <ifj> <eq> <at_import> <op_bracket> <string_prolog> <cl_bracket> <semicolon>
+<functions> -> <fn_def> <op_cr_bracket> <fn_body> <cl_cr_bracket> <functions>
+<functions> -> ε
+<fn_def> -> <pub> <fn> <id> <op_bracket> <params> <cl_bracket> <type_fndef> 
+<params> -> <id> <colon> <type> <comma> <params>
+<params> -> ε
+<fn_body> -> <var_def> <fn_body>
+<fn_body> -> <assign> <fn_body> (nahliadnutie do tabulky symbolov, pokial je ID variable, tak sa vola tato varianta)
+<fn_body> -> <fn_call> <fn_body> (nahliadnutie do tabulky symbolov, pokial je ID function alebo nedefinovane, tak sa vola tato varianta)
+<fn_body> -> <ifj_call> <fn_body> 
+<fn_body> -> <if_else> <fn_body>
+<fn_body> -> <cycle> <fn_body>
+<fn_body> -> <return> <fn_body>
+<fn_body> -> ε
+<var_def> -> <var_const> <id> <type_vardef> <eq> <exp TODO> <semicolon>
+<assign> -> <id_assign> <eq> <exp TODO> <semicolon>
+<fn_call> -> TODO
+<ifj_call> -> TODO
+<if_else> -> TODO
+<cycle> -> TODO
+<return> -> TODO
+
+
+<ifj> -> 'IFJ'
+<at_import> -> 'IMPORT'
+<eq> -> 'EQUAL'
+<comma> -> 'COMMA'
+<colon> -> 'COLON'
+<op_bracket> -> 'OPENING_BRACKET'
+<cl_bracket> -> 'CLOSING_BRACKET'
+<op_cr_bracket> -> 'OPENING_CURLY_BRACKET'
+<cl_cr_bracket> -> 'CLOSING_CURLY_BRACKET'
+<string_prolog> -> 'STRING' (tento string sa lisi od pravidla <string> tym ze musi nadobudat hodnotu "ifj24.zig")
+<semicolon> -> 'SEMICOLON'
+<pub> -> 'PUB'
+<fn> -> 'FN'
+
+<var_const> -> 'VAR'
+<var_const> -> <const>
+<const> -> 'CONST'
+
+<type_fndef> -> <type>
+<type_fndef> -> 'VOID'
+<type_vardef> -> <colon> <type>
+<type_vardef> -> ε
+<type> -> 'U8'
+<type> -> 'F64'
+<type> -> 'I32'
+
+<id_assign> -> 'UNDERLINE'
+<id_assing> -> <id>
+<id> -> 'ID'
+
+
+
+<exp> -> <ijf_call> <fn_call> <expression> zatial nedefinovane
+
