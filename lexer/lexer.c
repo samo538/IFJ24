@@ -112,6 +112,14 @@ void choose_type(TokenPtr token, char input) {
 			token->type = CLOSING_CURLY_BRACKET;
 			return;
 		}
+		case '[': {
+			token->type = OPENING_SQUARE_BRACKET;
+			return;
+		}
+		case ']': {
+			token->type = CLOSING_SQUARE_BRACKET;
+			return;
+		}
 		case '|': {
 			token->type = VERTICAL_BAR;
 			return;
