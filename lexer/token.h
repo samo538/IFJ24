@@ -21,6 +21,8 @@ enum TokenType {
 	VARIABLE,
 	VOID,
 	WHILE,
+	IFJ,
+	U8,
 	ID,
 	EQUAL, //==
 	NOT_EQUAL, //!=
@@ -32,7 +34,7 @@ enum TokenType {
 	PLUS, //+
 	MINUS, //-
 	MULTIPLY, //*
-	DEVIDE, ///
+	DIVIDE, ///
 	NULLABLE, //?
 	I32_VAR,
 	F64_VAR,
@@ -46,7 +48,9 @@ enum TokenType {
 	COLON, //:
 	COMMA, //,
 	IMPORT, //@import
-	STRING, //[]u8
+	STRING,
+	U8_STRING, //[]u8
+	UNDERSCORE, //_
 	END_OF_FILE,
 	COUNT_TOKEN_TYPE,
 };
@@ -69,6 +73,8 @@ const char* tokenTypeKeywords[]= {
 	"var",
 	"void",
 	"while",
+	"ifj",
+	"u8",
 };
 
 #endif
