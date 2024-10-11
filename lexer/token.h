@@ -55,9 +55,15 @@ enum TokenType {
 	COUNT_TOKEN_TYPE,
 };
 
+union TokenValue{
+	int i;
+	float f;
+	char* str;
+};
+
 typedef struct {
 	enum TokenType type;
-	void* value;
+	union TokenValue value;
 } Token, *TokenPtr;
 
 const char* tokenTypeKeywords[]= {

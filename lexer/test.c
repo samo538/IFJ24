@@ -5,9 +5,14 @@ int main() {
 	TokenPtr token = next_token();
 	while(true) {
 		if(token->type < ID) {
-			printf("%s\n", tokenTypeKeywords[token->type]);
+			printf("keyword: %s\n", tokenTypeKeywords[token->type]);
+		} else if (token->type == ID) {
+			printf("id: %s\n", token->value.str);
+			free(token->value.str);
 		} else if (token->type == I32_VAR) {
-			printf("int: %d\n", (long)token->value);
+			printf("int: %d\n", token->value.i);
+		} else if (token->type == F64_VAR) {
+			printf("float: %f\n", token->value.f);
 		} else {
 			printf("%d\n", token->type);
 		}
