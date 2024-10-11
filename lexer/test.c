@@ -12,7 +12,7 @@ int main() {
 		} else if (token->type == I32_VAR) {
 			printf("int: %d\n", token->value.i);
 		} else if (token->type == F64_VAR) {
-			printf("float: %f\n", token->value.f);
+			printf("float: %f\n", token->value.f64);
 		} else {
 			printf("%d\n", token->type);
 		}

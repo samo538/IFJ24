@@ -58,7 +58,7 @@ enum TokenType {
 
 union TokenValue{
 	int i;
-	float f;
+	double f64; //klasicky float je f32, double f64
 	char* str;
 };
 

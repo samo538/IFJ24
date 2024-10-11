@@ -220,9 +220,9 @@ void number_type(TokenPtr token, char input) {
 		return;
 	}
 
-	float temp = atof(token->value.str);
+	double temp = atof(token->value.str);
 	free(token->value.str);
-	token->value.f = temp;
+	token->value.f64 = temp;
 	token->type = F64_VAR;
 }
 
