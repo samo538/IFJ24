@@ -13,7 +13,11 @@ int main() {
 			printf("int: %d\n", token->value.i);
 		} else if (token->type == F64_VAR) {
 			printf("float: %f\n", token->value.f64);
-		} else {
+		}
+        else if (token->type == STRING) {
+            printf("string: %s\n", token->value.str);
+        }
+        else {
 			printf("%d\n", token->type);
 		}
 

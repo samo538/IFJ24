@@ -169,6 +169,12 @@ void choose_type(TokenPtr token, char input) {
 			token->value.i = 0;
 			return;
 		}
+        case '"': {
+            string_type(token, input);
+        }
+        case '\\': {
+            multi_line_string_type(token,input);
+        }
 	}
 
 	if('1' <= input && input <= '9') {
@@ -178,6 +184,8 @@ void choose_type(TokenPtr token, char input) {
 	if(('a' <= input && input <= 'z') || ('A' <= input && input <= 'Z')) {
 		id_type(token, input);
 	}
+
+
 }
 
 void number_type(TokenPtr token, char input) {
@@ -225,6 +233,59 @@ void number_type(TokenPtr token, char input) {
 	token->value.f64 = temp;
 	token->type = F64_VAR;
 }
+void multi_line_string_type(TokenPtr token, char input) {
+    size_t strSize = 20;
+    alloc_str(&token->value.str, strSize);
+    input = getchar();
+    input = getchar();
+    token->value.str[0] = input;
+    size_t length = 1;
+
+    do {
+        while ('\n' != input) {
+            input = getchar();
+            if ('\n' == input) { break; }
+            token->value.str[length] = input;
+            length++;
+            realloc_str(&token->value.str, &strSize, length);
+        }
+
+        do {
+            input = getchar();
+        } while (input == ' ' || input == '\t');
+
+        if('\\' == input) {
+            token->value.str[length] = '?'; //todo change to \n, ? is for testing only
+            length++;
+            input = getchar();
+        }
+        else {ungetc(input, stdin);}
+    }
+    while ('\\' == input);
+    token->value.str[length] = '\0';
+    token->type = STRING;
+}
+
+
+void string_type(TokenPtr token, char input) {
+    size_t strSize = 20;
+    alloc_str(&token->value.str, strSize);
+    input = getchar();
+    token->value.str[0] = input;
+    size_t length = 1;
+
+    while('"' != input) {
+        input = getchar();
+        if('"' == input) {break;}
+        token->value.str[length] = input;
+        length++;
+        realloc_str(&token->value.str, &strSize, length);
+
+    }
+    token->value.str[length] = '\0';
+    token->type = STRING;
+}
+
 
 void id_type(TokenPtr token, char input) {
 	size_t strSize = 20;
