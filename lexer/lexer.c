@@ -171,9 +171,11 @@ void choose_type(TokenPtr token, char input) {
 		}
         case '"': {
             string_type(token, input);
+            return;
         }
         case '\\': {
             multi_line_string_type(token,input);
+            return;
         }
 	}
 
