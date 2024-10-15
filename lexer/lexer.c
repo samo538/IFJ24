@@ -38,7 +38,7 @@ TokenPtr next_token() {
 }
 
 void choose_type(TokenPtr token, char input) {
-	switch(input) { //TODO: string, []u8
+	switch(input) { //TODO: string
 		case '=': {
 			char c = getchar();
 			if(c == '=') {
@@ -190,12 +190,13 @@ void choose_type(TokenPtr token, char input) {
 
 void number_type(TokenPtr token, char input) {
 	bool isI32 = true;
+	bool isEXP = true;
 	size_t strSize = 20;
 	alloc_str(&token->value.str, strSize);
 	token->value.str[0] = input;
 	size_t length = 1;
 	input = getchar();
-	while(('0' <= input && input <= '9') || ((input == 'e' || input == 'E' || input == '.') && isI32)) { //pokud I32 = false, už bylo e načteno
+	while(('0' <= input && input <= '9') || ((input == 'e' || input == 'E') && isEXP) || (input == '.' && isI32)) { //pokud I32 = false, už bylo e načteno
 		token->value.str[length] = input;
 		length++;
 		realloc_str(&token->value.str, &strSize, length);
@@ -204,6 +205,7 @@ void number_type(TokenPtr token, char input) {
 			isI32 = false;
 		} else if (input == 'e' || input == 'E') {
 			isI32 = false;
+			isEXP = false;
 			input = getchar();
 			if(input == '+' || input == '-') {
 				token->value.str[length] = input;
