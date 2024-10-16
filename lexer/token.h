@@ -18,7 +18,7 @@ enum TokenType {
 	NULL_VALUE,
 	PUB,
 	RETURN,
-	VARIABLE,
+	VAR,
 	VOID,
 	WHILE,
 	IFJ,
