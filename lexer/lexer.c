@@ -38,7 +38,7 @@ TokenPtr next_token() {
 }
 
 void choose_type(TokenPtr token, char input) {
-	switch(input) { //TODO: string
+	switch(input) {
 		case '=': {
 			char c = getchar();
 			if(c == '=') {
@@ -259,7 +259,7 @@ void multi_line_string_type(TokenPtr token, char input) {
         } while (input == ' ' || input == '\t');
 
         if('\\' == input) {
-            token->value.str[length] = '?'; //todo change to \n, ? is for testing only
+            token->value.str[length] = '\n';
             length++;
             input = getchar();
         }
@@ -281,6 +281,7 @@ void string_type(TokenPtr token, char input) {
     while('"' != input) {
         input = getchar();
         if('"' == input) {break;}
+        if('\n' == input) {lexer_error();}
         token->value.str[length] = input;
         length++;
         realloc_str(&token->value.str, &strSize, length);
