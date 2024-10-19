@@ -114,12 +114,17 @@ void choose_type(TokenPtr token, char input) {
 			break;
 		}
 		case ')': {
+			if (prevToken == OPENING_BRACKET) {
+				inBracket = false;
+			}
+
 			if(inBracket && prevToken != COMMA) { //vloží ,
 				ungetc(input, stdin);
 				token->type = COMMA;
 				inBracket = false;
 				break;
 			}
+
 			token->type = CLOSING_BRACKET;
 			break;
 		}
