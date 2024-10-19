@@ -5,6 +5,23 @@
 
 #include"lexer.h"
 
+const char* tokenTypeKeywords[]= {
+	"const",
+	"if",
+	"else",
+	"fn",
+	"i32",
+	"f64",
+	"null",
+	"pub",
+	"return",
+	"var",
+	"void",
+	"while",
+	"ifj",
+	"u8",
+};
+
 void lexer_error() { //TODO: vyměnit za real error
 	printf("ERROR: lexer\n");
 }

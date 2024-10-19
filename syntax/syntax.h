@@ -1,5 +1,5 @@
-#ifndef __syntax__
-#define __syntax__
+#ifndef SYNTAX_H
+#define SYNTAX_H
 
 #include "../lexer/token.h"
 
