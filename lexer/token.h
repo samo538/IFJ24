@@ -18,9 +18,11 @@ enum TokenType {
 	NULL_VALUE,
 	PUB,
 	RETURN,
-	VARIABLE,
+	VAR,
 	VOID,
 	WHILE,
+	IFJ,
+	U8,
 	ID,
 	EQUAL, //==
 	NOT_EQUAL, //!=
@@ -32,7 +34,7 @@ enum TokenType {
 	PLUS, //+
 	MINUS, //-
 	MULTIPLY, //*
-	DEVIDE, ///
+	DIVIDE, ///
 	NULLABLE, //?
 	I32_VAR,
 	F64_VAR,
@@ -41,19 +43,28 @@ enum TokenType {
 	CLOSING_BRACKET, //)
 	OPENING_CURLY_BRACKET, //{
 	CLOSING_CURLY_BRACKET, //}
+	OPENING_SQUARE_BRACKET, //[
+	CLOSING_SQUARE_BRACKET, //]
 	VERTICAL_BAR, //|
 	SEMICOLON, //;
 	COLON, //:
 	COMMA, //,
 	IMPORT, //@import
-	STRING, //[]u8
+	STRING,
+	UNDERSCORE, //_
 	END_OF_FILE,
 	COUNT_TOKEN_TYPE,
 };
 
+union TokenValue{
+	int i;
+	double f64; //klasicky float je f32, double f64
+	char* str;
+};
+
 typedef struct {
 	enum TokenType type;
-	void* value;
+	union TokenValue value;
 } Token, *TokenPtr;
 
 const char* tokenTypeKeywords[]= {
@@ -69,6 +80,8 @@ const char* tokenTypeKeywords[]= {
 	"var",
 	"void",
 	"while",
+	"ifj",
+	"u8",
 };
 
 #endif
