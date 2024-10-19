@@ -8,7 +8,6 @@ int main() {
 			printf("keyword: %s\n", tokenTypeKeywords[token->type]);
 		} else if (token->type == ID) {
 			printf("id: %s\n", token->value.str);
-			free(token->value.str);
 		} else if (token->type == I32_VAR) {
 			printf("int: %d\n", token->value.i);
 		} else if (token->type == F64_VAR) {
@@ -22,9 +21,9 @@ int main() {
 		}
 
 		if(token->type == END_OF_FILE){break;}
-		free(token);
+		dealloc_token(token);
 		token = next_token();
 	}
-	free(token);
+	dealloc_token(token);
 	return 0;
 }

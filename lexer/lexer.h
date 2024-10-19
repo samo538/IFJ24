@@ -25,6 +25,8 @@ void realloc_str(char** str, size_t* strSize, size_t length);
 
 void alloc_str(char** str, size_t strSize);
 
+void dealloc_token(TokenPtr token);
+
 void string_type(TokenPtr token, char input);
 
 void multi_line_string_type(TokenPtr token, char input);

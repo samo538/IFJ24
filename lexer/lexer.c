@@ -28,6 +28,13 @@ void alloc_str(char** str, size_t strSize) {
 	}
 }
 
+void dealloc_token(TokenPtr token) {
+	if(token->type == STRING || token->type == ID) {
+		free(token->value.str);
+	}
+	free(token);
+}
+
 TokenPtr next_token() {
 	TokenPtr token = (TokenPtr)malloc(sizeof(Token));
 	token->type = COUNT_TOKEN_TYPE; //placeholder, jediný token type, jenž nemůže být na vstupu
@@ -38,144 +45,156 @@ TokenPtr next_token() {
 }
 
 void choose_type(TokenPtr token, char input) {
+	static bool prevId = false;
+	static bool inBracket = false;
+	static enum TokenType prevToken;
 	switch(input) {
 		case '=': {
 			char c = getchar();
 			if(c == '=') {
 				token->type = EQUAL;
-				return;
+				break;
 			}
 
 			ungetc(c, stdin);
 			token->type = ASSIGN;
-			return;
+			break;
 		}
 		case '<': {
 			char c = getchar();
 			if(c == '=') {
 				token->type = LESS_OR_EQUAL;
-				return;
+				break;
 			}
 
 			ungetc(c, stdin);
 			token->type = LESS;
-			return;
+			break;
 		}
 		case '>': {
 			char c = getchar();
 			if(c == '=') {
 				token->type = MORE_OR_EQUAL;
-				return;
+				break;
 			}
 
 			ungetc(c, stdin);
 			token->type = MORE;
-			return;
+			break;
 		}
 		case '+': {
 			token->type = PLUS;
-			return;
+			break;
 		}
 		case '-': {
 			token->type = MINUS;
-			return;
+			break;
 		}
 		case '*': {
 			token->type = MULTIPLY;
-			return;
+			break;
 		}
 		case '/': {
 			token->type = DIVIDE;
-			return;
+			break;
 		}
 		case '?': {
 			token->type = NULLABLE;
-			return;
+			break;
 		}
 		case '.': {
 			token->type = DOT;
-			return;
+			break;
 		}
 		case '(': {
 			token->type = OPENING_BRACKET;
-			return;
+			if(prevId) {
+				inBracket = true;
+			}
+			break;
 		}
 		case ')': {
+			if(inBracket && prevToken != COMMA) { //vloží ,
+				ungetc(input, stdin);
+				token->type = COMMA;
+				inBracket = false;
+				break;
+			}
 			token->type = CLOSING_BRACKET;
-			return;
+			break;
 		}
 		case '{': {
 			token->type = OPENING_CURLY_BRACKET;
-			return;
+			break;
 		}
 		case '}': {
 			token->type = CLOSING_CURLY_BRACKET;
-			return;
+			break;
 		}
 		case '[': {
 			token->type = OPENING_SQUARE_BRACKET;
-			return;
+			break;
 		}
 		case ']': {
 			token->type = CLOSING_SQUARE_BRACKET;
-			return;
+			break;
 		}
 		case '|': {
 			token->type = VERTICAL_BAR;
-			return;
+			break;
 		}
 		case ';': {
 			token->type = SEMICOLON;
-			return;
+			break;
 		}
 		case ':': {
 			token->type = COLON;
-			return;
+			break;
 		}
 		case ',': {
 			token->type = COMMA;
-			return;
+			break;
 		}
 		case '_': {
 			char c = getchar();
 			if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) {
 				ungetc(c, stdin);
 				id_type(token, input);
-				return;
+				break;
 			}
 
 			ungetc(c, stdin);
 			token->type = UNDERSCORE;
-			return;
+			break;
 		}
 		case EOF: {
 			token->type = END_OF_FILE;
-			return;
+			break;
 		}
 		case '0': {
 			char c = getchar();
 			if('0' <= c && c <= '9') {
 				lexer_error();
 
-				return;
+				break;
 			} else if (c == 'e' || c == 'E' || c == '.') {
 				ungetc(c, stdin);
 				number_type(token, input);
-				return;
+				break;
 			}
 
 			ungetc(c, stdin);
 			token->type = I32_VAR;
 			token->value.i = 0;
-			return;
+			break;
 		}
         case '"': {
             string_type(token, input);
-            return;
+            break;
         }
         case '\\': {
             multi_line_string_type(token,input);
-            return;
+            break;
         }
 	}
 
@@ -185,9 +204,17 @@ void choose_type(TokenPtr token, char input) {
 
 	if(('a' <= input && input <= 'z') || ('A' <= input && input <= 'Z')) {
 		id_type(token, input);
+		if(token->type == ID) {
+			prevId = true;
+
+			return;
+		}
 	}
-
-
+	
+	if (token->type != COUNT_TOKEN_TYPE) {
+		prevId = false;
+		prevToken = token->type;
+	}
 }
 
 void number_type(TokenPtr token, char input) {
