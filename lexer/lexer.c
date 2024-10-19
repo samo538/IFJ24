@@ -211,6 +211,7 @@ void choose_type(TokenPtr token, char input) {
 		id_type(token, input);
 		if(token->type == ID) {
 			prevId = true;
+			prevToken = token->type;
 
 			return;
 		}
