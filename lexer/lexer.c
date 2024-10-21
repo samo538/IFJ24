@@ -195,7 +195,7 @@ void choose_type(TokenPtr token, char input) {
 		}
 		case '_': {
 			char c = getchar();
-			if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9')) {
+			if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_') {
 				ungetc(c, stdin);
 				id_type(token, input);
 				break;
@@ -515,7 +515,7 @@ void id_type(TokenPtr token, char input) {
 	token->value.str[0] = input;
 	size_t idLength = 1;
 	input = getchar();
-	while(('a' <= input && input <= 'z') || ('A' <= input && input <= 'Z') || ('0' <= input && input <= '9')) {
+	while(('a' <= input && input <= 'z') || ('A' <= input && input <= 'Z') || ('0' <= input && input <= '9') || input == '_') {
 		token->value.str[idLength] = input;
 		idLength++;
 		realloc_str(&token->value.str, &strSize, idLength);
