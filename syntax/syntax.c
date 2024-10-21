@@ -62,7 +62,7 @@ bool t_op_bracket(TokenStoragePtr stoken){
     }
 }
 bool string_prolog(TokenStoragePtr stoken){
-    if (stoken->SToken->type == STRING && strcmp(stoken->SToken->value.str, "ifj24.zig")){
+    if (stoken->SToken->type == STRING && !strcmp(stoken->SToken->value.str, "ifj24.zig")){
         dealloc_token(stoken->SToken);
         stoken->SToken = next_token();
         return true;

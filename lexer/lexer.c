@@ -120,7 +120,7 @@ void choose_type(TokenPtr token, char input) {
 				} while(c != '\n' && c != EOF);
 
 				if (c == EOF) {
-					token->type == END_OF_FILE;
+					token->type = END_OF_FILE;
 				}
 
 				return;
