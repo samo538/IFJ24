@@ -5,6 +5,24 @@
 
 #include"lexer.h"
 
+const char* tokenTypeKeywords[]= {
+	"const",
+	"if",
+	"else",
+	"fn",
+	"i32",
+	"f64",
+	"null",
+	"pub",
+	"return",
+	"var",
+	"void",
+	"while",
+	"ifj",
+	"u8",
+	"import",
+};
+
 void lexer_error() { //TODO: vyměnit za real error
 	printf("ERROR: lexer\n");
 }
@@ -95,6 +113,21 @@ void choose_type(TokenPtr token, char input) {
 			break;
 		}
 		case '/': {
+			char c = getchar();
+			if(c == '/') {
+				do {
+					c = getchar();
+				} while(c != '\n' && c != EOF);
+
+				if (c == EOF) {
+					token->type == END_OF_FILE;
+				}
+
+				return;
+
+			}
+
+			ungetc(c, stdin);
 			token->type = DIVIDE;
 			break;
 		}
@@ -193,14 +226,27 @@ void choose_type(TokenPtr token, char input) {
 			token->value.i = 0;
 			break;
 		}
-        case '"': {
-            string_type(token, input);
-            break;
-        }
-        case '\\': {
-            multi_line_string_type(token,input);
-            break;
-        }
+		case '@': {
+			char str[7];
+			scanf("%6s",str);
+			if (strcmp("import", str) == 0) {
+				token->type = IMPORT;
+				prevId = false;
+				prevToken = token->type;
+				break;
+			}
+
+			lexer_error();
+			break;
+		}
+		case '"': {
+      string_type(token, input);
+      break;
+    }
+    case '\\': {
+      multi_line_string_type(token,input);
+       break;
+    }
 	}
 
 	if('1' <= input && input <= '9') {

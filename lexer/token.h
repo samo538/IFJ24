@@ -67,21 +67,4 @@ typedef struct {
 	union TokenValue value;
 } Token, *TokenPtr;
 
-const char* tokenTypeKeywords[]= {
-	"const",
-	"if",
-	"else",
-	"fn",
-	"i32",
-	"f64",
-	"null",
-	"pub",
-	"return",
-	"var",
-	"void",
-	"while",
-	"ifj",
-	"u8",
-};
-
 #endif
