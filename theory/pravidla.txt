@@ -77,7 +77,6 @@ Lower Rules
 <type_keyword> -> 'I32'
 
 <type> -> <nullable> <type_keyword>
-<type> -> <type_keyword>
 
 <nullable> -> 'NULLABLE'
 <nullable> -> ε
