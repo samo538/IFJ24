@@ -36,6 +36,7 @@ Token Rules
 <float> -> 'F64_VAR'
 <null> -> 'NULL_VALUE'
 <id> -> 'ID'
+<id_ifj> -> 'ID' (id.val sa musi zhodovat s nazvom neakej vstavanej funkcie)
 <underline> -> 'UNDERSCORE'
 
 <nullable> -> 'NULLABLE'
@@ -47,7 +48,7 @@ Expressions
 <var_exp> -> <fn_call>
 <var_exp> -> <exp> <semicolon>
 
-<null_exp> -> <exp> <cl_bracket>
+<null_exp> -> <exp> <truth_op_token> <exp> <cl_bracket>
 <null_exp> -> <id> <cl_bracket> <vertical_bar> <id> <vertical_bar> // zober 2 tokeny, pokial prvy je ID a druhy je cl_bracket, vol tuto variantu, inak vol druhu
 
 <return_exp> -> ε
@@ -79,13 +80,14 @@ Main Rules
 <call_params> -> <int> <comma> <call_params>
 <call_params> -> <float> <comma> <call_params>
 <call_params> -> <null> <comma> <call_params>
+<call_params> -> <id> <comma> <call_params>
 
 <if_while_body> -> <op_cr_bracket> <fn_body> <cl_cr_bracket>
 
-<var_def> -> <var_const> <id> <type_vardef> <eq> <var_exp> // na konci sa neocakava semicolon pretoze je to zahrnute vo <var_exp>
+<var_def> -> <var_const> <id> <type_vardef> <eq> <var_exp>
 <assign> -> <id_assign> <eq> <var_exp>
 <fn_call> -> <id> <op_bracket> <call_params> <cl_bracket> <semicolon>
-<ifj_call> -> <ifj> <dot> <id> <op_bracket> <call_params> <cl_bracket> <semicolon> // nahliadnutie do tokenu a zistenie nazvu <id>, pokial sa nezhoduje s nazvom ziadnej vstavanej funkcie tak chyba
+<ifj_call> -> <id_ifj> <dot> <id> <op_bracket> <call_params> <cl_bracket> <semicolon>
 <if_else> -> <if> <op_bracket> <null_exp> <if_while_body> <else> <if_while_body>
 <cycle> -> <while> <op_bracket> <null_exp> <if_while_body>
 <fn_return> -> <return> <return_exp> <semicolon>

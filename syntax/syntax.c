@@ -13,6 +13,25 @@
 
 #include <stdio.h>
 
+bool ifj_call(TokenStoragePtr stoken);
+bool fn_body(TokenStoragePtr stoken);
+
+const char* embededfunctions[] = {
+    "readstr",
+    "readi32",
+    "readf64",
+    "write",
+    "i2f",
+    "f2i",
+    "string",
+    "length",
+    "concat",
+    "substring",
+    "strcmp",
+    "ord",
+    "chr"
+};
+
 // errors and deallocs
 
 void dealloc_stoken(TokenStoragePtr stoken){
@@ -33,6 +52,17 @@ void dealloc_stoken(TokenStoragePtr stoken){
 void syn_error(TokenStoragePtr stoken){
     dealloc_stoken(stoken);
     exit(2);
+}
+
+// Helper functions
+
+bool h_check_ifj_fn(char *fn_name){
+    for (int i = 0; i < 13; i++){
+        if (!strcmp(fn_name, embededfunctions[i])){
+            return true;
+        }
+    }
+    return false;
 }
 
 // Token rules
@@ -399,6 +429,17 @@ bool t_id(TokenStoragePtr stoken){
         return false;
     }
 }
+bool t_id_ifj(TokenStoragePtr stoken){
+    if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
+        dealloc_token(stoken->SToken);
+        stoken->SToken = next_token();
+        return true;
+    }
+    else{
+        syn_error(stoken);
+        return false;
+    }
+}
 bool t_underline(TokenStoragePtr stoken){
     if (stoken->SToken->type == UNDERSCORE){
         dealloc_token(stoken->SToken);
@@ -419,6 +460,34 @@ bool t_nullable(TokenStoragePtr stoken){
     else{
         return true;
     }
+}
+
+// Expression rules
+
+bool e_var_exp(TokenStoragePtr stoken){
+    if (stoken->SToken->type == IFJ){
+        return ifj_call(stoken);
+    }
+    /*else if (stoken->SToken->type == ID && ID -> function){
+        return fn_call(stoken);
+    }
+    else {
+        call precedence
+    }
+
+    */
+    return false;
+}
+
+bool e_return_exp(TokenStoragePtr stoken){
+    /*if (stoken->SToken->type == EXP){
+        call precedence
+    }*/
+    return true;
+}
+
+bool e_null_exp(TokenStoragePtr stoken){
+    return t_cl_bracket(stoken);
 }
 
 // Lower rules
@@ -466,9 +535,128 @@ bool l_id_assign(TokenStoragePtr stoken){
 }
 
 // Main rules
+bool call_params(TokenStoragePtr stoken){
+    if (stoken->SToken->type == STRING){
+        t_string(stoken) &&
+        t_comma(stoken) &&
+        call_params(stoken);
+    }
+    else if(stoken->SToken->type == I32_VAR) {
+        t_int(stoken) &&
+        t_comma(stoken) &&
+        call_params(stoken);
+    }
+    else if(stoken->SToken->type == F64_VAR) {
+        t_float(stoken) &&
+        t_comma(stoken) &&
+        call_params(stoken);
+    }
+    else if(stoken->SToken->type == NULL_VALUE) {
+        t_null(stoken) &&
+        t_comma(stoken) &&
+        call_params(stoken);
+    }
+    else if(stoken->SToken->type == ID) {
+        t_id(stoken) &&
+        t_comma(stoken) &&
+        call_params(stoken);
+    }
 
-bool fn_body(TokenStoragePtr stoken){
     return true;
+}
+
+bool if_while_body(TokenStoragePtr stoken){
+    return t_op_cr_bracket(stoken) &&
+    fn_body(stoken) &&
+    t_cl_cr_bracket(stoken);
+}
+
+bool var_def(TokenStoragePtr stoken){
+    return l_var_const(stoken) &&
+    t_id(stoken) &&
+    l_type_vardef(stoken) &&
+    t_eq(stoken) &&
+    e_var_exp(stoken);
+}
+
+bool assign(TokenStoragePtr stoken){
+    return l_id_assign(stoken) &&
+    t_eq(stoken) &&
+    e_var_exp(stoken);
+}
+
+bool fn_call(TokenStoragePtr stoken){
+    return t_id(stoken) &&
+    t_op_bracket(stoken) &&
+    call_params(stoken) &&
+    t_cl_bracket(stoken) &&
+    t_semicolon(stoken);
+}
+
+bool ifj_call(TokenStoragePtr stoken){
+    return t_ifj(stoken) &&
+    t_dot(stoken) &&
+    t_id_ifj(stoken) &&
+    t_op_bracket(stoken) &&
+    call_params(stoken) &&
+    t_cl_bracket(stoken) &&
+    t_semicolon(stoken);
+}
+
+bool if_else(TokenStoragePtr stoken){
+    return t_if(stoken) &&
+    t_op_bracket(stoken) &&
+    e_null_exp(stoken) &&
+    if_while_body(stoken) &&
+    t_else(stoken) &&
+    if_while_body(stoken);
+}
+
+bool cycle(TokenStoragePtr stoken){
+    return t_while(stoken) &&
+    t_op_bracket(stoken) &&
+    e_null_exp(stoken) &&
+    if_while_body(stoken);
+}
+
+bool fn_return(TokenStoragePtr stoken){
+    return t_return(stoken) &&
+    e_return_exp(stoken) &&
+    t_semicolon(stoken);
+}
+
+bool fn_body(TokenStoragePtr stoken){ // TODO 
+    if (stoken->SToken->type == VAR || stoken->SToken->type == CONST){
+        return var_def(stoken) &&
+        fn_body(stoken);
+    }
+    /*else if(stoken->SToken->type == ID && ID -> var){
+        return assign(stoken) &&
+        fn_body(stoken);
+    }
+    else if(stoken->SToken->type == ID && ID -> function){
+        return fn_call(stoken) &&
+        fn_body(stoken);
+    }*/
+    else if(stoken->SToken->type == IFJ){
+        return ifj_call(stoken) &&
+        fn_body(stoken);
+    }
+    else if(stoken->SToken->type == IF){
+        return if_else(stoken) &&
+        fn_body(stoken);
+    }
+    else if(stoken->SToken->type == WHILE){
+        return cycle(stoken) &&
+        fn_body(stoken);
+    }
+    else if(stoken->SToken->type == RETURN){
+        return fn_return(stoken) &&
+        fn_body(stoken);
+    }
+    else {
+        return true;
+    }
 }
 
 bool params(TokenStoragePtr stoken){
