@@ -3,12 +3,12 @@
 
 #include <stdbool.h>
 
-#include "../syntax/syntax.h"
+#include "../lexer/token.h"
 
 typedef struct StackElement
 {
     struct StackElement *NextElement;
-    TokenStoragePtr Token;
+    TokenPtr Token;
 
 }StackElement, *StackElementPtr;
 
@@ -22,8 +22,8 @@ typedef struct StackBase
 StackBasePtr StackInit(void);
 bool StackDestroy(StackBasePtr);
 
-TokenStoragePtr top(StackBasePtr);
-StackElementPtr push(StackBasePtr, TokenStoragePtr);
-TokenStoragePtr pop(StackBasePtr);
+TokenPtr top(StackBasePtr);
+StackElementPtr push(StackBasePtr, TokenPtr);
+TokenPtr pop(StackBasePtr);
 
 #endif

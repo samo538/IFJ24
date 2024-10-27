@@ -18,7 +18,7 @@ StackBasePtr StackInit(void){
 
 bool StackDestroy(StackBasePtr stack){
 
-    TokenStoragePtr ret = NULL;
+    TokenPtr ret = NULL;
 
     do
     {
@@ -30,12 +30,12 @@ bool StackDestroy(StackBasePtr stack){
     return true;
 }
 
-TokenStoragePtr top(StackBasePtr stack){
+TokenPtr top(StackBasePtr stack){
 
     return stack->TopElement->Token;
 }
 
-StackElementPtr push(StackBasePtr stack, TokenStoragePtr token){
+StackElementPtr push(StackBasePtr stack, TokenPtr token){
 
     StackElementPtr new_element = (StackElementPtr) malloc(sizeof(StackElement));
     if(new_element == NULL){
@@ -53,7 +53,7 @@ StackElementPtr push(StackBasePtr stack, TokenStoragePtr token){
     return new_element;
 }
 
-TokenStoragePtr pop(StackBasePtr stack){
+TokenPtr pop(StackBasePtr stack){
 
     if(stack->BottomElement != NULL){
         StackElementPtr element_to_pop = stack->TopElement;
@@ -68,7 +68,7 @@ TokenStoragePtr pop(StackBasePtr stack){
             stack->TopElement = element_to_pop->NextElement;
         }
 
-        TokenStoragePtr token = element_to_pop->Token;
+        TokenPtr token = element_to_pop->Token;
         
         free(element_to_pop);
 
