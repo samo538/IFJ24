@@ -11,6 +11,8 @@
 #include<stdbool.h>
 #include"token.h"
 
+extern const char* tokenTypeKeywords[];
+
 TokenPtr next_token();
 
 void choose_type(TokenPtr token, char input);

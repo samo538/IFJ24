@@ -1,45 +1,8 @@
 <xxx> - toto hovori ze xxx je neterminal
 'xxx' - toto hovori ze xxx je terminal
 
-Main Rules
+Token Rules
 ----------------------------------------------------------------------------------------------
-
-<start> -> <import_def> <functions>
-<import_def> -> <const> <ifj> <eq> <at_import> <op_bracket> <string_prolog> <cl_bracket> <semicolon>
-<functions> -> <fn_def> <op_cr_bracket> <fn_body> <cl_cr_bracket> <functions>
-<functions> -> <eof>
-<fn_def> -> <pub> <fn> <id> <op_bracket> <params> <cl_bracket> <type_fndef> 
-<params> -> <id> <colon> <type> <comma> <params>
-<params> -> ε
-
-<fn_body> -> <var_def> <fn_body>
-<fn_body> -> <assign> <fn_body> // nahliadnutie do tabulky symbolov, pokial je ID variable, tak sa vola tato varianta
-<fn_body> -> <fn_call> <fn_body> // nahliadnutie do tabulky symbolov, pokial je ID function alebo nedefinovane, tak sa vola tato varianta
-<fn_body> -> <ifj_call> <fn_body> 
-<fn_body> -> <if_else> <fn_body>
-<fn_body> -> <cycle> <fn_body>
-<fn_body> -> <fn_return> <fn_body>
-<fn_body> -> ε
-
-<var_def> -> <var_const> <id> <type_vardef> <eq> <var_exp> // na konci sa neocakava semicolon pretoze je to zahrnute vo <var_exp>
-<assign> -> <id_assign> <eq> <var_exp>
-<fn_call> -> <id> <op_bracket> <call_params> <cl_bracket> <semicolon>
-<ifj_call> -> <ifj> <dot> <id> <op_bracket> <call_params> <cl_bracket> <semicolon> // nahliadnutie do tokenu a zistenie nazvu <id>, pokial sa nezhoduje s nazvom ziadnej vstavanej funkcie tak chyba
-<if_else> -> <if> <op_bracket> <null_exp> <if_while_body> <else> <if_while_body>
-<cycle> -> <while> <op_bracket> <null_exp> <if_while_body>
-<fn_return> -> <return> <return_exp> <semicolon>
-
-<if_while_body> -> <op_cr_bracket> <fn_body> <cl_cr_bracket>
-
-<call_params> -> ε
-<call_params> -> <string> <comma> <call_params>
-<call_params> -> <int> <comma> <call_params>
-<call_params> -> <float> <comma> <call_params>
-<call_params> -> <null> <comma> <call_params>
-
-Lower Rules
-----------------------------------------------------------------------------------------------
-
 <ifj> -> 'IFJ'
 <at_import> -> 'IMPORT'
 <eq> -> 'ASSIGN'
@@ -62,34 +25,22 @@ Lower Rules
 <vertical_bar> -> 'VERTICAL_BAR'
 <while> -> 'WHILE'
 <eof> -> 'END_OF_FILE'
-
-<var_const> -> 'VAR'
-<var_const> -> <const>
 <const> -> 'CONST'
-
-<type_fndef> -> <type>
-<type_fndef> -> 'VOID'
-<type_vardef> -> <colon> <type>
-<type_vardef> -> ε
-
+<var> -> 'VAR'
+<void> -> 'VOID'
 <type_keyword> -> <op_sq_bracket> <cl_sq_bracket> 'U8'
 <type_keyword> -> 'F64'
 <type_keyword> -> 'I32'
-
-<type> -> <nullable> <type_keyword>
-<type> -> <type_keyword>
-
-<nullable> -> 'NULLABLE'
-<nullable> -> ε
-
 <string> -> 'STRING'
 <int> -> 'I32_VAR'
 <float> -> 'F64_VAR'
 <null> -> 'NULL_VALUE'
-
-<id_assign> -> 'UNDERLINE'
-<id_assing> -> <id>
 <id> -> 'ID'
+<id_ifj> -> 'ID' (id.val sa musi zhodovat s nazvom neakej vstavanej funkcie)
+<underline> -> 'UNDERSCORE'
+
+<nullable> -> 'NULLABLE'
+<nullable> -> ε
 
 Expressions
 ----------------------------------------------------------------------------------------------
@@ -97,11 +48,64 @@ Expressions
 <var_exp> -> <fn_call>
 <var_exp> -> <exp> <semicolon>
 
-<null_exp> -> <exp> <cl_bracket>
+<null_exp> -> <exp> <truth_op_token> <exp> <cl_bracket>
 <null_exp> -> <id> <cl_bracket> <vertical_bar> <id> <vertical_bar> // zober 2 tokeny, pokial prvy je ID a druhy je cl_bracket, vol tuto variantu, inak vol druhu
 
 <return_exp> -> ε
 <return_exp> -> <exp>
 
 <exp> -> // call precedence analyzer
+
+Lower Rules
+----------------------------------------------------------------------------------------------
+<type> -> <nullable> <type_keyword>
+
+<var_const> -> <var>
+<var_const> -> <const>
+
+<type_fndef> -> <type>
+<type_fndef> -> <void>
+
+<type_vardef> -> <colon> <type>
+<type_vardef> -> ε
+
+
+<id_assign> -> <underline>
+<id_assing> -> <id>
+
+Main Rules
+----------------------------------------------------------------------------------------------
+<call_params> -> ε
+<call_params> -> <string> <comma> <call_params>
+<call_params> -> <int> <comma> <call_params>
+<call_params> -> <float> <comma> <call_params>
+<call_params> -> <null> <comma> <call_params>
+<call_params> -> <id> <comma> <call_params>
+
+<if_while_body> -> <op_cr_bracket> <fn_body> <cl_cr_bracket>
+
+<var_def> -> <var_const> <id> <type_vardef> <eq> <var_exp>
+<assign> -> <id_assign> <eq> <var_exp>
+<fn_call> -> <id> <op_bracket> <call_params> <cl_bracket> <semicolon>
+<ifj_call> -> <id_ifj> <dot> <id> <op_bracket> <call_params> <cl_bracket> <semicolon>
+<if_else> -> <if> <op_bracket> <null_exp> <if_while_body> <else> <if_while_body>
+<cycle> -> <while> <op_bracket> <null_exp> <if_while_body>
+<fn_return> -> <return> <return_exp> <semicolon>
+
+<fn_body> -> <var_def> <fn_body>
+<fn_body> -> <assign> <fn_body> // nahliadnutie do tabulky symbolov, pokial je ID variable, tak sa vola tato varianta
+<fn_body> -> <fn_call> <fn_body> // nahliadnutie do tabulky symbolov, pokial je ID function alebo nedefinovane, tak sa vola tato varianta
+<fn_body> -> <ifj_call> <fn_body> 
+<fn_body> -> <if_else> <fn_body>
+<fn_body> -> <cycle> <fn_body>
+<fn_body> -> <fn_return> <fn_body>
+<fn_body> -> ε
+
+<params> -> <id> <colon> <type> <comma> <params>
+<params> -> ε
+<fn_def> -> <pub> <fn> <id> <op_bracket> <params> <cl_bracket> <type_fndef> 
+<functions> -> <fn_def> <op_cr_bracket> <fn_body> <cl_cr_bracket> <functions>
+<functions> -> <eof>
+<import_def> -> <const> <ifj> <eq> <at_import> <op_bracket> <string_prolog> <cl_bracket> <semicolon>
+<start> -> <import_def> <functions>
 
