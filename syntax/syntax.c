@@ -322,8 +322,9 @@ int main(){
     stoken->SToken = queue_next_token(queue);
 
     result = start(stoken);
+
     Elem_id *elem;
-    for (int i = 0; i < 1000; i++){
+    for (int i = 0; i < 1001; i++){
         elem = stoken->glob_table[i];
         if (elem == NULL){
             continue;

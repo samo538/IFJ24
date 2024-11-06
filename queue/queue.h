@@ -17,6 +17,8 @@ typedef struct{
     Queue *queue;
     SymTable *glob_table;
     char *current_fn;
+    SymTable *local_table;
+    int *level_stack;
 }TokenStorage, *TokenStoragePtr;
 
 void queue_add_token(Queue *queue, TokenPtr token);

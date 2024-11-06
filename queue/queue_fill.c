@@ -96,7 +96,7 @@ bool t_cl_sq_bracket_q(TokenStoragePtr stoken){
 bool t_u8_q(TokenStoragePtr stoken, bool ret){
     if (stoken->SToken->type == U8){
         Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, 0, stoken->glob_table);
+        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
         if (ret == false){
             tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = U8;
@@ -117,7 +117,7 @@ bool t_u8_q(TokenStoragePtr stoken, bool ret){
 bool t_void_q(TokenStoragePtr stoken){
     if (stoken->SToken->type == VOID){
         Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, 0, stoken->glob_table);
+        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
         tmp->FnVar.Fn_id.return_type.type = VOID;
 
@@ -132,14 +132,15 @@ bool t_void_q(TokenStoragePtr stoken){
 }
 bool t_id_func_q(TokenStoragePtr stoken){
     if (stoken->SToken->type == ID){
-        if(TableSearch(stoken->SToken->value.str, 0, stoken->glob_table) != NULL){
+        if(TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table) != NULL){
             fprintf(stderr, "double fn def\n"); // Some kind of error
         }
 
         Elem_id elem; // Creation of an element
         elem.Type = FUNCTION;
         elem.name = stoken->SToken->value.str;
-        elem.level = 0;
+        elem.level_stack = NULL;
+        elem.stack_size = 0;
         elem.FnVar.Fn_id.num_of_params = 0;
         elem.FnVar.Fn_id.type_of_params = NULL;
         elem.FnVar.Fn_id.return_type.nullable = false; // Implicit nullable false
@@ -165,7 +166,7 @@ bool t_id_func_q(TokenStoragePtr stoken){
 bool t_id_param_q(TokenStoragePtr stoken){
     if (stoken->SToken->type == ID){
         Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, 0, stoken->glob_table);
+        tmp = TableSearch(stoken->current_fn, NULL,0, stoken->glob_table);
 
         int count = ++tmp->FnVar.Fn_id.num_of_params;
         tmp->FnVar.Fn_id.type_of_params = realloc(tmp->FnVar.Fn_id.type_of_params, sizeof(Id_type) * count);
@@ -184,7 +185,7 @@ bool t_id_param_q(TokenStoragePtr stoken){
 bool t_nullable_q(TokenStoragePtr stoken, bool ret){
     if (stoken->SToken->type == NULLABLE){
         Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, 0, stoken->glob_table);
+        tmp = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
         if (ret == false){
             tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].nullable = true;
         }
@@ -208,7 +209,7 @@ bool t_type_keyword_q(TokenStoragePtr stoken, bool ret){
     }
     else if (stoken->SToken->type == F64){
         Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, 0, stoken->glob_table);
+        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
         if (ret == false){
             tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = F64;
@@ -223,7 +224,7 @@ bool t_type_keyword_q(TokenStoragePtr stoken, bool ret){
     }
     else if (stoken->SToken->type == I32){
         Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, 0, stoken->glob_table);
+        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
         if (ret == false){
             tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = I32;

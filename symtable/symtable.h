@@ -36,7 +36,8 @@ union FnVar{
 
 typedef struct elem_id{
     char *name;
-    int level;
+    int *level_stack;
+    int stack_size;
     Type Type;
     union FnVar FnVar;
 }Elem_id;
@@ -45,7 +46,7 @@ typedef Elem_id *SymTable;
 
 
 SymTable *TableInit();
-Elem_id *TableSearch(char *key, int level, SymTable *Table);
+Elem_id *TableSearch(char *key, int *level, int level_size, SymTable *Table);
 bool TableAdd(Elem_id Elem,SymTable *Table);
 void TableClear(SymTable *Table, Type VarFn);
 
