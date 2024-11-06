@@ -19,7 +19,7 @@ int HashFn(char *key, int level){
     return (hash + level) % TABLE_SIZE;
 }
 
-Elem_id **TableInit(){
+SymTable *TableInit(){
     Elem_id **SymTable = malloc(sizeof(Elem_id) * TABLE_SIZE);
     for (int i = 0; i < TABLE_SIZE; i++){
         SymTable[i] = NULL;
@@ -27,7 +27,7 @@ Elem_id **TableInit(){
     return SymTable;
 }
 
-Elem_id *TableSearch(char *key, int level, Elem_id **Table){
+Elem_id *TableSearch(char *key, int level, SymTable *Table){
     int index = HashFn(key, level);
     int searched = 0;
     while (Table[index] != NULL && (strcmp(key, Table[index]->name) || level != Table[index]->level)){
@@ -40,7 +40,7 @@ Elem_id *TableSearch(char *key, int level, Elem_id **Table){
     return Table[index];
 }
 
-bool TableAdd(Elem_id Elem,Elem_id **Table){
+bool TableAdd(Elem_id Elem,SymTable *Table){
     int index = HashFn(Elem.name, Elem.level);
     int searched = 0;
     while (Table[index] != NULL){
@@ -75,7 +75,7 @@ bool TableAdd(Elem_id Elem,Elem_id **Table){
     return true;
 }
 
-void TableClear(Elem_id **Table, Type VarFn){
+void TableClear(SymTable *Table, Type VarFn){
     if (Table == NULL){
         return;
     }
@@ -83,6 +83,7 @@ void TableClear(Elem_id **Table, Type VarFn){
         for (int i = 0; i < TABLE_SIZE; i++){
             if(Table[i] != NULL){
                 free(Table[i]->name);
+                free(Table[i]->FnVar.Fn_id.type_of_params);
                 TableClear(Table[i]->FnVar.Fn_id.LocalSymTable, VARIABLE);
                 free(Table[i]);
             }
