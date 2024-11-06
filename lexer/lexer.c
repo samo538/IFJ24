@@ -237,7 +237,8 @@ void choose_type(TokenPtr token, char input) {
 			}
 
 			lexer_error();
-			break;
+
+			return;
 		}
 		case '"': {
       string_type(token, input);
@@ -266,6 +267,13 @@ void choose_type(TokenPtr token, char input) {
 	if (token->type != COUNT_TOKEN_TYPE) {
 		prevId = false;
 		prevToken = token->type;
+
+		return;
+	}
+
+	//otestování jestli není input něco jiného než whitespace
+	if (input != ' ' && input != '\t' && input != '\n' && input != 13 && input != '\v' && input != 12) {//token->type = COUNT_TOKEN_TYPE => nebyl vybrán token, 13 = carriage return, 12 = form feed, \v = vertical tab
+		lexer_error();
 	}
 }
 
