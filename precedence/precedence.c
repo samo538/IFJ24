@@ -11,6 +11,7 @@
 #include "../lexer/lexer.h"
 #include "../tree/tree.h"
 #include "../symtable/symtable.h"
+#include "../queue/queue.h"
 
 enum PrecTable{
     TAKE_NEXT,
@@ -128,6 +129,13 @@ int operator_reduction(StackBasePtr stack){
     else if (E_1->Data.Type == F64_VAR && E_2->Data.Type == F64_VAR){
         operator->Data.Type = F64_VAR;
     }
+    else{
+        error_type = 7;
+        TreeNodeDelete(E_1);
+        TreeNodeDelete(E_2);
+        TreeNodeDelete(operator);
+        return -1;
+    }
 
     //vytvorenie podstromu
     ret_element = TreeElementConnect(operator, E_1);
@@ -227,8 +235,14 @@ int reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table){
         return REDUCTION;
     }
 
-    ret = operator_reduction(stack);
-    if(ret == -1){
+    if(stack->StackCounter > 3){
+        ret = operator_reduction(stack);
+        if(ret == -1){
+            return -1;
+        }
+    }
+    else{
+        error_type = 7;
         return -1;
     }
     
@@ -321,7 +335,7 @@ int error(StackBasePtr stack){
     if(stack->StackCounter == 2){
         return END;
     }
-
+    error_type = 7;
     return ERROR;
 }
 
@@ -355,7 +369,7 @@ int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr st
     return rule;
 }
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table){
+PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue){
 
     int prec_table[14][14] = {{REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
                                 {REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
@@ -458,7 +472,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
                 n_token = second_token;
             }
             else{
-                n_token = next_token();
+                n_token = queue_next_token(queue);
             }
 
             ret = equal(stack);

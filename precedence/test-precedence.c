@@ -27,9 +27,12 @@ int main(){
     }
 
     printf("tvoj stromcek\n");
-    print_tree(result->Tree);
-    printf("%d\n\n", result->Tree->Data.Token->type);
-    printf("result type: %d\n\n", result->Tree->Data.Type);
+
+    if(result->Error == 0){
+        print_tree(result->Tree);
+        printf("%d\n\n", result->Tree->Data.Token->type);
+        printf("result type: %d\n\n", result->Tree->Data.Type);
+    }
     printf("error: %d\n\n", result->Error);
     printf("next token: %d\n", result->NextTotken->type);
 

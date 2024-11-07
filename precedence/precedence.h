@@ -11,6 +11,7 @@
 #include "../tree/tree.h"
 #include "../lexer/token.h"
 #include "../symtable/symtable.h"
+#include "../queue/queue.h"
 
 typedef struct PrecResult
 {
@@ -20,6 +21,6 @@ typedef struct PrecResult
 }PrecResult, *PrecResultPtr;
 
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table);
+PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue);
 
 #endif  
