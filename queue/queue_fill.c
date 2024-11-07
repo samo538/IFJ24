@@ -134,7 +134,8 @@ bool t_void_q(TokenStoragePtr stoken){
 bool t_id_func_q(TokenStoragePtr stoken){
     if (stoken->SToken->type == ID){
         if(TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table) != NULL){
-            fprintf(stderr, "double fn def\n"); // Some kind of error
+            fprintf(stderr, "double fn def\n");
+            exit(5);
         }
 
         Elem_id elem; // Creation of an element
@@ -342,6 +343,7 @@ bool params_q(TokenStoragePtr stoken){
         new->level_stack[0] = 1;
         new->FnVar.Var_id.type.type = END_OF_FILE; // Placeholder
         new->FnVar.Var_id.type.nullable = false; // Implicit false
+        new->FnVar.Var_id.const_t = true;
         new->FnVar.Var_id.used = false; // Variable not used by default
 
         ret = t_id_param_q(stoken, new) &&

@@ -67,11 +67,12 @@ bool e_return_exp(TokenStoragePtr stoken){
     return true;
 }
 
+// Lower rules
+//
 bool e_null_exp(TokenStoragePtr stoken){
     return t_cl_bracket(stoken);
 }
 
-// Lower rules
 
 bool l_type(TokenStoragePtr stoken){
     return t_nullable(stoken) &&
@@ -88,14 +89,6 @@ bool l_type_fndef(TokenStoragePtr stoken){
     }
 }
 
-bool l_id_assign(TokenStoragePtr stoken){
-    if (stoken->SToken->type == UNDERSCORE){
-        return t_underline(stoken);
-    }
-    else {
-        return t_id(stoken);
-    }
-}
 
 /*
  *  Variable definition
@@ -233,11 +226,11 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                 exit(result->Error);
             }
             if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
-                new->FnVar.Var_id.type.type = result->Tree->Data.Type;
+                new->FnVar.Var_id.type.type = result->Tree->Data.Type - 12;
                 new->FnVar.Var_id.type.nullable = false;
             }
             else { // Explicit type, check data types
-                if (new->FnVar.Var_id.type.type != result->Tree->Data.Type) {
+                if (new->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
                     fprintf(stderr, "Wrong assign type\n");
                     exit(7);
                 }
@@ -259,11 +252,11 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             exit(result->Error);
         }
         if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
-            new->FnVar.Var_id.type.type = result->Tree->Data.Type;
+            new->FnVar.Var_id.type.type = result->Tree->Data.Type - 12;
             new->FnVar.Var_id.type.nullable = false;
         }
         else { // Explicit type, check data types
-            if (new->FnVar.Var_id.type.type != result->Tree->Data.Type) {
+            if (new->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
                 fprintf(stderr, "Wrong assign type\n");
                 exit(7);
             }
@@ -512,20 +505,195 @@ bool ifj_call(TokenStoragePtr stoken){
     return false;
 }
 
+/*
+ *  Assign
+ */
+bool ifj_call_assign(TokenStoragePtr stoken, bool underscore ,Elem_id *assign_to){
+    bool ret;
+    ret = t_ifj(stoken) &&
+    t_dot(stoken);
+
+    if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
+        Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table);
+        if (fn == NULL){
+            fprintf(stderr, "Undefined IFJ function\n");
+            exit(3);
+        }
+        if (!strcmp(fn->name, "write")){
+            fprintf(stderr, "Assigning void\n");
+        exit(7);
+        }
+        if (!underscore && assign_to->FnVar.Var_id.type.type != fn->FnVar.Fn_id.return_type.type) {
+            fprintf(stderr, "Wrong assign type\n");
+            exit(7);
+        }
+        if (!underscore && fn->FnVar.Fn_id.return_type.nullable){
+            if(!assign_to->FnVar.Fn_id.return_type.nullable){
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
+        }
+        return ret &&
+        t_id_ifj(stoken) &&
+        t_op_bracket(stoken) &&
+        call_params(stoken, fn, 0) && // Checking the validity of params
+        t_cl_bracket(stoken) &&
+        t_semicolon(stoken);
+    }
+
+    syn_error(stoken);
+    return false;
+}
+bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_to){
+    Elem_id *ret_fn = NULL;
+    Elem_id *ret_var = NULL;
+    if (stoken->SToken->type == ID){ // If id search if its a function or variable
+        ret_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        // If both pointers not null
+        if (ret_fn != NULL && ret_var != NULL){
+            fprintf(stderr, "Function with the same name as variable\n");
+            exit(10);
+        }
+    }
+
+    // Assigning IFJ func
+    if (stoken->SToken->type == IFJ){
+        return ifj_call_assign(stoken, underscore, assign_to);
+    }
+
+    // Assigning func
+    else if (ret_fn != NULL){ 
+        if (ret_fn->FnVar.Fn_id.return_type.type == VOID){
+            fprintf(stderr, "Assigning void\n");
+            exit(7);
+        }
+        if (!underscore && assign_to->FnVar.Var_id.type.type != ret_fn->FnVar.Fn_id.return_type.type) {
+            fprintf(stderr, "Wrong assign type\n");
+            exit(7);
+        }
+        if (!underscore && ret_fn->FnVar.Fn_id.return_type.nullable){
+            if(!assign_to->FnVar.Fn_id.return_type.nullable){
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
+        }
+        return fn_call(stoken);
+    }
+
+    // Assigning null
+    else if(stoken->SToken->type == NULL_VALUE){
+        if(!underscore && assign_to->FnVar.Var_id.type.nullable == false){
+            fprintf(stderr, "cannot assign null\n");
+            exit(7);
+        }
+        return t_null(stoken) &&
+        t_semicolon(stoken);
+    }
+
+    // Assigning id expression or string variable
+    else if(ret_var != NULL){
+        if (ret_var->FnVar.Var_id.type.type == U8){
+            if (!underscore && assign_to->FnVar.Var_id.type.type != ret_var->FnVar.Var_id.type.type) {
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
+            if (!underscore && ret_var->FnVar.Var_id.type.nullable){
+                if(!assign_to->FnVar.Var_id.type.nullable){
+                    fprintf(stderr, "Wrong assign type\n");
+                    exit(7);
+                }
+            }
+            return t_id(stoken) &&
+            t_semicolon(stoken);
+        }
+        else {
+            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            if (!underscore && assign_to->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
+            stoken->SToken = result->NextTotken;
+            return t_semicolon(stoken);
+        }
+    }
+
+    // Assigning non-string literals
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
+        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        if (!underscore && assign_to->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
+            fprintf(stderr, "Wrong assign type\n");
+            exit(7);
+        }
+        stoken->SToken = result->NextTotken;
+        return t_semicolon(stoken);
+    }
+
+    // Assigning string
+    else if(stoken->SToken->type == STRING){
+        fprintf(stderr, "Assigning string not allowd\n");
+        exit(7);
+    }
+    fprintf(stderr, "Syntax Error\n");
+    exit(2);
+}
+
+bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
+    if (stoken->SToken->type == UNDERSCORE){
+        *underscore = true;
+        return t_underline(stoken);
+    }
+    else {
+        *underscore = false;
+        *assign_to = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        Elem_id *tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        if (*assign_to == NULL){
+            fprintf(stderr, "undefined variable\n");
+            exit(3);
+        }
+        if (*assign_to != NULL && tmp != NULL){
+            fprintf(stderr, "Variable and function with the same name\n");
+            exit(10);
+        }
+        if ((*assign_to)->FnVar.Var_id.const_t == true){
+            fprintf(stderr, "Assigning to const\n");
+            exit(5);
+        }
+        return t_id(stoken);
+    }
+}
+bool assign(TokenStoragePtr stoken){
+    bool underscore;
+    Elem_id *assign_to;
+    return l_id_assign(stoken, &underscore, &assign_to) &&
+    t_eq(stoken) &&
+    e_var_exp_assign(stoken, underscore, assign_to);
+}
+
+/*
+ *  Else
+ */
 bool if_while_body(TokenStoragePtr stoken){
     return t_op_cr_bracket(stoken) &&
     fn_body(stoken) &&
     t_cl_cr_bracket(stoken);
 }
-
-
-bool assign(TokenStoragePtr stoken){
-    return l_id_assign(stoken) &&
-    t_eq(stoken);// &&
-    //e_var_exp_assign(stoken, NULL);
-}
-
-
 
 bool if_else(TokenStoragePtr stoken){
     return t_if(stoken) &&
@@ -560,8 +728,11 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     /*
     *   Function calling or assignment
     */
-    else if(stoken->SToken->type == ID){ // Or _
-        Elem_id *tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+    else if(stoken->SToken->type == ID || stoken->SToken->type == UNDERSCORE){ // Or _
+        Elem_id *tmp = NULL;
+        if (stoken->SToken->type == ID){
+            tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        }
         if (tmp != NULL){
             if (tmp->FnVar.Fn_id.return_type.type != VOID){
                 fprintf(stderr, "return type dumped\n");
@@ -570,8 +741,10 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
             return fn_call(stoken) &&
             fn_body(stoken);
         }
-        tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
-        if (tmp != NULL){
+        if (stoken->SToken->type == ID){
+            tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        }
+        if (tmp != NULL || stoken->SToken->type == UNDERSCORE){
             return assign(stoken) &&
             fn_body(stoken);
         }

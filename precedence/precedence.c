@@ -388,6 +388,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
     };
 
     StackBasePtr stack = StackInit();
+    run_cycle = true;
 
     TokenPtr dollar_token = malloc(sizeof(Token));
     if(dollar_token == NULL){
