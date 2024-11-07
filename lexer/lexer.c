@@ -77,6 +77,17 @@ void choose_type(TokenPtr token, char input) {
 			token->type = ASSIGN;
 			break;
 		}
+		case '!': {
+			char c = getchar();
+			if(c == '=') {
+				token->type = NOT_EQUAL;
+				break;
+			}
+
+			lexer_error();
+
+			return;
+		}
 		case '<': {
 			char c = getchar();
 			if(c == '=') {
