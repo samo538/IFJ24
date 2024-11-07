@@ -20,7 +20,7 @@ int main(){
     TokenPtr token1 = next_token();
     TokenPtr token2 = next_token();
 
-    PrecResultPtr result = preced_analysis(token1, token2, true);
+    PrecResultPtr result = preced_analysis(token1, token2, true, NULL, 0, NULL);
     if(result == NULL){
         fprintf(stderr, "nakokot to je\n");
         return -1;
@@ -30,6 +30,7 @@ int main(){
     print_tree(result->Tree);
     printf("%d\n\n", result->Tree->Data.Token->type);
     printf("result type: %d\n\n", result->Tree->Data.Type);
+    printf("error: %d\n\n", result->Error);
     printf("next token: %d\n", result->NextTotken->type);
 
     TreeNodeDelete(result->Tree);

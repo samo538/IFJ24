@@ -10,6 +10,7 @@
 #include "../lexer/token.h"
 #include "../lexer/lexer.h"
 #include "../tree/tree.h"
+#include "../symtable/symtable.h"
 
 enum PrecTable{
     TAKE_NEXT,
@@ -164,15 +165,30 @@ error_connect:
 
 }
 
-int E_reduction(StackBasePtr stack){
+int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table){
 
     TreeElementPtr ret_element;
 
     switch (stack->ActiveElement->Tree->Data.Token->type)
     {
     case ID:
-        stack->ActiveElement->Tree->Data.Type = I32_VAR;
-        //TODO OVERENIE TYPU PREMENNEJ, pozriet sa do tabulky
+        Elem_id *id = TableSearch(stack->ActiveElement->Tree->Data.Token->value.str, level, level_size, Table);
+        if(!(id->FnVar.Var_id.type.nullable)){
+            if(id->FnVar.Var_id.type.type == I32){
+                stack->ActiveElement->Tree->Data.Type = I32_VAR;
+            }
+            else if(id->FnVar.Var_id.type.type == F64){
+                stack->ActiveElement->Tree->Data.Type = F64_VAR;
+            }
+            else{
+                error_type = 7;
+                return -1;
+            }
+        }
+        else{
+            error_type = 7;
+            return -1;
+        }
         break;
     case I32_VAR:
         stack->ActiveElement->Tree->Data.Type = I32_VAR;
@@ -195,7 +211,7 @@ int E_reduction(StackBasePtr stack){
 }
 
 
-int reduction(StackBasePtr stack){
+int reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table){
 
     int ret = 0;
 
@@ -204,7 +220,7 @@ int reduction(StackBasePtr stack){
         (stack->ActiveElement->Tree->Data.Token->type == I32_VAR) ||
         (stack->ActiveElement->Tree->Data.Token->type == F64_VAR))
     {
-        ret = E_reduction(stack);
+        ret = E_reduction(stack, level, level_size, Table);
         if(ret == -1){
             return -1;
         }
@@ -339,7 +355,7 @@ int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr st
     return rule;
 }
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op){
+PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table){
 
     int prec_table[14][14] = {{REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
                                 {REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
@@ -402,7 +418,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
         switch (rule)
         {
         case REDUCTION:
-            ret = reduction(stack);
+            ret = reduction(stack, level, level_size, Table);
             if(ret == -1){
                 goto error;
             }
@@ -481,10 +497,15 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
         }
         
         result->Tree = Pop(stack);
+        if(result->Tree == NULL){
+            error_type = 99;
+            goto error;
+        }
         TreeNodeDelete(Pop(stack));
         StackDestroy(stack);
 
         result->NextTotken = n_token;
+        result->Error = error_type;
         return result;
     }
     else{
@@ -494,11 +515,20 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
 
 
 error:
-    fprintf(stderr, "ERROR: %d\n", error_type);
     for(int i = 0; i < stack->StackCounter; i++){
         TreeNodeDelete(Pop(stack));
     }
     StackDestroy(stack);
-    return NULL;
+
+    PrecResultPtr result = malloc(sizeof(PrecResult));
+    if(result == NULL){
+        return NULL;
+    }
+
+    result->NextTotken = n_token;
+    result->Tree = NULL;
+    result->Error = error_type;
+
+    return result;
     
 }

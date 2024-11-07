@@ -10,14 +10,16 @@
 
 #include "../tree/tree.h"
 #include "../lexer/token.h"
+#include "../symtable/symtable.h"
 
 typedef struct PrecResult
 {
     TreeElementPtr Tree;
     TokenPtr NextTotken;
+    int Error;
 }PrecResult, *PrecResultPtr;
 
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool);
+PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table);
 
 #endif  
