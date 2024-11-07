@@ -1,4 +1,3 @@
-#include <stdbool.h>
 #include "../queue/queue.h"
 #include "../lexer/token.h"
 
@@ -30,17 +29,17 @@ bool t_const(TokenStoragePtr stoken);
 bool t_var(TokenStoragePtr stoken);
 bool t_void(TokenStoragePtr stoken);
 bool t_u8(TokenStoragePtr stoken);
-bool t_u8_var(TokenStoragePtr stoken);
+bool t_u8_var(TokenStoragePtr stoken, Elem_id *new_elem);
 bool t_type_keyword(TokenStoragePtr stoken);
-bool t_type_keyword_var(TokenStoragePtr stoken);
+bool t_type_keyword_var(TokenStoragePtr stoken, Elem_id *new_elem);
 bool t_string(TokenStoragePtr stoken);
 bool t_int(TokenStoragePtr stoken);
 bool t_float(TokenStoragePtr stoken);
 bool t_null(TokenStoragePtr stoken);
 bool t_id(TokenStoragePtr stoken);
-bool t_id_var(TokenStoragePtr stoken);
+bool t_id_var(TokenStoragePtr stoken, Elem_id *new_elem);
 bool t_id_fn(TokenStoragePtr stoken);
 bool t_id_ifj(TokenStoragePtr stoken);
 bool t_underline(TokenStoragePtr stoken);
-bool t_nullable_var(TokenStoragePtr stoken);
+bool t_nullable_var(TokenStoragePtr stoken, Elem_id *new_elem);
 bool t_nullable(TokenStoragePtr stoken);

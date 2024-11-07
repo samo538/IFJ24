@@ -45,7 +45,7 @@ typedef struct elem_id{
 
 typedef Elem_id *SymTable;
 
-
+bool copy_levels(int *level1, int **level2, int level_size);
 SymTable *TableInit();
 Elem_id *TableSearch(char *key, int *level, int level_size, SymTable *Table);
 bool TableAdd(Elem_id Elem,SymTable *Table);

@@ -10,6 +10,20 @@
 
 #include "symtable.h"
 
+bool copy_levels(int *level1, int **level2, int level_size){
+    if (level1 == NULL){
+        return NULL;
+    }
+    *level2 = malloc(sizeof(int) * level_size);
+    if (*level2 == NULL){
+        return false;
+    }
+    for (int i = 0; i < level_size; i++){
+        (*level2)[i] = level1[i];
+    }
+    return true;
+}
+
 bool compare_levels(int *level1, int *level2, int level_size){
     for (int i = 0; i < level_size; i++){
         if(level1[i] != level2[i]){
@@ -43,8 +57,11 @@ Elem_id *TableSearch(char *key, int *level, int level_size, SymTable *Table){
     int index = HashFn(key, level, level_size);
     int searched = 0;
     while (Table[index] != NULL && (strcmp(key, Table[index]->name) || level_size == Table[index]->stack_size && !compare_levels(level, Table[index]->level_stack, level_size))){
-        if (searched == TABLE_SIZE){ // Table is full
+        if (searched == TABLE_SIZE && level_size == 0){ // Table is full
             return NULL;
+        }
+        if (searched == TABLE_SIZE){ // Table is full
+            return TableSearch(key, level, level_size - 1, Table);
         }
         index = (index + 1) % TABLE_SIZE;
         searched++;
@@ -80,7 +97,7 @@ bool TableAdd(Elem_id Elem,SymTable *Table){
     }
     Elem_id *IdAdd = malloc(sizeof(Elem_id));
     IdAdd->name = strdup(Elem.name);
-    IdAdd->level_stack = Elem.level_stack;
+    copy_levels( Elem.level_stack, &IdAdd->level_stack, Elem.stack_size);
     IdAdd->stack_size = Elem.stack_size;
     IdAdd->Type = Elem.Type;
     IdAdd->FnVar = Elem.FnVar;

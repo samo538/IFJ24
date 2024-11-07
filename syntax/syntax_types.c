@@ -1,5 +1,4 @@
 
-#include <cstdio>
 #include <stdbool.h>
 #include <string.h>
 #include "syntax.h"
@@ -279,15 +278,6 @@ bool t_eof(TokenStoragePtr stoken){
 }
 bool t_const(TokenStoragePtr stoken){
     if (stoken->SToken->type == CONST){
-        stoken->tmp = malloc(sizeof(Elem_id));
-        if (stoken->tmp == NULL){
-            //Error
-        }
-        //stoken->tmp->level_stack Need to copy the whole stack
-        stoken->tmp->stack_size = stoken->stack_size;
-        stoken->tmp->Type = VARIABLE;
-        stoken->tmp->FnVar.Var_id.const_t = true;
-
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -299,16 +289,6 @@ bool t_const(TokenStoragePtr stoken){
 }
 bool t_var(TokenStoragePtr stoken){
     if (stoken->SToken->type == VAR){
-        stoken->tmp = malloc(sizeof(Elem_id));
-        if (stoken->tmp == NULL){
-            //Error
-        }
-        //stoken->tmp->level_stack Need to copy the whole stack
-        stoken->tmp->stack_size = stoken->stack_size;
-        stoken->tmp->Type = VARIABLE;
-        stoken->tmp->FnVar.Var_id.const_t = false;
-        stoken->tmp->FnVar.Var_id.type.nullable = false;
-
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -340,9 +320,9 @@ bool t_u8(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_u8_var(TokenStoragePtr stoken){
+bool t_u8_var(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == U8){
-        stoken->tmp->FnVar.Var_id.type.type = U8;
+        new->FnVar.Var_id.type.type = U8;
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -373,20 +353,20 @@ bool t_type_keyword(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_type_keyword_var(TokenStoragePtr stoken){
+bool t_type_keyword_var(TokenStoragePtr stoken, Elem_id * new){
     if (stoken->SToken->type == OPENING_SQUARE_BRACKET){
         return t_op_sq_bracket(stoken) &&
         t_cl_sq_bracket(stoken) &&
-        t_u8_var(stoken);
+        t_u8_var(stoken, new);
     }
     else if (stoken->SToken->type == F64){
-        stoken->tmp->FnVar.Var_id.type.type = F64;
+        new->FnVar.Var_id.type.type = F64;
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
     }
     else if (stoken->SToken->type == I32){
-        stoken->tmp->FnVar.Var_id.type.type = I32;
+        new->FnVar.Var_id.type.type = I32;
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -451,9 +431,10 @@ bool t_id(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_id_var(TokenStoragePtr stoken){
+bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == ID){
-        stoken->tmp->name = strdup(stoken->SToken->value.str);
+        // Check for already defined ids
+        new->name = strdup(stoken->SToken->value.str);
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -471,6 +452,9 @@ bool t_id_fn(TokenStoragePtr stoken){
         }
         stoken->current_fn = strdup(stoken->SToken->value.str);
         stoken->local_table = tmp->FnVar.Fn_id.LocalSymTable;
+        stoken->stack_size = 1;
+        stoken->level_stack = malloc(sizeof(int));
+        stoken->level_stack[0] = 1;
 
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
@@ -503,9 +487,9 @@ bool t_underline(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_nullable_var(TokenStoragePtr stoken){
+bool t_nullable_var(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == NULLABLE){
-        stoken->tmp->FnVar.Var_id.type.nullable = true;
+        new->FnVar.Var_id.type.nullable = true;
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;

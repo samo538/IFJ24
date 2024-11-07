@@ -12,15 +12,19 @@ typedef struct {
 }Queue;
 
 typedef struct{
+    // Tokens
     TokenPtr SToken;
     TokenPtr SStoredToken;
+    // Queue
     Queue *queue;
+    // Symtables
     SymTable *glob_table;
     SymTable *local_table;
+    // Current function
     char *current_fn;
+    // Current stack
     int *level_stack;
     int stack_size;
-    Elem_id *tmp;
 }TokenStorage, *TokenStoragePtr;
 
 void queue_add_token(Queue *queue, TokenPtr token);
