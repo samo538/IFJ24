@@ -18,6 +18,8 @@
 
 #include "../symtable/symtable.h"
 
+#include "../precedence/precedence.h"
+
 #include <stdio.h>
 
 bool fn_call(TokenStoragePtr stoken);
@@ -118,11 +120,15 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
             new->FnVar.Var_id.type.nullable = fn->FnVar.Fn_id.return_type.nullable;
         }
         else { // Explicit type, check data types
-            if (
-                new->FnVar.Var_id.type.type != fn->FnVar.Fn_id.return_type.type ||
-                new->FnVar.Var_id.type.nullable != fn->FnVar.Fn_id.return_type.nullable) {
+            if (new->FnVar.Var_id.type.type != fn->FnVar.Fn_id.return_type.type) {
                 fprintf(stderr, "Wrong assign type\n");
                 exit(7);
+            }
+            if (fn->FnVar.Fn_id.return_type.nullable){
+                if(!new->FnVar.Fn_id.return_type.nullable){
+                    fprintf(stderr, "Wrong assign type\n");
+                    exit(7);
+                }
             }
         }
         return ret &&
@@ -137,10 +143,13 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
     return false;
 }
 
-bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
-    Elem_id *ret = NULL;
-    if (stoken->SToken->type == ID){ // If id search if its a function
-        ret = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
+    // TODO check for both NULLs
+    Elem_id *ret_fn = NULL;
+    Elem_id *ret_var = NULL;
+    if (stoken->SToken->type == ID){ // If id search if its a function or variable
+        ret_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
     }
 
     // Assigning IFJ func
@@ -149,21 +158,25 @@ bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
     }
 
     // Assigning func
-    else if (stoken->SToken->type == ID && ret != NULL){ 
+    else if (ret_fn != NULL){ 
         if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
-            if (ret->FnVar.Fn_id.return_type.type == VOID){
+            if (ret_fn->FnVar.Fn_id.return_type.type == VOID){
                 fprintf(stderr, "Assigning void\n");
                 exit(7);
             }
-            new->FnVar.Var_id.type.type = ret->FnVar.Fn_id.return_type.type;
-            new->FnVar.Var_id.type.nullable = ret->FnVar.Fn_id.return_type.nullable;
+            new->FnVar.Var_id.type.type = ret_fn->FnVar.Fn_id.return_type.type;
+            new->FnVar.Var_id.type.nullable = ret_fn->FnVar.Fn_id.return_type.nullable;
         }
         else { // Explicit type, check data types
-            if (
-                new->FnVar.Var_id.type.type != ret->FnVar.Fn_id.return_type.type ||
-                new->FnVar.Var_id.type.nullable != ret->FnVar.Fn_id.return_type.nullable) {
+            if (new->FnVar.Var_id.type.type != ret_fn->FnVar.Fn_id.return_type.type) {
                 fprintf(stderr, "Wrong assign type\n");
                 exit(7);
+            }
+            if (ret_fn->FnVar.Fn_id.return_type.nullable){
+                if(!new->FnVar.Fn_id.return_type.nullable){
+                    fprintf(stderr, "Wrong assign type\n");
+                    exit(7);
+                }
             }
         }
         return fn_call(stoken);
@@ -182,14 +195,49 @@ bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
         return t_null(stoken) &&
         t_semicolon(stoken);
     }
+
+    // Assigning id expression or string variable
+    else if(ret_var != NULL){
+        if (ret_var->FnVar.Var_id.type.type == U8){
+            return t_id(stoken) &&
+            t_semicolon(stoken);
+        }
+        else {
+            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            stoken->SToken = result->NextTotken;
+            return t_semicolon(stoken);
+        }
+    }
+
+    // Assigning non-string literals
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR){
+        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        stoken->SToken = result->NextTotken;
+        return t_semicolon(stoken);
+    }
+
+    // Assigning string
     else if(stoken->SToken->type == STRING){
         fprintf(stderr, "Assigning string not allowd\n");
         exit(7);
     }
-    /*else {
-        call precedence // dont forget semicolon
-        If failure then 3 or something
-    }*/
+    // If both pointers null
     fprintf(stderr, "Function or variable not defined\n");
     exit(3);
 }
@@ -236,7 +284,7 @@ bool var_def(TokenStoragePtr stoken){
     t_id_var(stoken, new) && // Filling up the name / checking for redef
     l_type_vardef(stoken, new) && // Implicit/Explicit definition
     t_eq(stoken) &&
-    e_var_exp(stoken, new); // Adding value
+    e_var_exp_def(stoken, new); // Adding value
 
     TableAdd(*new, stoken->local_table); // Adding the new element into local table
 
@@ -434,8 +482,8 @@ bool if_while_body(TokenStoragePtr stoken){
 
 bool assign(TokenStoragePtr stoken){
     return l_id_assign(stoken) &&
-    t_eq(stoken) &&
-    e_var_exp(stoken, NULL);
+    t_eq(stoken);// &&
+    //e_var_exp_assign(stoken, NULL);
 }
 
 
