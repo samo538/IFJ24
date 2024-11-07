@@ -473,7 +473,7 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     /*
     *   Function calling or assignment
     */
-    else if(stoken->SToken->type == ID){
+    else if(stoken->SToken->type == ID){ // Or _
         Elem_id *tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
         if (tmp != NULL){
             if (tmp->FnVar.Fn_id.return_type.type != VOID){
@@ -495,28 +495,28 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     *   Ifj function calling
     */
     else if(stoken->SToken->type == IFJ){
-        return ifj_call(stoken) && // Checks the sematics of ifj functions
+        return ifj_call(stoken) && // Checks the sematics of ifj functions, only write can be called here
         fn_body(stoken);
     }
     /*
     *   If else block
     */
     else if(stoken->SToken->type == IF){
-        return if_else(stoken) &&
+        return if_else(stoken) && // TODO sematics and syntax
         fn_body(stoken);
     }
     /*
     *   Cycle block
     */
     else if(stoken->SToken->type == WHILE){
-        return cycle(stoken) &&
+        return cycle(stoken) && // TODO sematics and syntax
         fn_body(stoken);
     }
     /*
     *   Return from function
     */
     else if(stoken->SToken->type == RETURN){
-        return fn_return(stoken) &&
+        return fn_return(stoken) && // Todo sematics
         fn_body(stoken);
     }
     /*
