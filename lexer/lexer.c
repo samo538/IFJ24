@@ -20,7 +20,6 @@ const char* tokenTypeKeywords[]= {
 	"while",
 	"ifj",
 	"u8",
-	"import",
 };
 
 void lexer_error() { //TODO: vyměnit za real error
@@ -533,8 +532,8 @@ void id_type(TokenPtr token, char input) {
 	token->value.str[idLength] = '\0'; //ukončení str
 	ungetc(input, stdin);
 
-	for(int i=0;i < ID;i++) { //tokenType ID je hned po posledním keywordu, proto by pole keywords mělo mít velikost ID
-		if(strcmp(tokenTypeKeywords[i], token->value.str) == 0) {
+	for(int i=CONST;i <= U8;i++) { //tokenType U8 je poslední keyword, proto by pole keywords mělo mít velikost U8 - CONST
+		if(strcmp(tokenTypeKeywords[i - CONST], token->value.str) == 0) {
 			token->type = i;
 			free(token->value.str);
 

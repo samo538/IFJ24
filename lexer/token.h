@@ -9,20 +9,6 @@
 #include<stdio.h>
 
 enum TokenType {
-	CONST,
-	IF,
-	ELSE,
-	FN,
-	I32,
-	F64,
-	NULL_VALUE,
-	PUB,
-	RETURN,
-	VAR,
-	VOID,
-	WHILE,
-	IFJ,
-	U8,
 	ID,
 	EQUAL, //==
 	NOT_EQUAL, //!=
@@ -37,6 +23,20 @@ enum TokenType {
 	DIVIDE, ///
 	NULLABLE, //?
 	I32_VAR,
+	CONST,
+	IF,
+	ELSE,
+	FN,
+	I32,
+	F64,
+	NULL_VALUE,
+	PUB,
+	RETURN,
+	VAR,
+	VOID,
+	WHILE,
+	IFJ,
+	U8,
 	F64_VAR,
 	DOT, //.
 	OPENING_BRACKET, //(
