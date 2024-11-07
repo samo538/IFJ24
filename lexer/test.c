@@ -4,8 +4,8 @@
 int main() {
 	TokenPtr token = next_token();
 	while(true) {
-		if(token->type < ID) {
-			printf("keyword: %s\n", tokenTypeKeywords[token->type]);
+		if(CONST <= token->type && token->type <= U8) {
+			printf("keyword: %s\n", tokenTypeKeywords[token->type - CONST]);
 		} else if (token->type == ID) {
 			printf("id: %s\n", token->value.str);
 		} else if (token->type == I32_VAR) {

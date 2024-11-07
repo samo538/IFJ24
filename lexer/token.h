@@ -39,6 +39,20 @@ enum TokenType {
 	ASSIGN, //=
 	NULLABLE, //?
 	I32_VAR,
+	CONST,
+	IF,
+	ELSE,
+	FN,
+	I32,
+	F64,
+	NULL_VALUE,
+	PUB,
+	RETURN,
+	VAR,
+	VOID,
+	WHILE,
+	IFJ,
+	U8,
 	F64_VAR,
 	DOT, //.
 	OPENING_CURLY_BRACKET, //{
