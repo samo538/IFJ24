@@ -86,16 +86,18 @@ TreeElementPtr TreeInsert(TreeElementPtr dad_node, TokenPtr token){
 
 void TreeNodeDelete(TreeElementPtr node){
 
-    for(int i = 0; i < node->NodeCounter; i++){
+    if(node != NULL){
+        for(int i = 0; i < node->NodeCounter; i++){
 
-        TreeNodeDelete(node->Node[i]);
+            TreeNodeDelete(node->Node[i]);
+        }
+
+        dealloc_token(node->Data.Token);
+        
+        if(node->NodeCounter > 0){
+            free(node->Node);
+        }
+
+        free(node);
     }
-
-    dealloc_token(node->Data.Token);
-    
-    if(node->NodeCounter > 0){
-        free(node->Node);
-    }
-
-    free(node);
 }

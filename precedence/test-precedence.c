@@ -20,16 +20,18 @@ int main(){
     TokenPtr token1 = next_token();
     TokenPtr token2 = next_token();
 
-    TreeElementPtr tree = preced_analysis(token1, token2, true);
-    if(tree == NULL){
+    PrecResultPtr result = preced_analysis(token1, token2, true);
+    if(result == NULL){
         fprintf(stderr, "nakokot to je\n");
         return -1;
     }
 
-    print_tree(tree);
-    printf("%d\n", tree->Data.Token->type);
+    print_tree(result->Tree);
+    printf("%d\n", result->Tree->Data.Token->type);
+    printf("next token: %d\n", result->NextTotken->type);
 
-    TreeNodeDelete(tree);
-
+    TreeNodeDelete(result->Tree);
+    dealloc_token(result->NextTotken);
+    free(result);
     return 0;
 }

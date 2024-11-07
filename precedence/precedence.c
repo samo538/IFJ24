@@ -19,6 +19,7 @@ enum PrecTable{
     END,
 };
 
+int error_type = 0;
 bool run_cycle = true;
 
 /*															
@@ -90,14 +91,13 @@ int operator_reduction(StackBasePtr stack){
 
     TreeElementPtr E_2 = Pop(stack);
     if(E_2 == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_pop;
     }
 
     TreeElementPtr operator = Pop(stack);
     if(operator == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        TreeNodeDelete(E_2);
+        goto error_pop;
     }
     if((operator->Data.Token->type > MORE_OR_EQUAL) || ((operator->Data.Token->type > DIVIDE) && (operator->Data.Token->type < EQUAL))){
         //TODO VOLANIE ERROR FUNKCIE
@@ -106,8 +106,9 @@ int operator_reduction(StackBasePtr stack){
 
     TreeElementPtr E_1 = Pop(stack);
     if(E_1 == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        TreeNodeDelete(E_2);
+        TreeNodeDelete(operator);
+        goto error_pop;
     }
 
     //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -117,27 +118,36 @@ int operator_reduction(StackBasePtr stack){
     //vytvorenie podstromu
     ret_element = TreeElementConnect(operator, E_1);
     if(ret_element == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_connect;
     }
 
     ret_element = TreeElementConnect(operator, E_2);
     if(ret_element == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_connect;
     }
 
     ret_element = First(stack);
     if(ret_element == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_connect;
     }
 
     ret_element = Push(stack, operator);
     if(ret_element != operator){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_connect;
     }
+
+    return REDUCTION;
+
+error_pop:
+    error_type = 99;
+    return -1;
+
+error_connect:
+    error_type = 99;
+    TreeNodeDelete(E_1);
+    TreeNodeDelete(E_2);
+    TreeNodeDelete(operator);
+    return -1;
 
 }
 
@@ -152,7 +162,7 @@ int E_reduction(StackBasePtr stack){
 
     ret_element = Down(stack);
     if(ret_element == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
+        error_type = 99;
         return -1;
     }
 
@@ -171,7 +181,6 @@ int reduction(StackBasePtr stack){
     {
         ret = E_reduction(stack);
         if(ret == -1){
-            //TODO VOLANIE ERROR FUNKCIE
             return -1;
         }
         return REDUCTION;
@@ -179,7 +188,6 @@ int reduction(StackBasePtr stack){
 
     ret = operator_reduction(stack);
     if(ret == -1){
-        //TODO VOLANIE ERROR FUNKCIE
         return -1;
     }
     
@@ -190,19 +198,20 @@ int take_next(StackBasePtr stack, TokenPtr n_token){
     
     TreeElementPtr element = TreeElementCreate(n_token);
     if(element == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
+        error_type = 99;
         return -1;
     }
 
     TreeElementPtr ret_element = Push(stack, element);
     if(ret_element != element){
-        //TODO VOLANIE ERROR FUNKCIE
+        TreeNodeDelete(element);
+        error_type = 99;
         return -1;
     }
 
     ret_element = First(stack);
     if(ret_element != element){
-        //TODO VOLANIE ERROR FUNKCIE
+        error_type = 99;
         return -1;
     }
 
@@ -215,8 +224,7 @@ int equal(StackBasePtr stack){
 
     TreeElementPtr cl_bracket = Pop(stack);
     if(cl_bracket == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_pop;
     }
     if(cl_bracket->Data.Token->type != CLOSING_BRACKET){
         //TODO VOLANIE ERROR FUNKCIE
@@ -225,14 +233,15 @@ int equal(StackBasePtr stack){
 
     TreeElementPtr E = Pop(stack);
     if(E == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        TreeNodeDelete(cl_bracket);
+        goto error_pop;
     }
 
     TreeElementPtr op_bracket = Pop(stack);
     if(op_bracket == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        TreeNodeDelete(E);
+        TreeNodeDelete(cl_bracket);
+        goto error_pop;
     }
     if(op_bracket->Data.Token->type != OPENING_BRACKET){
         //TODO VOLANIE ERROR FUNKCIE
@@ -241,17 +250,27 @@ int equal(StackBasePtr stack){
 
     ret_element = First(stack);
     if(ret_element == NULL){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_connect;
     }
 
     ret_element = Push(stack, E);
     if(ret_element != E){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        goto error_connect;
     }
 
     return EQUAL_BR;
+
+error_pop:
+    error_type = 99;
+    return -1;
+
+error_connect:
+    error_type = 99;
+    TreeNodeDelete(cl_bracket);
+    TreeNodeDelete(op_bracket);
+    TreeNodeDelete(E);
+    return -1;
+
 }
 
 int error(StackBasePtr stack){
@@ -293,7 +312,7 @@ int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr st
     return rule;
 }
 
-TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op){
+PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op){
 
     int prec_table[14][14] = {{REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
                                 {REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
@@ -315,7 +334,8 @@ TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool
 
     TokenPtr dollar_token = malloc(sizeof(Token));
     if(dollar_token == NULL){
-        return false;
+        error_type = 99;
+        return NULL;
     }
     
     dollar_token->type = 100;
@@ -357,24 +377,21 @@ TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool
         case REDUCTION:
             ret = reduction(stack);
             if(ret == -1){
-                //TODO VOLANIE ERROR FUNKCIE
-                return NULL;
+                goto error;
             }
             break;
 
         case TAKE_NEXT:
             ret = take_next(stack, n_token);
             if(ret == -1){
-                //TODO VOLANIE ERROR FUNKCIE
-                return NULL;
+                goto error;
             }
 
             if(n_token->type >= 7 && n_token->type <= 12){
                 rel_op_counter++;
 
                 if(rel_op_counter > 1){
-                    //TODO VOLANIE ERROR FUNKCIE
-                    return NULL;
+                    goto error;
                 }
             }
 
@@ -390,8 +407,7 @@ TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool
         case EQUAL_BR:
             ret = take_next(stack, n_token);
             if(ret == -1){
-                //TODO VOLANIE ERROR FUNKCIE
-                return NULL;
+                goto error;
             }
 
             if((counter == 0) && (rel_op == true)){
@@ -410,8 +426,7 @@ TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool
                 run_cycle = false;
             }
             else{
-                //TODO VOLANIE ERROR FUNKCIE
-                return NULL;
+                goto error;
             }
             break;
         case END:
@@ -419,8 +434,7 @@ TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool
             break;
 
         default:
-            //TODO VOLANIE ERROR FUNKCIE
-            return NULL;
+            goto error;
             break;
         }    
         
@@ -429,11 +443,31 @@ TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool
 
     if (leaves_control(stack->TopElement->Tree))
     {
-        return stack->TopElement->Tree;
+        PrecResultPtr result = malloc(sizeof(PrecResult));
+        if(result == NULL){
+            error_type = 99;
+            goto error;
+        }
+        
+        result->Tree = Pop(stack);
+        TreeNodeDelete(Pop(stack));
+        StackDestroy(stack);
+
+        result->NextTotken = n_token;
+        return result;
     }
     else{
         fprintf(stderr, "leaves control failed\n");
-        return NULL;
+        goto error;
     }
+
+
+error:
+    fprintf(stderr, "%d\n", error_type);
+    for(int i = 0; i < stack->StackCounter; i++){
+        TreeNodeDelete(Pop(stack));
+    }
+    StackDestroy(stack);
+    return NULL;
     
 }

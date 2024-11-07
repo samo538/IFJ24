@@ -11,6 +11,13 @@
 #include "../tree/tree.h"
 #include "../lexer/token.h"
 
-TreeElementPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool);
+typedef struct PrecResult
+{
+    TreeElementPtr Tree;
+    TokenPtr NextTotken;
+}PrecResult, *PrecResultPtr;
+
+
+PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool);
 
 #endif  
