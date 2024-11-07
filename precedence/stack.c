@@ -1,3 +1,8 @@
+/**
+ *  @file precedence/stack.c
+ *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
+ */
+
 #include <stdlib.h>
 #include <stdbool.h>
 
@@ -12,17 +17,18 @@ StackBasePtr StackInit(void){
 
     stack_base->BottomElement = NULL;
     stack_base->TopElement = NULL;
+    stack_base->ActiveElement = NULL;
 
     return stack_base;
 }
 
 bool StackDestroy(StackBasePtr stack){
 
-    TokenPtr ret = NULL;
+    TreeElementPtr ret = NULL;
 
     do
     {
-        ret = pop(stack);
+        ret = Pop(stack);
     } while (ret != NULL);
 
     free(stack);
@@ -30,19 +36,19 @@ bool StackDestroy(StackBasePtr stack){
     return true;
 }
 
-TokenPtr top(StackBasePtr stack){
+TreeElementPtr Top(StackBasePtr stack){
 
-    return stack->TopElement->Token;
+    return stack->TopElement->Tree;
 }
 
-StackElementPtr push(StackBasePtr stack, TokenPtr token){
+TreeElementPtr Push(StackBasePtr stack, TreeElementPtr tree){
 
     StackElementPtr new_element = (StackElementPtr) malloc(sizeof(StackElement));
     if(new_element == NULL){
         return NULL;
     }
 
-    new_element->Token = token;
+    new_element->Tree = tree;
     new_element->NextElement = stack->TopElement;
     stack->TopElement = new_element;
 
@@ -50,10 +56,12 @@ StackElementPtr push(StackBasePtr stack, TokenPtr token){
         stack->BottomElement = new_element;
     }
 
-    return new_element;
+    stack->StackCounter++;
+
+    return new_element->Tree;
 }
 
-TokenPtr pop(StackBasePtr stack){
+TreeElementPtr Pop(StackBasePtr stack){
 
     if(stack->BottomElement != NULL){
         StackElementPtr element_to_pop = stack->TopElement;
@@ -68,11 +76,44 @@ TokenPtr pop(StackBasePtr stack){
             stack->TopElement = element_to_pop->NextElement;
         }
 
-        TokenPtr token = element_to_pop->Token;
-        
+        TreeElementPtr tree = element_to_pop->Tree;
+
+        if(stack->ActiveElement == element_to_pop){
+            
+            stack->ActiveElement = NULL;
+        }
+
         free(element_to_pop);
 
-        return token;
+        stack->StackCounter--;
+
+        return tree;
     }
     return NULL;
 }
+
+TreeElementPtr First(StackBasePtr stack){
+    
+    if(stack->StackCounter > 0){
+        stack->ActiveElement = stack->TopElement;
+        return stack->ActiveElement->Tree;
+    }
+
+    return NULL;
+
+}
+
+TreeElementPtr Down(StackBasePtr stack){
+
+    if(stack->ActiveElement != NULL){
+
+        if(stack->ActiveElement->NextElement != NULL){
+            
+            stack->ActiveElement = stack->ActiveElement->NextElement;
+            return stack->ActiveElement->Tree;
+        }
+    }
+
+    return NULL;
+}
+
