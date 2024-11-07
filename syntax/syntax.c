@@ -58,7 +58,8 @@ bool e_var_exp(TokenStoragePtr stoken){
     if (stoken->SToken->type == IFJ){
         return ifj_call(stoken);
     }
-    /*else if (stoken->SToken->type == ID && ID -> function){
+    /*
+    else if (stoken->SToken->type == ID){
         return fn_call(stoken);
     }
     else {
@@ -87,6 +88,11 @@ bool l_type(TokenStoragePtr stoken){
     t_type_keyword(stoken);
 }
 
+bool l_type_var(TokenStoragePtr stoken){
+    return t_nullable_var(stoken) &&
+    t_type_keyword_var(stoken);
+}
+
 bool l_var_const(TokenStoragePtr stoken){
     if (stoken->SToken->type == VAR){
         return t_var(stoken);
@@ -108,7 +114,7 @@ bool l_type_fndef(TokenStoragePtr stoken){
 bool l_type_vardef(TokenStoragePtr stoken){
     if (stoken->SToken->type == COLON){
         return t_colon(stoken) &&
-        l_type(stoken);
+        l_type_var(stoken);
     }
     else {
         return true;
@@ -163,7 +169,7 @@ bool if_while_body(TokenStoragePtr stoken){
 
 bool var_def(TokenStoragePtr stoken){
     return l_var_const(stoken) &&
-    t_id(stoken) &&
+    t_id_var(stoken) &&
     l_type_vardef(stoken) &&
     t_eq(stoken) &&
     e_var_exp(stoken);
@@ -220,14 +226,20 @@ bool fn_body(TokenStoragePtr stoken){ // TODO
         return var_def(stoken) &&
         fn_body(stoken);
     }
-    /*else if(stoken->SToken->type == ID && ID -> var){
-        return assign(stoken) &&
-        fn_body(stoken);
+    else if(stoken->SToken->type == ID){
+        Elem_id *tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        if (tmp != NULL){
+            return fn_call(stoken) &&
+            fn_body(stoken);
+        }
+        tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (tmp != NULL){
+            return assign(stoken) &&
+            fn_body(stoken);
+        }
+        //Error
+        return -1;
     }
-    else if(stoken->SToken->type == ID && ID -> function){
-        return fn_call(stoken) &&
-        fn_body(stoken);
-    }*/
     else if(stoken->SToken->type == IFJ){
         return ifj_call(stoken) &&
         fn_body(stoken);
@@ -265,7 +277,7 @@ bool params(TokenStoragePtr stoken){
 bool fn_def(TokenStoragePtr stoken){
     return t_pub(stoken) &&
     t_fn(stoken) &&
-    t_id(stoken) &&
+    t_id_fn(stoken) &&
     t_op_bracket(stoken) &&
     params(stoken) &&
     t_cl_bracket(stoken) &&
@@ -312,13 +324,19 @@ int main(){
     queue = queue_init();
     glob_table = TableInit();
 
-    stoken->SStoredToken = NULL;
     stoken->queue = queue;
     stoken->glob_table = glob_table;
     stoken->current_fn = NULL;
 
     queue_fill(stoken);
 
+    free(stoken->current_fn);
+    stoken->current_fn = NULL;
+    stoken->SStoredToken = NULL;
+    stoken->local_table = NULL;
+    stoken->level_stack = NULL;
+    stoken->stack_size = 0;
+    stoken->tmp = NULL;
     stoken->SToken = queue_next_token(queue);
 
     result = start(stoken);

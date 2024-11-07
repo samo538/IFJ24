@@ -19,7 +19,8 @@ typedef enum type{
 }Type;
 
 typedef struct {
-    int data;
+    Id_type type;
+    bool const_t;
 }Var_id;
 
 typedef struct fn_id{
