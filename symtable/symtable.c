@@ -32,7 +32,7 @@ int HashFn(char *key, int* level,int level_size){
 }
 
 SymTable *TableInit(){
-    Elem_id **SymTable = malloc(sizeof(Elem_id) * TABLE_SIZE);
+    Elem_id **SymTable = malloc(sizeof(Elem_id *) * TABLE_SIZE);
     for (int i = 0; i < TABLE_SIZE; i++){
         SymTable[i] = NULL;
     }
