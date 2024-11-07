@@ -21,6 +21,7 @@ typedef enum type{
 typedef struct {
     Id_type type;
     bool const_t;
+    bool used;
 }Var_id;
 
 typedef struct fn_id{

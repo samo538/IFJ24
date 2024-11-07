@@ -1,5 +1,6 @@
 
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include "syntax.h"
 #include "../lexer/token.h"
@@ -433,7 +434,11 @@ bool t_id(TokenStoragePtr stoken){
 }
 bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == ID){
-        // Check for already defined ids
+        Elem_id *tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (tmp != NULL){
+            fprintf(stderr,"Redefinition/shadowing not allowed\n");
+            exit(5);
+        }
         new->name = strdup(stoken->SToken->value.str);
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);

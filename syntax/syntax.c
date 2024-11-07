@@ -56,38 +56,6 @@ void syn_error(TokenStoragePtr stoken){
     exit(2);
 }
 
-// Expression rules
-
-bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
-    Elem_id *ret = NULL;
-    if (stoken->SToken->type == ID){
-        ret = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
-    }
-    if (stoken->SToken->type == IFJ){
-        return ifj_call(stoken);
-    } 
-    else if (stoken->SToken->type == ID && ret != NULL){
-        if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Auto assign type
-            new->FnVar.Var_id.type.type = ret->FnVar.Fn_id.return_type.type;
-            new->FnVar.Var_id.type.nullable = ret->FnVar.Fn_id.return_type.nullable;
-        }
-        else { // Check for correct type
-            if (
-                new->FnVar.Var_id.type.type != ret->FnVar.Fn_id.return_type.type ||
-                new->FnVar.Var_id.type.nullable != ret->FnVar.Fn_id.return_type.nullable) {
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
-            }
-        }
-        return fn_call(stoken);
-    }
-    /*else {
-        call precedence
-    }
-
-    */
-    return false;
-}
 
 bool e_return_exp(TokenStoragePtr stoken){
     /*if (stoken->SToken->type == EXP){
@@ -107,18 +75,6 @@ bool l_type(TokenStoragePtr stoken){
     t_type_keyword(stoken);
 }
 
-bool l_var_const(TokenStoragePtr stoken, Elem_id *new){
-    bool ret;
-    if (stoken->SToken->type == VAR){
-        new->FnVar.Var_id.const_t = false;
-        ret =  t_var(stoken);
-    }
-    else {
-        new->FnVar.Var_id.const_t = true;
-        ret = t_const(stoken);
-    }
-    return ret;
-}
 
 bool l_type_fndef(TokenStoragePtr stoken){
     if (stoken->SToken->type == VOID){
@@ -126,21 +82,6 @@ bool l_type_fndef(TokenStoragePtr stoken){
     }
     else {
         return l_type(stoken);
-    }
-}
-
-bool l_type_var(TokenStoragePtr stoken, Elem_id *new){
-    return t_nullable_var(stoken, new) &&
-    t_type_keyword_var(stoken, new);
-}
-
-bool l_type_vardef(TokenStoragePtr stoken, Elem_id * new){
-    if (stoken->SToken->type == COLON){
-        return t_colon(stoken) &&
-        l_type_var(stoken, new);
-    }
-    else {
-        return true;
     }
 }
 
@@ -153,7 +94,116 @@ bool l_id_assign(TokenStoragePtr stoken){
     }
 }
 
-// Main rules
+/*
+ *  Variable definition
+ */
+bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
+    Elem_id *ret = NULL;
+    if (stoken->SToken->type == ID){ // If id search if its a function
+        ret = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+    }
+
+    // Assigning IFJ func
+    if (stoken->SToken->type == IFJ){
+        return ifj_call(stoken);
+    }
+
+    // Assigning func
+    else if (stoken->SToken->type == ID && ret != NULL){ 
+        if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
+            if (ret->FnVar.Fn_id.return_type.type == VOID){
+                fprintf(stderr, "Assigning void\n");
+                exit(7);
+            }
+            new->FnVar.Var_id.type.type = ret->FnVar.Fn_id.return_type.type;
+            new->FnVar.Var_id.type.nullable = ret->FnVar.Fn_id.return_type.nullable;
+        }
+        else { // Explicit type, check data types
+            if (
+                new->FnVar.Var_id.type.type != ret->FnVar.Fn_id.return_type.type ||
+                new->FnVar.Var_id.type.nullable != ret->FnVar.Fn_id.return_type.nullable) {
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
+        }
+        return fn_call(stoken);
+    }
+
+    // Assigning null
+    else if(stoken->SToken->type == NULL_VALUE){
+        if (new->FnVar.Var_id.type.type == END_OF_FILE){
+            fprintf(stderr, "cannot determine type\n");
+            exit(8);
+        }
+        else if(new->FnVar.Var_id.type.nullable == false){
+            fprintf(stderr, "cannot assign null\n");
+            exit(7);
+        }
+        return t_null(stoken) &&
+        t_semicolon(stoken);
+    }
+    /*else {
+        call precedence // dont forget semicolon
+        If failure then 3 or something
+    }*/
+    return false;
+}
+
+bool l_type_var(TokenStoragePtr stoken, Elem_id *new){
+    return t_nullable_var(stoken, new) && // Set nullable
+    t_type_keyword_var(stoken, new); // Set type
+}
+
+bool l_type_vardef(TokenStoragePtr stoken, Elem_id * new){
+    if (stoken->SToken->type == COLON){ // Explicit definiton
+        return t_colon(stoken) &&
+        l_type_var(stoken, new);
+    }
+    else { // Implicit definition
+        return true;
+    }
+}
+
+bool l_var_const(TokenStoragePtr stoken, Elem_id *new){
+    bool ret;
+    if (stoken->SToken->type == VAR){
+        new->FnVar.Var_id.const_t = false; // Setting the const flag
+        ret =  t_var(stoken);
+    }
+    else {
+        new->FnVar.Var_id.const_t = true; // Setting the const flag
+        ret = t_const(stoken);
+    }
+    return ret;
+}
+
+bool var_def(TokenStoragePtr stoken){
+    bool ret;
+    Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
+    new->Type = VARIABLE;
+    new->stack_size = stoken->stack_size; // Setting the stack
+    copy_levels(stoken->level_stack, &new->level_stack, stoken->stack_size);
+    new->FnVar.Var_id.type.type = END_OF_FILE; // Placeholder
+    new->FnVar.Var_id.type.nullable = false; // Implicit false
+    new->FnVar.Var_id.used = false; // Variable not used by default
+
+    ret = l_var_const(stoken, new) && // Filling up new
+    t_id_var(stoken, new) && // Filling up the name / checking for redef
+    l_type_vardef(stoken, new) && // Implicit/Explicit definition
+    t_eq(stoken) &&
+    e_var_exp(stoken, new); // Adding value
+
+    TableAdd(*new, stoken->local_table); // Adding the new element into local table
+
+    free(new->name); // freeing the added element
+    free(new->level_stack);
+    free(new);
+    return ret;
+}
+
+/*
+ *  Function call
+ */
 bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
     if (stoken->SToken->type == STRING){
         if (pos == fn->FnVar.Fn_id.num_of_params){
@@ -221,6 +271,10 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             exit(4);
         }
         Elem_id *tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (tmp == NULL){
+            fprintf(stderr, "undefined variable\n");
+            exit(3);
+        }
         if (fn->FnVar.Fn_id.type_of_params[pos].type == tmp->FnVar.Var_id.type.type){
             return t_id(stoken) &&
             t_comma(stoken) &&
@@ -238,34 +292,48 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
     return true;
 }
 
+bool fn_call(TokenStoragePtr stoken){
+    Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+    if (fn == NULL){
+        fprintf(stderr, "Undefined function\n");
+        exit(3);
+    }
+    return t_id(stoken) &&
+    t_op_bracket(stoken) &&
+    call_params(stoken, fn, 0) && // Sematics action, check params validity
+    t_cl_bracket(stoken) &&
+    t_semicolon(stoken);
+}
+
+bool ifj_call(TokenStoragePtr stoken){
+    bool ret;
+    ret = t_ifj(stoken) &&
+    t_dot(stoken);
+
+    if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
+        Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table);
+        if (fn == NULL){
+            fprintf(stderr, "Undefined IFJ function\n");
+            exit(3);
+        }
+        return ret &&
+        t_id_ifj(stoken) &&
+        t_op_bracket(stoken) &&
+        call_params(stoken, fn, 0) && // Checking the validity of params
+        t_cl_bracket(stoken) &&
+        t_semicolon(stoken);
+    }
+
+    syn_error(stoken);
+    return false;
+}
+
 bool if_while_body(TokenStoragePtr stoken){
     return t_op_cr_bracket(stoken) &&
     fn_body(stoken) &&
     t_cl_cr_bracket(stoken);
 }
 
-bool var_def(TokenStoragePtr stoken){
-    bool ret;
-    Elem_id *new = malloc(sizeof(Elem_id));
-    new->Type = VARIABLE;
-    new->stack_size = stoken->stack_size;
-    copy_levels(stoken->level_stack, &new->level_stack, stoken->stack_size);
-    new->FnVar.Var_id.type.type = END_OF_FILE; // Placeholder
-    new->FnVar.Var_id.type.nullable = false; // Implicit false
-
-    ret = l_var_const(stoken, new) &&
-    t_id_var(stoken, new) &&
-    l_type_vardef(stoken, new) &&
-    t_eq(stoken) &&
-    e_var_exp(stoken, new);
-
-    TableAdd(*new, stoken->local_table);
-
-    free(new->name);
-    free(new->level_stack);
-    free(new);
-    return ret;
-}
 
 bool assign(TokenStoragePtr stoken){
     return l_id_assign(stoken) &&
@@ -273,24 +341,7 @@ bool assign(TokenStoragePtr stoken){
     e_var_exp(stoken, NULL);
 }
 
-bool fn_call(TokenStoragePtr stoken){
-    Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
-    return t_id(stoken) &&
-    t_op_bracket(stoken) &&
-    call_params(stoken, fn, 0) &&
-    t_cl_bracket(stoken) &&
-    t_semicolon(stoken);
-}
 
-bool ifj_call(TokenStoragePtr stoken){
-    return t_ifj(stoken) &&
-    t_dot(stoken) &&
-    t_id_ifj(stoken) &&
-    t_op_bracket(stoken) &&
-    //call_params(stoken) &&
-    t_cl_bracket(stoken) &&
-    t_semicolon(stoken);
-}
 
 bool if_else(TokenStoragePtr stoken){
     return t_if(stoken) &&
@@ -314,11 +365,17 @@ bool fn_return(TokenStoragePtr stoken){
     t_semicolon(stoken);
 }
 
-bool fn_body(TokenStoragePtr stoken){ // TODO 
+bool fn_body(TokenStoragePtr stoken){ // Main switchboard
+    /*
+    *   Variable definition
+    */
     if (stoken->SToken->type == VAR || stoken->SToken->type == CONST){
         return var_def(stoken) &&
         fn_body(stoken);
     }
+    /*
+    *   Function calling or assignment
+    */
     else if(stoken->SToken->type == ID){
         Elem_id *tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
         if (tmp != NULL){
@@ -334,25 +391,40 @@ bool fn_body(TokenStoragePtr stoken){ // TODO
             return assign(stoken) &&
             fn_body(stoken);
         }
-        //Error
-        return -1;
+        fprintf(stderr, "nondef func or variable\n");
+        exit(3);
     }
+    /*
+    *   Ifj function calling
+    */
     else if(stoken->SToken->type == IFJ){
-        return ifj_call(stoken) &&
+        return ifj_call(stoken) && // Checks the sematics of ifj functions
         fn_body(stoken);
     }
+    /*
+    *   If else block
+    */
     else if(stoken->SToken->type == IF){
         return if_else(stoken) &&
         fn_body(stoken);
     }
+    /*
+    *   Cycle block
+    */
     else if(stoken->SToken->type == WHILE){
         return cycle(stoken) &&
         fn_body(stoken);
     }
+    /*
+    *   Return from function
+    */
     else if(stoken->SToken->type == RETURN){
         return fn_return(stoken) &&
         fn_body(stoken);
     }
+    /*
+    *   End of the current function
+    */
     else {
         return true;
     }
@@ -374,34 +446,34 @@ bool params(TokenStoragePtr stoken){
 bool fn_def(TokenStoragePtr stoken){
     return t_pub(stoken) &&
     t_fn(stoken) &&
-    t_id_fn(stoken) &&
+    t_id_fn(stoken) && // Setting stoken context
     t_op_bracket(stoken) &&
-    params(stoken) &&
+    params(stoken) && // Does just syntactic checks in the second walkthrough
     t_cl_bracket(stoken) &&
-    l_type_fndef(stoken);
+    l_type_fndef(stoken); // Just syntactic check
 }
 
 bool functions(TokenStoragePtr stoken){
     if (stoken->SToken->type == END_OF_FILE) {
-        return t_eof(stoken);
+        return t_eof(stoken); // End of file
     }
     else {
-        if (stoken->current_fn != NULL){
+        if (stoken->current_fn != NULL){ // Freeing stoken context
             free(stoken->current_fn);
             stoken->current_fn = NULL;
             free(stoken->level_stack);
             stoken->level_stack = NULL;
             stoken->stack_size = 0;
         }
-        return fn_def(stoken) &&
+        return fn_def(stoken) && // Setting stoke context
         t_op_cr_bracket(stoken) &&
-        fn_body(stoken) &&
+        fn_body(stoken) && // Main syntax and sematics validation
         t_cl_cr_bracket(stoken) &&
-        functions(stoken);
+        functions(stoken); // Recursive calling
     }
 }
 
-bool import_def(TokenStoragePtr stoken){
+bool import_def(TokenStoragePtr stoken){ // Only syntax analysis
     return t_const(stoken) &&
     t_ifj(stoken) &&
     t_eq(stoken) &&
@@ -425,14 +497,17 @@ int main(){
 
     Queue *queue;
     SymTable *glob_table;
+    SymTable *ifj_table;
     queue = queue_init();
     glob_table = TableInit();
+    ifj_table = TableInit();
 
     stoken->queue = queue;
     stoken->glob_table = glob_table;
     stoken->current_fn = NULL;
 
     queue_fill(stoken);
+    ifj_table_fill(stoken);
 
     free(stoken->current_fn);
     stoken->current_fn = NULL;
@@ -441,9 +516,11 @@ int main(){
     stoken->level_stack = NULL;
     stoken->stack_size = 0;
     stoken->SToken = queue_next_token(queue);
+    stoken->ifj_table = ifj_table;
 
     result = start(stoken);
 
+    // !! Debug output
     Elem_id *elem;
     for (int i = 0; i < 1001; i++){
         elem = stoken->glob_table[i];
@@ -477,8 +554,9 @@ int main(){
         printf("%d\n",elem_loc->FnVar.Var_id.const_t);
         }
     }
-
-    printf("%d\n", result); //debug output
+    printf("%d\n", result);
+    // !! Debug output
+    TableClear(ifj_table, FUNCTION);
     dealloc_stoken(stoken);
 }
 

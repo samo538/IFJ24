@@ -20,6 +20,7 @@ typedef struct{
     // Symtables
     SymTable *glob_table;
     SymTable *local_table;
+    SymTable *ifj_table;
     // Current function
     char *current_fn;
     // Current stack
@@ -36,5 +37,7 @@ void queue_free(Queue *queue);
 Queue *queue_init();
 
 void queue_fill(TokenStoragePtr stoken);
+
+void ifj_table_fill(TokenStoragePtr stoken);
 
 #endif
