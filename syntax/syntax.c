@@ -144,12 +144,16 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
 }
 
 bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
-    // TODO check for both NULLs
     Elem_id *ret_fn = NULL;
     Elem_id *ret_var = NULL;
     if (stoken->SToken->type == ID){ // If id search if its a function or variable
         ret_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
         ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        // If both pointers not null
+        if (ret_fn != NULL && ret_var != NULL){
+            fprintf(stderr, "Function with the same name as variable\n");
+            exit(10);
+        }
     }
 
     // Assigning IFJ func
@@ -199,6 +203,22 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
     // Assigning id expression or string variable
     else if(ret_var != NULL){
         if (ret_var->FnVar.Var_id.type.type == U8){
+            if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
+                new->FnVar.Var_id.type.type = U8;
+                new->FnVar.Var_id.type.nullable = ret_var->FnVar.Var_id.type.nullable;
+            }
+            else { // Explicit type, check data types
+                if (new->FnVar.Var_id.type.type != ret_var->FnVar.Var_id.type.type) {
+                    fprintf(stderr, "Wrong assign type\n");
+                    exit(7);
+                }
+                if (ret_var->FnVar.Var_id.type.nullable){
+                    if(!new->FnVar.Var_id.type.nullable){
+                        fprintf(stderr, "Wrong assign type\n");
+                        exit(7);
+                    }
+                }
+            }
             return t_id(stoken) &&
             t_semicolon(stoken);
         }
@@ -212,13 +232,23 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                 fprintf(stderr,"Exp error\n");
                 exit(result->Error);
             }
+            if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
+                new->FnVar.Var_id.type.type = result->Tree->Data.Type;
+                new->FnVar.Var_id.type.nullable = false;
+            }
+            else { // Explicit type, check data types
+                if (new->FnVar.Var_id.type.type != result->Tree->Data.Type) {
+                    fprintf(stderr, "Wrong assign type\n");
+                    exit(7);
+                }
+            }
             stoken->SToken = result->NextTotken;
             return t_semicolon(stoken);
         }
     }
 
     // Assigning non-string literals
-    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR){
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
         PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
@@ -227,6 +257,16 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         if (result->Error != 0){
             fprintf(stderr,"Exp error\n");
             exit(result->Error);
+        }
+        if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
+            new->FnVar.Var_id.type.type = result->Tree->Data.Type;
+            new->FnVar.Var_id.type.nullable = false;
+        }
+        else { // Explicit type, check data types
+            if (new->FnVar.Var_id.type.type != result->Tree->Data.Type) {
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
         }
         stoken->SToken = result->NextTotken;
         return t_semicolon(stoken);
@@ -237,9 +277,8 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         fprintf(stderr, "Assigning string not allowd\n");
         exit(7);
     }
-    // If both pointers null
-    fprintf(stderr, "Function or variable not defined\n");
-    exit(3);
+    fprintf(stderr, "Syntax Error\n");
+    exit(2);
 }
 
 bool l_type_var(TokenStoragePtr stoken, Elem_id *new){
