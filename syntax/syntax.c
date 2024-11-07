@@ -53,6 +53,7 @@ void dealloc_stoken(TokenStoragePtr stoken){
 
 void syn_error(TokenStoragePtr stoken){
     dealloc_stoken(stoken);
+    fprintf(stderr, "syntax error\n");
     exit(2);
 }
 
@@ -97,6 +98,45 @@ bool l_id_assign(TokenStoragePtr stoken){
 /*
  *  Variable definition
  */
+bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
+    bool ret;
+    ret = t_ifj(stoken) &&
+    t_dot(stoken);
+
+    if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
+        Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table);
+        if (fn == NULL){
+            fprintf(stderr, "Undefined IFJ function\n");
+            exit(3);
+        }
+        if (!strcmp(fn->name, "write")){
+            fprintf(stderr, "Assigning void\n");
+            exit(7);
+        }
+        if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
+            new->FnVar.Var_id.type.type = fn->FnVar.Fn_id.return_type.type;
+            new->FnVar.Var_id.type.nullable = fn->FnVar.Fn_id.return_type.nullable;
+        }
+        else { // Explicit type, check data types
+            if (
+                new->FnVar.Var_id.type.type != fn->FnVar.Fn_id.return_type.type ||
+                new->FnVar.Var_id.type.nullable != fn->FnVar.Fn_id.return_type.nullable) {
+                fprintf(stderr, "Wrong assign type\n");
+                exit(7);
+            }
+        }
+        return ret &&
+        t_id_ifj(stoken) &&
+        t_op_bracket(stoken) &&
+        call_params(stoken, fn, 0) && // Checking the validity of params
+        t_cl_bracket(stoken) &&
+        t_semicolon(stoken);
+    }
+
+    syn_error(stoken);
+    return false;
+}
+
 bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
     Elem_id *ret = NULL;
     if (stoken->SToken->type == ID){ // If id search if its a function
@@ -105,7 +145,7 @@ bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
 
     // Assigning IFJ func
     if (stoken->SToken->type == IFJ){
-        return ifj_call(stoken);
+        return ifj_call_var(stoken, new);
     }
 
     // Assigning func
@@ -142,11 +182,16 @@ bool e_var_exp(TokenStoragePtr stoken, Elem_id *new){
         return t_null(stoken) &&
         t_semicolon(stoken);
     }
+    else if(stoken->SToken->type == STRING){
+        fprintf(stderr, "Assigning string not allowd\n");
+        exit(7);
+    }
     /*else {
         call precedence // dont forget semicolon
         If failure then 3 or something
     }*/
-    return false;
+    fprintf(stderr, "Function or variable not defined\n");
+    exit(3);
 }
 
 bool l_type_var(TokenStoragePtr stoken, Elem_id *new){
@@ -316,10 +361,62 @@ bool ifj_call(TokenStoragePtr stoken){
             fprintf(stderr, "Undefined IFJ function\n");
             exit(3);
         }
-        return ret &&
+        if (strcmp(fn->name, "write")){
+            fprintf(stderr, "Return type dumped\n");
+            exit(4);
+        }
+        ret = ret &&
         t_id_ifj(stoken) &&
-        t_op_bracket(stoken) &&
-        call_params(stoken, fn, 0) && // Checking the validity of params
+        t_op_bracket(stoken);
+        if (ret == false){
+            return false;
+        }
+
+        if (stoken->SToken->type == F64_VAR){
+            ret = ret && t_float(stoken);
+            if (ret == false){
+                return false;
+            }
+        }
+        else if (stoken->SToken->type == I32_VAR){
+            ret = ret && t_int(stoken);
+            if (ret == false){
+                return false;
+            }
+
+        }
+        else if (stoken->SToken->type == STRING){
+            ret = ret && t_string(stoken);
+            if (ret == false){
+                return false;
+            }
+
+        }
+        else if (stoken->SToken->type == NULL_VALUE){
+            ret = ret && t_null(stoken);
+            if (ret == false){
+                return false;
+            }
+
+        }
+        else if (stoken->SToken->type == ID){
+        Elem_id *var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+            if (var == NULL){
+                fprintf(stderr, "Undefined variable\n");
+                exit(3);
+            }
+            ret = ret && t_id(stoken);
+            if (ret == false){
+                return false;
+            }
+
+        }
+        else {
+            fprintf(stderr, "syntax error\n");
+            exit(2);
+        }
+        return ret &&
+        t_comma(stoken) &&
         t_cl_bracket(stoken) &&
         t_semicolon(stoken);
     }
@@ -504,6 +601,7 @@ int main(){
 
     stoken->queue = queue;
     stoken->glob_table = glob_table;
+    stoken->ifj_table = ifj_table;
     stoken->current_fn = NULL;
 
     queue_fill(stoken);
@@ -516,7 +614,6 @@ int main(){
     stoken->level_stack = NULL;
     stoken->stack_size = 0;
     stoken->SToken = queue_next_token(queue);
-    stoken->ifj_table = ifj_table;
 
     result = start(stoken);
 

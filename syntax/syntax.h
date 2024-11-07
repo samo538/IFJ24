@@ -9,5 +9,6 @@ void syn_error(TokenStoragePtr stoken);
 
 bool ifj_call(TokenStoragePtr stoken);
 bool fn_body(TokenStoragePtr stoken);
+bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos);
 
 #endif

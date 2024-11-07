@@ -119,7 +119,7 @@ void ifj_table_fill(TokenStoragePtr stoken){
     1,
     1,
     1,
-    1,
+    2,
     3,
     2,
     2,
@@ -156,6 +156,6 @@ void ifj_table_fill(TokenStoragePtr stoken){
             tmp.FnVar.Fn_id.type_of_params[j].type = param_type[i][j];
         }
         TableAdd(tmp, stoken->ifj_table);
-        free(tmp.FnVar.Fn_id.type_of_params);
+        //free(tmp.FnVar.Fn_id.type_of_params);
     }
 }
