@@ -1,11 +1,15 @@
 #ifndef TREE_H
 #define TREE_H
 
+#include <stdbool.h>
+
 #include "../lexer/token.h"
 
 typedef struct TreeData
 {
     TokenPtr Token;
+    int Type;
+    bool ChangeType;
 
 }TreeData;
 

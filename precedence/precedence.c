@@ -100,8 +100,9 @@ int operator_reduction(StackBasePtr stack){
         goto error_pop;
     }
     if((operator->Data.Token->type > MORE_OR_EQUAL) || ((operator->Data.Token->type > DIVIDE) && (operator->Data.Token->type < EQUAL))){
-        //TODO VOLANIE ERROR FUNKCIE
-        return -1;
+        TreeNodeDelete(E_2);
+        error_type = 7;
+        goto error_pop;
     }
 
     TreeElementPtr E_1 = Pop(stack);
@@ -111,9 +112,21 @@ int operator_reduction(StackBasePtr stack){
         goto error_pop;
     }
 
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    //!!TODO OVERENIE CI TYPY VYHOVUJU OPERACII!!
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    //typova kontrola
+    if(E_1->Data.Type == I32_VAR && E_2->Data.Type == I32_VAR){
+        operator->Data.Type = I32_VAR;
+    }
+    else if (E_1->Data.Type == I32_VAR && E_2->Data.Type == F64_VAR){
+        operator->Data.Type = F64_VAR;
+        E_1->Data.ChangeType = true;
+    }
+    else if (E_1->Data.Type == F64_VAR && E_2->Data.Type == I32_VAR){
+        operator->Data.Type = F64_VAR;
+        E_2->Data.ChangeType = true;
+    }
+    else if (E_1->Data.Type == F64_VAR && E_2->Data.Type == F64_VAR){
+        operator->Data.Type = F64_VAR;
+    }
 
     //vytvorenie podstromu
     ret_element = TreeElementConnect(operator, E_1);
@@ -155,9 +168,21 @@ int E_reduction(StackBasePtr stack){
 
     TreeElementPtr ret_element;
 
-    if(stack->ActiveElement->Tree->Data.Token->type == ID){ //overenie ci id nie je nejaka zla vec ktora mi chce velmi ale ze velmi zle
-
-            //TODO OVERENIE TYPU PREMENNEJ
+    switch (stack->ActiveElement->Tree->Data.Token->type)
+    {
+    case ID:
+        stack->ActiveElement->Tree->Data.Type = I32_VAR;
+        //TODO OVERENIE TYPU PREMENNEJ, pozriet sa do tabulky
+        break;
+    case I32_VAR:
+        stack->ActiveElement->Tree->Data.Type = I32_VAR;
+        break;
+    case F64_VAR:
+        stack->ActiveElement->Tree->Data.Type = F64_VAR;
+        break;
+    
+    default:
+        break;
     }
 
     ret_element = Down(stack);
@@ -227,7 +252,7 @@ int equal(StackBasePtr stack){
         goto error_pop;
     }
     if(cl_bracket->Data.Token->type != CLOSING_BRACKET){
-        //TODO VOLANIE ERROR FUNKCIE
+        error_type = 7;
         return -1;
     }
 
@@ -244,7 +269,9 @@ int equal(StackBasePtr stack){
         goto error_pop;
     }
     if(op_bracket->Data.Token->type != OPENING_BRACKET){
-        //TODO VOLANIE ERROR FUNKCIE
+        TreeNodeDelete(E);
+        TreeNodeDelete(cl_bracket);
+        error_type = 7;
         return -1;
     }
 
@@ -357,14 +384,14 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
 
         //overuje ci sa moze vyskytovat relacny operator vo vyraze
         if((rel_op == false) && (n_token->type >= 7 && n_token->type <= 12)){
-            //TODO VOLANIE ERROR FUNKCIE
-            return NULL;
+            error_type = 7;
+            goto error;
         }
 
         //overuje ci nie je realcny operator prvy vo vyraze
         if((counter == 0) && (n_token->type >= 7 && n_token->type <= 12)){
-            //TODO VOLANIE ERROR FUNKCIE
-            return NULL;
+            error_type = 7;
+            goto error;
         }
 
                 
@@ -391,6 +418,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
                 rel_op_counter++;
 
                 if(rel_op_counter > 1){
+                    error_type = 7;
                     goto error;
                 }
             }
@@ -417,7 +445,10 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
                 n_token = next_token();
             }
 
-            equal(stack);
+            ret = equal(stack);
+            if(ret == -1){
+                goto error;
+            }
             break;
 
         case ERROR:
@@ -441,8 +472,8 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
         counter ++;
     }
 
-    if (leaves_control(stack->TopElement->Tree))
-    {
+    if(leaves_control(stack->TopElement->Tree)){
+
         PrecResultPtr result = malloc(sizeof(PrecResult));
         if(result == NULL){
             error_type = 99;
@@ -457,13 +488,13 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
         return result;
     }
     else{
-        fprintf(stderr, "leaves control failed\n");
+        error_type = 7;
         goto error;
     }
 
 
 error:
-    fprintf(stderr, "%d\n", error_type);
+    fprintf(stderr, "ERROR: %d\n", error_type);
     for(int i = 0; i < stack->StackCounter; i++){
         TreeNodeDelete(Pop(stack));
     }

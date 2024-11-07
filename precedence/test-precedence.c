@@ -26,8 +26,10 @@ int main(){
         return -1;
     }
 
+    printf("tvoj stromcek\n");
     print_tree(result->Tree);
-    printf("%d\n", result->Tree->Data.Token->type);
+    printf("%d\n\n", result->Tree->Data.Token->type);
+    printf("result type: %d\n\n", result->Tree->Data.Type);
     printf("next token: %d\n", result->NextTotken->type);
 
     TreeNodeDelete(result->Tree);
