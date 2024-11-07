@@ -18,6 +18,7 @@ StackBasePtr StackInit(void){
     stack_base->BottomElement = NULL;
     stack_base->TopElement = NULL;
     stack_base->ActiveElement = NULL;
+    stack_base->StackCounter = 0;
 
     return stack_base;
 }
