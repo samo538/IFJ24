@@ -457,7 +457,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
                 n_token = second_token;
             }
             else{
-                n_token = next_token();
+                n_token = queue_next_token(queue);
             }
         
             break;
