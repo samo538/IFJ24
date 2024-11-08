@@ -27,7 +27,7 @@ void lexer_error() {
 }
 
 void realloc_str(char** str, size_t* strSize, size_t length) {
-	if(length == *strSize) {
+	while(length >= *strSize) {
 		*strSize += 20;
 		*str = (char*)realloc(*str, sizeof(char) * (*strSize));
 		if(str == NULL) {//TODO: pořešit alloc error
@@ -347,20 +347,20 @@ void multi_line_string_type(TokenPtr token, char input) {
             input = getchar();
             if ('\n' == input) { break; }
         	if(0 < (int)input && (int)input <= 9) {
+    				length+=4;
+    				realloc_str(&token->value.str, &strSize, length);
         		token->value.str[length] = '\\';
-				token->value.str[length+1] = '0';
-				token->value.str[length+2] = '0';
-				token->value.str[length+3] = (int)input;
-    			length+=4;
-    			realloc_str(&token->value.str, &strSize, length);
+						token->value.str[length+1] = '0';
+						token->value.str[length+2] = '0';
+						token->value.str[length+3] = (int)input;
         	}
         	else if((9 < (int)input && (int)input <= 32) || (int)input == 92 || (int)input == 35) {
+    				length+=4;
+    				realloc_str(&token->value.str, &strSize, length);
         		token->value.str[length] = '\\';
-				token->value.str[length+1] = '0';
-				token->value.str[length+2] = ((int)input /10)+48;
-				token->value.str[length+3] = ((int)input %10)+48;
-    			length+=4;
-    			realloc_str(&token->value.str, &strSize, length);
+						token->value.str[length+1] = '0';
+						token->value.str[length+2] = ((int)input /10)+48;
+						token->value.str[length+3] = ((int)input %10)+48;
         	}
         	else {
         		token->value.str[length] = input;
@@ -413,39 +413,39 @@ void string_type(TokenPtr token, char input) {
        	char c = getchar();
         switch(c) {
           	case 'n': {
-          			token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '1';
-                    token->value.str[length+3] = '0';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
-					continue;
+          			token->value.str[length] = '\\';
+                token->value.str[length+1] = '0';
+                token->value.str[length+2] = '1';
+                token->value.str[length+3] = '0';
+								continue;
                   break;}
         	case 'r': {
+          			length+=4;
+          			realloc_str(&token->value.str, &strSize, length);
                   	token->value.str[length] = '\\';
                     token->value.str[length+1] = '0';
                     token->value.str[length+2] = '1';
                     token->value.str[length+3] = '3';
-          			length+=4;
-          			realloc_str(&token->value.str, &strSize, length);
 					continue;
                   break;}
         	case 't': {
+          			length+=4;
+          			realloc_str(&token->value.str, &strSize, length);
                   	token->value.str[length] = '\\';
                     token->value.str[length+1] = '0';
                     token->value.str[length+2] = '0';
                     token->value.str[length+3] = '9';
-          			length+=4;
-          			realloc_str(&token->value.str, &strSize, length);
 					continue;
                   break;}
         	case '\\': {
+          			length+=4;
+          			realloc_str(&token->value.str, &strSize, length);
                   	token->value.str[length] = '\\';
                     token->value.str[length+1] = '0';
                     token->value.str[length+2] = '9';
                     token->value.str[length+3] = '2';
-          			length+=4;
-          			realloc_str(&token->value.str, &strSize, length);
 					continue;
                   break;}
         	case '\'': {
@@ -500,20 +500,20 @@ void string_type(TokenPtr token, char input) {
 		}
 
     	if(0 < (int)input && (int)input <= 9) {
+    		length+=4;
+    		realloc_str(&token->value.str, &strSize, length);
     		token->value.str[length] = '\\';
 			token->value.str[length+1] = '0';
 			token->value.str[length+2] = '0';
 			token->value.str[length+3] = (int)input;
-    		length+=4;
-    		realloc_str(&token->value.str, &strSize, length);
     	}
     	else if((9 < (int)input && (int)input <= 32) || (int)input == 92 || (int)input == 35) {
+    		length+=4;
+    		realloc_str(&token->value.str, &strSize, length);
 			token->value.str[length] = '\\';
 			token->value.str[length+1] = '0';
 			token->value.str[length+2] = ((int)input /10)+48;
 			token->value.str[length+3] = ((int)input %10)+48;
-    		length+=4;
-    		realloc_str(&token->value.str, &strSize, length);
     	}
         else {
         	token->value.str[length] = input;
