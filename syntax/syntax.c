@@ -677,7 +677,7 @@ bool assign(TokenStoragePtr stoken){
 }
 
 /*
- *  Else
+ *  IfElse
  */
 
 bool xxx(TokenStoragePtr stoken){
@@ -721,6 +721,11 @@ bool if_else(TokenStoragePtr stoken){
                 exit(result->Error);
             }
             stoken->SToken = result->NextTotken;
+
+            //Changind the position is stack
+            stoken->stack_size++;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+            stoken->level_stack[stoken->stack_size - 1]; // TODO implement another stack
 
             return ret &&
             t_cl_bracket(stoken) &&
