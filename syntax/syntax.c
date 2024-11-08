@@ -60,18 +60,8 @@ void syn_error(TokenStoragePtr stoken){
 }
 
 
-bool e_return_exp(TokenStoragePtr stoken){
-    /*if (stoken->SToken->type == EXP){
-        call precedence
-    }*/
-    return true;
-}
 
 // Lower rules
-//
-bool e_null_exp(TokenStoragePtr stoken){
-    return t_cl_bracket(stoken);
-}
 
 
 bool l_type(TokenStoragePtr stoken){
@@ -689,34 +679,217 @@ bool assign(TokenStoragePtr stoken){
 /*
  *  Else
  */
-bool if_while_body(TokenStoragePtr stoken){
+
+bool xxx(TokenStoragePtr stoken){
+    return false;
+}
+
+bool if_body(TokenStoragePtr stoken){
     return t_op_cr_bracket(stoken) &&
     fn_body(stoken) &&
     t_cl_cr_bracket(stoken);
 }
 
 bool if_else(TokenStoragePtr stoken){
-    return t_if(stoken) &&
-    t_op_bracket(stoken) &&
-    e_null_exp(stoken) &&
-    if_while_body(stoken) &&
-    t_else(stoken) &&
-    if_while_body(stoken);
+    bool ret;
+    ret = t_if(stoken) &&
+    t_op_bracket(stoken);
+    if (ret == false){
+        fprintf(stderr, "Syntax error\n");
+        exit(2);
+    }
+
+    // Check the variant of the condition (null or exp)
+    if (stoken->SToken->type == ID){
+        Elem_id * var_id = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (var_id == NULL){
+            fprintf(stderr, "undefined variable");
+            exit(3);
+        }
+        if (var_id->FnVar.Var_id.type.nullable){
+            return 1;
+            // If nullable go with 2
+        }
+        else {
+            return 1;
+            // If not nullable start exp
+        }
+    }
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
+        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        stoken->SToken = result->NextTotken;
+
+        return ret &&
+        t_cl_bracket(stoken) &&
+        if_body(stoken) &&
+        t_else(stoken) &&
+        if_body(stoken);
+    }
+    else {
+        fprintf(stderr, "Syntax error\n");
+        exit(2);
+    }
+}
+
+/*
+ *  While
+ */
+bool while_body(TokenStoragePtr stoken){
+    return t_op_cr_bracket(stoken) &&
+    fn_body(stoken) &&
+    t_cl_cr_bracket(stoken);
 }
 
 bool cycle(TokenStoragePtr stoken){
     return t_while(stoken) &&
     t_op_bracket(stoken) &&
-    e_null_exp(stoken) &&
-    if_while_body(stoken);
+//    e_null_exp(stoken) &&
+    while_body(stoken);
+}
+
+
+/*
+ *  Return
+ */
+bool e_return_exp(TokenStoragePtr stoken){
+    // Search for the current function
+    Elem_id *curr_func = NULL;
+    curr_func = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
+    if (curr_func == NULL){
+        fprintf(stderr, "Something went wrong\n");
+        exit(99);
+    }
+
+    if (curr_func->FnVar.Fn_id.return_type.type == VOID){
+        if (stoken->SToken->type != SEMICOLON){
+            fprintf(stderr, "Expression void return statement\n");
+            exit(4);
+        }
+        return t_semicolon(stoken);
+    }
+
+    Elem_id *ret_fn = NULL;
+    Elem_id *ret_var = NULL;
+    if (stoken->SToken->type == ID){ // If id search if its a function or variable
+        ret_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        // If both pointers not null
+        if (ret_fn != NULL && ret_var != NULL){
+            fprintf(stderr, "Function with the same name as variable\n");
+            exit(10);
+        }
+    }
+
+    // Returning IFJ func
+    if (stoken->SToken->type == IFJ){
+        fprintf(stderr, "cannot return function\n");
+        exit(4);
+    }
+
+    else if(stoken->SToken->type == SEMICOLON){
+        fprintf(stderr, "Returning void in non-void func\n");
+        exit(4);
+    }
+
+    // Returning func
+    else if (ret_fn != NULL){ 
+        fprintf(stderr, "cannot return function\n");
+        exit(4);
+    }
+
+    // Returning null
+    else if(stoken->SToken->type == NULL_VALUE){
+        if(curr_func->FnVar.Fn_id.return_type.nullable == false){
+            fprintf(stderr, "cannot return null\n");
+            exit(4);
+        }
+        stoken->returned = true;
+        return t_null(stoken) &&
+        t_semicolon(stoken);
+    }
+
+    // returning id expression or string variable
+    else if(ret_var != NULL){
+        if (ret_var->FnVar.Var_id.type.type == U8){
+            if (curr_func->FnVar.Fn_id.return_type.type != U8) {
+                fprintf(stderr, "Wrong return type\n");
+                exit(4);
+            }
+            if (ret_var->FnVar.Var_id.type.nullable) {
+                if (!curr_func->FnVar.Fn_id.return_type.nullable){
+                    fprintf(stderr, "Wrong return type\n");
+                    exit(4);
+                }
+            }
+            stoken->returned = true;
+            return t_id(stoken) &&
+            t_semicolon(stoken);
+        }
+        else {
+            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
+                fprintf(stderr, "Wrong return type\n");
+                exit(4);
+            }
+            stoken->SToken = result->NextTotken;
+            stoken->returned = true;
+            return t_semicolon(stoken);
+        }
+    }
+
+    // Assigning non-string literals
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
+        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
+            fprintf(stderr, "Wrong return type\n");
+            exit(4);
+        }
+        stoken->SToken = result->NextTotken;
+        stoken->returned = true;
+        return t_semicolon(stoken);
+    }
+
+    // Assigning string
+    else if(stoken->SToken->type == STRING){
+        fprintf(stderr, "Returning string not allowd\n");
+        exit(4);
+    }
+    fprintf(stderr, "Syntax Error\n");
+    exit(2);
 }
 
 bool fn_return(TokenStoragePtr stoken){
     return t_return(stoken) &&
-    e_return_exp(stoken) &&
-    t_semicolon(stoken);
+    e_return_exp(stoken);
 }
 
+/*
+ *  Main switchboard
+ */
 bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     /*
     *   Variable definition
@@ -729,22 +902,25 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     *   Function calling or assignment
     */
     else if(stoken->SToken->type == ID || stoken->SToken->type == UNDERSCORE){ // Or _
-        Elem_id *tmp = NULL;
+        Elem_id *tmp_fn = NULL;
+        Elem_id *tmp_var = NULL;
         if (stoken->SToken->type == ID){
-            tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+            tmp_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+            tmp_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         }
-        if (tmp != NULL){
-            if (tmp->FnVar.Fn_id.return_type.type != VOID){
+        if (tmp_var != NULL && tmp_fn != NULL){
+            fprintf(stderr, "function and variable with the same name defined\n");
+            exit(10);
+        }
+        else if(tmp_fn != NULL){
+            if (tmp_fn->FnVar.Fn_id.return_type.type != VOID){
                 fprintf(stderr, "return type dumped\n");
                 exit(4);
             }
             return fn_call(stoken) &&
             fn_body(stoken);
         }
-        if (stoken->SToken->type == ID){
-            tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
-        }
-        if (tmp != NULL || stoken->SToken->type == UNDERSCORE){
+        else if (tmp_var != NULL || stoken->SToken->type == UNDERSCORE){
             return assign(stoken) &&
             fn_body(stoken);
         }
@@ -776,7 +952,7 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     *   Return from function
     */
     else if(stoken->SToken->type == RETURN){
-        return fn_return(stoken) && // Todo sematics
+        return fn_return(stoken) && // Sematics
         fn_body(stoken);
     }
     /*
@@ -815,6 +991,7 @@ bool functions(TokenStoragePtr stoken){
         return t_eof(stoken); // End of file
     }
     else {
+        bool ret;
         if (stoken->current_fn != NULL){ // Freeing stoken context
             free(stoken->current_fn);
             stoken->current_fn = NULL;
@@ -822,10 +999,19 @@ bool functions(TokenStoragePtr stoken){
             stoken->level_stack = NULL;
             stoken->stack_size = 0;
         }
-        return fn_def(stoken) && // Setting stoke context
+        ret = fn_def(stoken) && // Setting stoke context
         t_op_cr_bracket(stoken) &&
         fn_body(stoken) && // Main syntax and sematics validation
-        t_cl_cr_bracket(stoken) &&
+        t_cl_cr_bracket(stoken);
+        if (ret == false){
+            fprintf(stderr, "Syntax Error\n");
+            exit(2);
+        }
+        if (stoken->returned == false){
+            fprintf(stderr, "missing return\n");
+            exit(6);
+        }
+        return ret &&
         functions(stoken); // Recursive calling
     }
 }
@@ -869,6 +1055,7 @@ int main(){
 
     free(stoken->current_fn);
     stoken->current_fn = NULL;
+    stoken->returned = false;
     stoken->SStoredToken = NULL;
     stoken->local_table = NULL;
     stoken->level_stack = NULL;
@@ -913,6 +1100,10 @@ int main(){
     }
     printf("%d\n", result);
     // !! Debug output
+    if (result == false){
+        fprintf(stderr, "syntax error\n");
+        exit(2);
+    }
     TableClear(ifj_table, FUNCTION);
     dealloc_stoken(stoken);
 }

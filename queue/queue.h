@@ -23,6 +23,7 @@ typedef struct{
     SymTable *ifj_table;
     // Current function
     char *current_fn;
+    bool returned;
     // Current stack
     int *level_stack;
     int stack_size;

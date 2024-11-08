@@ -439,6 +439,11 @@ bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
             fprintf(stderr,"Redefinition/shadowing not allowed\n");
             exit(5);
         }
+        tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        if (tmp != NULL){
+            fprintf(stderr,"Redefinition/shadowing not allowed\n");
+            exit(5);
+        }
         new->name = strdup(stoken->SToken->value.str);
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
@@ -456,6 +461,10 @@ bool t_id_fn(TokenStoragePtr stoken){
             free(stoken->current_fn);
         }
         stoken->current_fn = strdup(stoken->SToken->value.str);
+        stoken->returned = false;
+        if (tmp->FnVar.Fn_id.return_type.type == VOID){
+            stoken->returned = true;
+        }
         stoken->local_table = tmp->FnVar.Fn_id.LocalSymTable;
         stoken->stack_size = 1;
         stoken->level_stack = malloc(sizeof(int));
