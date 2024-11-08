@@ -400,8 +400,11 @@ void string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
     input = getchar();
-    token->value.str[0] = input;
-    size_t length = 1;
+    size_t length = 0;
+    if (input != '"') {
+        token->value.str[0] = input;
+        length = 1;
+    }
 
     while('"' != input) {
         input = getchar();
