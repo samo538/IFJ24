@@ -206,7 +206,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             t_semicolon(stoken);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
             if (result == NULL){
                 fprintf(stderr,"Strasne obrovska chyba\n");
                 exit(99);
@@ -232,7 +232,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
             exit(99);
@@ -598,7 +598,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
             t_semicolon(stoken);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
             if (result == NULL){
                 fprintf(stderr,"Strasne obrovska chyba\n");
                 exit(99);
@@ -618,7 +618,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
             exit(99);
@@ -711,12 +711,26 @@ bool if_else(TokenStoragePtr stoken){
             // If nullable go with 2
         }
         else {
-            return 1;
-            // If not nullable start exp
+            PrecResultPtr result = preced_analysis(stoken->SToken, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            stoken->SToken = result->NextTotken;
+
+            return ret &&
+            t_cl_bracket(stoken) &&
+            if_body(stoken) &&
+            t_else(stoken) &&
+            if_body(stoken);
         }
     }
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        PrecResultPtr result = preced_analysis(stoken->SToken, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
             exit(99);
@@ -834,7 +848,7 @@ bool e_return_exp(TokenStoragePtr stoken){
             t_semicolon(stoken);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
             if (result == NULL){
                 fprintf(stderr,"Strasne obrovska chyba\n");
                 exit(99);
@@ -855,7 +869,7 @@ bool e_return_exp(TokenStoragePtr stoken){
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
             exit(99);
