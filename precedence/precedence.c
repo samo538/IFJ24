@@ -181,6 +181,10 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
     {
     case ID:
         Elem_id *id = TableSearch(stack->ActiveElement->Tree->Data.Token->value.str, level, level_size, Table);
+        if(id == NULL){
+            error_type = 7;
+            return -1;
+        }
         if(!(id->FnVar.Var_id.type.nullable)){
             if(id->FnVar.Var_id.type.type == I32){
                 stack->ActiveElement->Tree->Data.Type = I32_VAR;
