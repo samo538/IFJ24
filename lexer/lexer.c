@@ -22,8 +22,8 @@ const char* tokenTypeKeywords[]= {
 	"u8",
 };
 
-void lexer_error() { //TODO: vyměnit za real error
-	printf("ERROR: lexer\n");
+void lexer_error() {
+	exit(1);
 }
 
 void realloc_str(char** str, size_t* strSize, size_t length) {
@@ -495,7 +495,7 @@ void string_type(TokenPtr token, char input) {
           			realloc_str(&token->value.str, &strSize, length);
 					continue;
                   break;}
-            default: {ungetc(c, stdin);}
+            default: {ungetc(c, stdin); lexer_error();}
         	}
 		}
 
