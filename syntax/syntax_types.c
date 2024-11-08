@@ -469,6 +469,7 @@ bool t_id_fn(TokenStoragePtr stoken){
         stoken->stack_size = 1;
         stoken->level_stack = malloc(sizeof(int));
         stoken->level_stack[0] = 1;
+        stoken->last_poped = 0;
 
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);

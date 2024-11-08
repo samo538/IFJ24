@@ -27,6 +27,8 @@ typedef struct{
     // Current stack
     int *level_stack;
     int stack_size;
+    // Helper variable for level_stack
+    int last_poped;
 }TokenStorage, *TokenStoragePtr;
 
 void queue_add_token(Queue *queue, TokenPtr token);
