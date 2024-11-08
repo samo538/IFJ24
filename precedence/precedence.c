@@ -496,6 +496,11 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
         counter ++;
     }
 
+    if(rel_op == true && rel_op_counter == 0){
+        error_type = 7;
+        goto error;
+    }
+
     if(leaves_control(stack->TopElement->Tree)){
 
         PrecResultPtr result = malloc(sizeof(PrecResult));
