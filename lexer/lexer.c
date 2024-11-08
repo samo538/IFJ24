@@ -20,7 +20,6 @@ const char* tokenTypeKeywords[]= {
 	"while",
 	"ifj",
 	"u8",
-	"import",
 };
 
 void lexer_error() { //TODO: vyměnit za real error
@@ -77,6 +76,17 @@ void choose_type(TokenPtr token, char input) {
 			ungetc(c, stdin);
 			token->type = ASSIGN;
 			break;
+		}
+		case '!': {
+			char c = getchar();
+			if(c == '=') {
+				token->type = NOT_EQUAL;
+				break;
+			}
+
+			lexer_error();
+
+			return;
 		}
 		case '<': {
 			char c = getchar();
@@ -237,7 +247,8 @@ void choose_type(TokenPtr token, char input) {
 			}
 
 			lexer_error();
-			break;
+
+			return;
 		}
 		case '"': {
       string_type(token, input);
@@ -266,6 +277,13 @@ void choose_type(TokenPtr token, char input) {
 	if (token->type != COUNT_TOKEN_TYPE) {
 		prevId = false;
 		prevToken = token->type;
+
+		return;
+	}
+
+	//otestování jestli není input něco jiného než whitespace
+	if (input != ' ' && input != '\t' && input != '\n' && input != 13 && input != '\v' && input != 12) {//token->type = COUNT_TOKEN_TYPE => nebyl vybrán token, 13 = carriage return, 12 = form feed, \v = vertical tab
+		lexer_error();
 	}
 }
 
@@ -525,8 +543,8 @@ void id_type(TokenPtr token, char input) {
 	token->value.str[idLength] = '\0'; //ukončení str
 	ungetc(input, stdin);
 
-	for(int i=0;i < ID;i++) { //tokenType ID je hned po posledním keywordu, proto by pole keywords mělo mít velikost ID
-		if(strcmp(tokenTypeKeywords[i], token->value.str) == 0) {
+	for(int i=CONST;i <= U8;i++) { //tokenType U8 je poslední keyword, proto by pole keywords mělo mít velikost U8 - CONST
+		if(strcmp(tokenTypeKeywords[i - CONST], token->value.str) == 0) {
 			token->type = i;
 			free(token->value.str);
 
