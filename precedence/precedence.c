@@ -371,7 +371,7 @@ int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr st
     return rule;
 }
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue){
+PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue){
 
     int prec_table[14][14] = {{REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
                                 {REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
@@ -456,12 +456,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
                 }
             }
 
-            if((counter == 0) && (rel_op == true)){
-                n_token = second_token;
-            }
-            else{
-                n_token = queue_next_token(queue);
-            }
+            n_token = queue_next_token(queue);
         
             break;
 
@@ -469,14 +464,10 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
             ret = take_next(stack, n_token);
             if(ret == -1){
                 goto error;
-            }
-
-            if((counter == 0) && (rel_op == true)){
-                n_token = second_token;
-            }
-            else{
-                n_token = queue_next_token(queue);
-            }
+            }          
+            
+            n_token = queue_next_token(queue);
+            
 
             ret = equal(stack);
             if(ret == -1){

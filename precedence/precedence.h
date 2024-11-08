@@ -21,6 +21,6 @@ typedef struct PrecResult
 }PrecResult, *PrecResultPtr;
 
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue);
+PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue);
 
 #endif  
