@@ -137,6 +137,10 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             fprintf(stderr, "Function with the same name as variable\n");
             exit(10);
         }
+        if (ret_fn == NULL && ret_var == NULL){
+            fprintf(stderr, "Function or varable not defined\n");
+            exit(3);
+        }
     }
 
     // Assigning IFJ func
@@ -544,6 +548,10 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
         if (ret_fn != NULL && ret_var != NULL){
             fprintf(stderr, "Function with the same name as variable\n");
             exit(10);
+        }
+        if (ret_fn == NULL && ret_var == NULL){
+            fprintf(stderr, "Function or varable not defined\n");
+            exit(3);
         }
     }
 
