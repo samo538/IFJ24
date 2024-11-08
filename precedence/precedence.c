@@ -184,9 +184,11 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
         if(!(id->FnVar.Var_id.type.nullable)){
             if(id->FnVar.Var_id.type.type == I32){
                 stack->ActiveElement->Tree->Data.Type = I32_VAR;
+                id->FnVar.Var_id.used == true;
             }
             else if(id->FnVar.Var_id.type.type == F64){
                 stack->ActiveElement->Tree->Data.Type = F64_VAR;
+                id->FnVar.Var_id.used == true;
             }
             else{
                 error_type = 7;
