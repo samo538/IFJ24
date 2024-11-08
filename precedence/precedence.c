@@ -182,17 +182,17 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
     case ID:
         Elem_id *id = TableSearch(stack->ActiveElement->Tree->Data.Token->value.str, level, level_size, Table);
         if(id == NULL){
-            error_type = 7;
+            error_type = 3;
             return -1;
         }
         if(!(id->FnVar.Var_id.type.nullable)){
             if(id->FnVar.Var_id.type.type == I32){
                 stack->ActiveElement->Tree->Data.Type = I32_VAR;
-                id->FnVar.Var_id.used == true;
+                id->FnVar.Var_id.used = true;
             }
             else if(id->FnVar.Var_id.type.type == F64){
                 stack->ActiveElement->Tree->Data.Type = F64_VAR;
-                id->FnVar.Var_id.used == true;
+                id->FnVar.Var_id.used = true;
             }
             else{
                 error_type = 7;
