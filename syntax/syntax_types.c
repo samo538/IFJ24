@@ -441,7 +441,7 @@ bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
         }
         tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
         if (tmp != NULL){
-            fprintf(stderr,"Redefinition/shadowing not allowed\n");
+            fprintf(stderr,"Function/Variable with the same name not allowed\n");
             exit(5);
         }
         new->name = strdup(stoken->SToken->value.str);
@@ -456,20 +456,15 @@ bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
 }
 bool t_id_fn(TokenStoragePtr stoken){
     if (stoken->SToken->type == ID){
-        Elem_id * tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
-        if (stoken->current_fn != NULL){
-            free(stoken->current_fn);
-        }
+        Elem_id * tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table); // Searching for the curr function
         stoken->current_fn = strdup(stoken->SToken->value.str);
-        stoken->returned = false;
-        if (tmp->FnVar.Fn_id.return_type.type == VOID){
+        if (tmp->FnVar.Fn_id.return_type.type == VOID){ // If void, return must not be present
             stoken->returned = true;
         }
-        stoken->local_table = tmp->FnVar.Fn_id.LocalSymTable;
-        stoken->stack_size = 1;
+        stoken->local_table = tmp->FnVar.Fn_id.LocalSymTable; // Settin local table
+        stoken->stack_size = 1; // Initialising stack
         stoken->level_stack = malloc(sizeof(int));
         stoken->level_stack[0] = 1;
-        stoken->last_poped = 0;
 
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
@@ -477,7 +472,7 @@ bool t_id_fn(TokenStoragePtr stoken){
     }
     else{
         syn_error(stoken);
-        return false;
+        return 1; // Placeholder, otherwise Vim cries
     }
 }
 bool t_id_ifj(TokenStoragePtr stoken){
