@@ -12,9 +12,8 @@ typedef struct {
 }Queue;
 
 typedef struct{
-    // Tokens
+    // Token
     TokenPtr SToken;
-    TokenPtr SStoredToken;
     // Queue
     Queue *queue;
     // Symtables
