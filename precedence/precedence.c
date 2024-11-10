@@ -137,6 +137,9 @@ int operator_reduction(StackBasePtr stack){
         return -1;
     }
 
+    operator->Data.NodeType = EXPRESSION_NODE;
+
+
     //vytvorenie podstromu
     ret_element = TreeElementConnect(operator, E_1);
     if(ret_element == NULL){
@@ -214,6 +217,8 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
     default:
         break;
     }
+
+    stack->ActiveElement->Tree->Data.NodeType = EXPRESSION_NODE;
 
     ret_element = Down(stack);
     if(ret_element == NULL){
