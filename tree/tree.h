@@ -16,12 +16,13 @@ enum NodeTypes{
     RETURN_NODE, //4
     WHILE_NODE, //5
     IF_NODE, //6
-    FUNCTION_NODE, //7
-    IFJ_FUNCTION_NODE, //8
+    ELSE_NODE, //7
+    FUNCTION_NODE, //8
+    IFJ_FUNCTION_NODE, //9
     // "Leaf" nodes
-    EXPRESSION_NODE, //9
-    ARG_NODE, // 10
-    ID_NODE, // 11
+    EXPRESSION_NODE, //10
+    ARG_NODE, // 11
+    ID_NODE, // 12
 };
 
 typedef struct TreeData

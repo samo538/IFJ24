@@ -874,6 +874,12 @@ bool if_else(TokenStoragePtr stoken){
             new->stack_size = stoken->stack_size;
             copy_levels(stoken->level_stack, &(new->level_stack), stoken->stack_size);
 
+            // New tree node
+            TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
+            new_node->Data.NodeType = IF_NODE;
+            new_node->Data.isNullCond = true;
+            stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
             ret = ret &&
             t_id(stoken) &&
             t_cl_bracket(stoken) &&
@@ -888,10 +894,18 @@ bool if_else(TokenStoragePtr stoken){
             if (stoken->SToken->type == ID){
                 new->name = strdup(stoken->SToken->value.str);
                 TableAdd(*new, stoken->local_table); // Adding the new element into Table
+                // Is nullable, Unwrapped variable goes here
+                TreeElement *Unwrapped = TreeInsert(stoken->current_node, NULL);
+                Unwrapped->Data.NodeType = ID_NODE;
+                Unwrapped->Data.TableElement = TableSearch(new->name, new->level_stack, new->stack_size, stoken->local_table);
                 free(new->name);
                 free(new->level_stack);
                 free(new);
             }
+            // Adding the condition into the tree
+            TreeElement *Cond_node = TreeInsert(stoken->current_node, NULL);
+            Cond_node->Data.NodeType = EXPRESSION_NODE;
+            Cond_node->Data.TableElement = var_id;
 
 
             ret = ret &&
@@ -905,6 +919,8 @@ bool if_else(TokenStoragePtr stoken){
             }
 
             stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
+            TreeElement *else_node = TreeInsert(stoken->current_node, NULL);
+            else_node->Data.NodeType = ELSE_NODE;
 
             ret = ret &&
             t_else(stoken) &&
@@ -919,6 +935,9 @@ bool if_else(TokenStoragePtr stoken){
             stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
             stoken->stack_size--;
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            // Going up in the tree
+            stoken->current_node = stoken->current_node->DadNode;
 
             if (stoken->level_stack == NULL){
                 fprintf(stderr,"Internal error\n");
@@ -943,6 +962,19 @@ bool if_else(TokenStoragePtr stoken){
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
             stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
 
+            // New tree node
+            TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
+            new_node->Data.NodeType = IF_NODE;
+            new_node->Data.isNullCond = false;
+            stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+            // Inserting Empty Node, because null cond is false
+            TreeInsert(stoken->current_node, NULL);
+
+            // Inserting the expression
+            TreeElementConnect(stoken->current_node, result->Tree);
+
+
             if (stoken->level_stack == NULL){
                 fprintf(stderr,"Internal error\n");
                 exit(99);
@@ -959,6 +991,10 @@ bool if_else(TokenStoragePtr stoken){
 
             // going into else
             stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
+            TreeElement *else_node = TreeInsert(stoken->current_node, NULL);
+            else_node->Data.NodeType = ELSE_NODE;
+
+
 
             ret = ret &&
             t_else(stoken) &&
@@ -973,6 +1009,8 @@ bool if_else(TokenStoragePtr stoken){
             stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
             stoken->stack_size--;
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            stoken->current_node = stoken->current_node->DadNode;
 
             if (stoken->level_stack == NULL){
                 fprintf(stderr,"Internal error\n");
@@ -999,6 +1037,18 @@ bool if_else(TokenStoragePtr stoken){
         stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
         stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
 
+        // New tree node
+        TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
+        new_node->Data.NodeType = IF_NODE;
+        new_node->Data.isNullCond = false;
+        stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+        // Inserting Empty Node, because null cond is false
+        TreeInsert(stoken->current_node, NULL);
+
+        // Inserting the expression
+        TreeElementConnect(stoken->current_node, result->Tree);
+
         if (stoken->level_stack == NULL){
             fprintf(stderr,"Internal error\n");
             exit(99);
@@ -1014,6 +1064,8 @@ bool if_else(TokenStoragePtr stoken){
         }
 
         stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
+        TreeElement *else_node = TreeInsert(stoken->current_node, NULL);
+        else_node->Data.NodeType = ELSE_NODE;
 
         ret = ret &&
         t_else(stoken) &&
@@ -1027,6 +1079,8 @@ bool if_else(TokenStoragePtr stoken){
         stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
         stoken->stack_size--;
         stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+        stoken->current_node = stoken->current_node->DadNode;
 
         if (stoken->level_stack == NULL){
             fprintf(stderr,"Internal error\n");
@@ -1085,6 +1139,13 @@ bool cycle(TokenStoragePtr stoken){
             new->stack_size = stoken->stack_size; // Creating the new variable
             copy_levels(stoken->level_stack, &(new->level_stack), stoken->stack_size);
 
+            // New tree node
+            TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
+            new_node->Data.NodeType = WHILE_NODE;
+            new_node->Data.isNullCond = true;
+            stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+
             ret = ret &&
             t_id(stoken) &&
             t_cl_bracket(stoken) &&
@@ -1099,10 +1160,19 @@ bool cycle(TokenStoragePtr stoken){
             if (stoken->SToken->type == ID){
                 new->name = strdup(stoken->SToken->value.str);
                 TableAdd(*new, stoken->local_table); // Adding the new element into Table
+                // Is nullable, Unwrapped variable goes here
+                TreeElement *Unwrapped = TreeInsert(stoken->current_node, NULL);
+                Unwrapped->Data.NodeType = ID_NODE;
+                Unwrapped->Data.TableElement = TableSearch(new->name, new->level_stack, new->stack_size, stoken->local_table);
+
                 free(new->name);
                 free(new->level_stack);
                 free(new);
             }
+            // Adding the condition into the tree
+            TreeElement *Cond_node = TreeInsert(stoken->current_node, NULL);
+            Cond_node->Data.NodeType = EXPRESSION_NODE;
+            Cond_node->Data.TableElement = var_id;
 
             ret = ret &&
             t_id(stoken) && 
@@ -1118,6 +1188,9 @@ bool cycle(TokenStoragePtr stoken){
             stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
             stoken->stack_size--;
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            // Going up in the tree
+            stoken->current_node = stoken->current_node->DadNode;
 
             if (stoken->level_stack == NULL){
                 fprintf(stderr,"Internal error\n");
@@ -1143,6 +1216,18 @@ bool cycle(TokenStoragePtr stoken){
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
             stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
 
+            // New tree node
+            TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
+            new_node->Data.NodeType = WHILE_NODE;
+            new_node->Data.isNullCond = false;
+            stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+            // Inserting Empty Node, because null cond is false
+            TreeInsert(stoken->current_node, NULL);
+
+            // Inserting the expression
+            TreeElementConnect(stoken->current_node, result->Tree);
+
             if (stoken->level_stack == NULL){
                 fprintf(stderr,"Internal error\n");
                 exit(99);
@@ -1160,6 +1245,8 @@ bool cycle(TokenStoragePtr stoken){
             stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
             stoken->stack_size--;
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            stoken->current_node = stoken->current_node->DadNode;
 
             if (stoken->level_stack == NULL){
                 fprintf(stderr,"Internal error\n");
@@ -1186,6 +1273,18 @@ bool cycle(TokenStoragePtr stoken){
         stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
         stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
 
+        // New tree node
+        TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
+        new_node->Data.NodeType = WHILE_NODE;
+        new_node->Data.isNullCond = false;
+        stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+        // Inserting Empty Node, because null cond is false
+        TreeInsert(stoken->current_node, NULL);
+
+        // Inserting the expression
+        TreeElementConnect(stoken->current_node, result->Tree);
+
         if (stoken->level_stack == NULL){
             fprintf(stderr,"Internal error\n");
             exit(99);
@@ -1203,6 +1302,8 @@ bool cycle(TokenStoragePtr stoken){
         stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
         stoken->stack_size--;
         stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+        stoken->current_node = stoken->current_node->DadNode;
 
         if (stoken->level_stack == NULL){
             fprintf(stderr,"Internal error\n");
