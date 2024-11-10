@@ -56,7 +56,7 @@ SymTable *TableInit(){
 Elem_id *TableSearch(char *key, int *level, int level_size, SymTable *Table){
     int index = HashFn(key, level, level_size);
     int searched = 0;
-    while (Table[index] != NULL && (strcmp(key, Table[index]->name) || level_size == Table[index]->stack_size && !compare_levels(level, Table[index]->level_stack, level_size))){
+    while (!(Table[index] != NULL && !strcmp(key, Table[index]->name) && level_size == Table[index]->stack_size && compare_levels(level, Table[index]->level_stack, Table[index]->stack_size))){
         if (searched == TABLE_SIZE && level_size == 0){ // Table is full
             return NULL;
         }

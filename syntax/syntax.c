@@ -20,9 +20,19 @@
 
 #include "../precedence/precedence.h"
 
+#include "../tree/tree.h"
+
 #include <stdio.h>
 
-bool fn_call(TokenStoragePtr stoken);
+// Debug output func
+void print_tree(TreeElementPtr element){
+
+    for(int i = 0; i < element->NodeCounter; i++){
+        print_tree(element->Node[i]);
+        printf("%d -> ", element->Node[i]->Data.NodeType);
+    }
+}
+
 
 // errors and deallocs
 
@@ -31,10 +41,6 @@ void dealloc_stoken(TokenStoragePtr stoken){
         if (stoken->SToken != NULL){
             dealloc_token(stoken->SToken);
             stoken->SToken = NULL;
-        }
-        if (stoken->SStoredToken != NULL){
-            dealloc_token(stoken->SStoredToken);
-            stoken->SStoredToken = NULL;
         }
         if (stoken->queue != NULL){
             queue_free(stoken->queue);
@@ -59,37 +65,6 @@ void syn_error(TokenStoragePtr stoken){
     exit(2);
 }
 
-
-bool e_return_exp(TokenStoragePtr stoken){
-    /*if (stoken->SToken->type == EXP){
-        call precedence
-    }*/
-    return true;
-}
-
-// Lower rules
-//
-bool e_null_exp(TokenStoragePtr stoken){
-    return t_cl_bracket(stoken);
-}
-
-
-bool l_type(TokenStoragePtr stoken){
-    return t_nullable(stoken) &&
-    t_type_keyword(stoken);
-}
-
-
-bool l_type_fndef(TokenStoragePtr stoken){
-    if (stoken->SToken->type == VOID){
-        return t_void(stoken);
-    }
-    else {
-        return l_type(stoken);
-    }
-}
-
-
 /*
  *  Variable definition
  */
@@ -98,8 +73,12 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
     ret = t_ifj(stoken) &&
     t_dot(stoken);
 
+    if (!ret){
+        syn_error(stoken);
+    }
+
     if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
-        Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table);
+        Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table); // Search inside IFJ
         if (fn == NULL){
             fprintf(stderr, "Undefined IFJ function\n");
             exit(3);
@@ -147,14 +126,18 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             fprintf(stderr, "Function with the same name as variable\n");
             exit(10);
         }
+        if (ret_fn == NULL && ret_var == NULL){
+            fprintf(stderr, "Function or varable not defined\n");
+            exit(3);
+        }
     }
 
-    // Assigning IFJ func
+    // Assigning IFJ func TODO TREE
     if (stoken->SToken->type == IFJ){
         return ifj_call_var(stoken, new);
     }
 
-    // Assigning func
+    // Assigning func TODO TREE
     else if (ret_fn != NULL){ 
         if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
             if (ret_fn->FnVar.Fn_id.return_type.type == VOID){
@@ -169,7 +152,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                 fprintf(stderr, "Wrong assign type\n");
                 exit(7);
             }
-            if (ret_fn->FnVar.Fn_id.return_type.nullable){
+            if (ret_fn->FnVar.Fn_id.return_type.nullable){ // Check nullables
                 if(!new->FnVar.Fn_id.return_type.nullable){
                     fprintf(stderr, "Wrong assign type\n");
                     exit(7);
@@ -179,7 +162,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         return fn_call(stoken);
     }
 
-    // Assigning null
+    // Assigning null TODO TREE
     else if(stoken->SToken->type == NULL_VALUE){
         if (new->FnVar.Var_id.type.type == END_OF_FILE){
             fprintf(stderr, "cannot determine type\n");
@@ -189,6 +172,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             fprintf(stderr, "cannot assign null\n");
             exit(7);
         }
+
         return t_null(stoken) &&
         t_semicolon(stoken);
     }
@@ -205,18 +189,24 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                     fprintf(stderr, "Wrong assign type\n");
                     exit(7);
                 }
-                if (ret_var->FnVar.Var_id.type.nullable){
+                if (ret_var->FnVar.Var_id.type.nullable){ // Check nullables
                     if(!new->FnVar.Var_id.type.nullable){
                         fprintf(stderr, "Wrong assign type\n");
                         exit(7);
                     }
                 }
             }
+            // New tree node
+            TreeElement *new = TreeInsert(stoken->current_node, NULL);
+            new->Data.NodeType = EXPRESSION_NODE;
+            new->Data.Token = copy_token(stoken->SToken);
+
+            ret_var->FnVar.Var_id.used = true;
             return t_id(stoken) &&
             t_semicolon(stoken);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
             if (result == NULL){
                 fprintf(stderr,"Strasne obrovska chyba\n");
                 exit(99);
@@ -235,6 +225,8 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                     exit(7);
                 }
             }
+            // New tree node
+            TreeElementConnect(stoken->current_node, result->Tree);
             stoken->SToken = result->NextTotken;
             return t_semicolon(stoken);
         }
@@ -242,7 +234,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
             exit(99);
@@ -262,6 +254,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             }
         }
         stoken->SToken = result->NextTotken;
+        TreeElementConnect(stoken->current_node, result->Tree);
         return t_semicolon(stoken);
     }
 
@@ -304,6 +297,7 @@ bool l_var_const(TokenStoragePtr stoken, Elem_id *new){
 
 bool var_def(TokenStoragePtr stoken){
     bool ret;
+
     Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
     new->Type = VARIABLE;
     new->stack_size = stoken->stack_size; // Setting the stack
@@ -312,8 +306,12 @@ bool var_def(TokenStoragePtr stoken){
     new->FnVar.Var_id.type.nullable = false; // Implicit false
     new->FnVar.Var_id.used = false; // Variable not used by default
 
+    // Tree creation
+    TreeElement *tree_id = TreeInsert(stoken->current_node, NULL);
+    tree_id->Data.NodeType = ID_NODE;
+
     ret = l_var_const(stoken, new) && // Filling up new
-    t_id_var(stoken, new) && // Filling up the name / checking for redef
+    t_id_var(stoken, new, &tree_id->Data.Token) && // Filling up the name / checking for redef
     l_type_vardef(stoken, new) && // Implicit/Explicit definition
     t_eq(stoken) &&
     e_var_exp_def(stoken, new); // Adding value
@@ -401,6 +399,7 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             exit(3);
         }
         if (fn->FnVar.Fn_id.type_of_params[pos].type == tmp->FnVar.Var_id.type.type){
+            tmp->FnVar.Var_id.used = true; // Used this var
             return t_id(stoken) &&
             t_comma(stoken) &&
             call_params(stoken, fn, pos + 1);
@@ -430,6 +429,9 @@ bool fn_call(TokenStoragePtr stoken){
     t_semicolon(stoken);
 }
 
+/*
+ *  IFJ function call
+ */
 bool ifj_call(TokenStoragePtr stoken){
     bool ret;
     ret = t_ifj(stoken) &&
@@ -448,34 +450,35 @@ bool ifj_call(TokenStoragePtr stoken){
         ret = ret &&
         t_id_ifj(stoken) &&
         t_op_bracket(stoken);
+
         if (ret == false){
-            return false;
+            syn_error(stoken);
         }
 
         if (stoken->SToken->type == F64_VAR){
             ret = ret && t_float(stoken);
             if (ret == false){
-                return false;
+                syn_error(stoken);
             }
         }
         else if (stoken->SToken->type == I32_VAR){
             ret = ret && t_int(stoken);
             if (ret == false){
-                return false;
+                syn_error(stoken);
             }
 
         }
         else if (stoken->SToken->type == STRING){
             ret = ret && t_string(stoken);
             if (ret == false){
-                return false;
+                syn_error(stoken);
             }
 
         }
         else if (stoken->SToken->type == NULL_VALUE){
             ret = ret && t_null(stoken);
             if (ret == false){
-                return false;
+                syn_error(stoken);
             }
 
         }
@@ -485,15 +488,15 @@ bool ifj_call(TokenStoragePtr stoken){
                 fprintf(stderr, "Undefined variable\n");
                 exit(3);
             }
+            var->FnVar.Var_id.used = true; // Used this variable
             ret = ret && t_id(stoken);
             if (ret == false){
-                return false;
+                syn_error(stoken);
             }
 
         }
         else {
-            fprintf(stderr, "syntax error\n");
-            exit(2);
+            syn_error(stoken);
         }
         return ret &&
         t_comma(stoken) &&
@@ -555,6 +558,10 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
             fprintf(stderr, "Function with the same name as variable\n");
             exit(10);
         }
+        if (ret_fn == NULL && ret_var == NULL){
+            fprintf(stderr, "Function or varable not defined\n");
+            exit(3);
+        }
     }
 
     // Assigning IFJ func
@@ -604,11 +611,12 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
                     exit(7);
                 }
             }
+            ret_var->FnVar.Var_id.used = true; // Used this var
             return t_id(stoken) &&
             t_semicolon(stoken);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
             if (result == NULL){
                 fprintf(stderr,"Strasne obrovska chyba\n");
                 exit(99);
@@ -628,7 +636,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, NULL, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
         if (result == NULL){
             fprintf(stderr,"Strasne obrovska chyba\n");
             exit(99);
@@ -681,14 +689,15 @@ bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
 bool assign(TokenStoragePtr stoken){
     bool underscore;
     Elem_id *assign_to;
-    return l_id_assign(stoken, &underscore, &assign_to) &&
+    return l_id_assign(stoken, &underscore, &assign_to) && // Assign_to
     t_eq(stoken) &&
-    e_var_exp_assign(stoken, underscore, assign_to);
+    e_var_exp_assign(stoken, underscore, assign_to); // Assigment
 }
 
 /*
- *  Else
+ *  IfElse
  */
+
 bool if_while_body(TokenStoragePtr stoken){
     return t_op_cr_bracket(stoken) &&
     fn_body(stoken) &&
@@ -696,55 +705,572 @@ bool if_while_body(TokenStoragePtr stoken){
 }
 
 bool if_else(TokenStoragePtr stoken){
-    return t_if(stoken) &&
-    t_op_bracket(stoken) &&
-    e_null_exp(stoken) &&
-    if_while_body(stoken) &&
-    t_else(stoken) &&
-    if_while_body(stoken);
+    bool ret;
+    ret = t_if(stoken) &&
+    t_op_bracket(stoken);
+    if (ret == false){
+        fprintf(stderr, "Syntax error\n");
+        exit(2);
+    }
+
+    // Check the variant of the condition (null or exp)
+    if (stoken->SToken->type == ID){
+        Elem_id * var_id = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (var_id == NULL){
+            fprintf(stderr, "undefined variable");
+            exit(3);
+        }
+        if (var_id->FnVar.Var_id.type.nullable){
+            var_id->FnVar.Var_id.used = true;
+            Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
+            new->Type = VARIABLE;
+            new->FnVar.Var_id.type.type = var_id->FnVar.Var_id.type.type; // Placeholder
+            new->FnVar.Var_id.type.nullable = false; // Implicit false
+            new->FnVar.Var_id.used = false; // Variable not used by default
+            new->FnVar.Var_id.const_t = false; // Variable not used by default
+            new->FnVar.Var_id.used = false;
+
+            //Changind the position is stack
+            stoken->stack_size++;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+            stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
+
+            if (stoken->level_stack == NULL){
+                free(new);
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+
+            new->stack_size = stoken->stack_size;
+            copy_levels(stoken->level_stack, &(new->level_stack), stoken->stack_size);
+
+            ret = ret &&
+            t_id(stoken) &&
+            t_cl_bracket(stoken) &&
+            t_vertical_bar(stoken);
+
+            if (ret == false){
+                free(new->level_stack);
+                free(new);
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+            if (stoken->SToken->type == ID){
+                new->name = strdup(stoken->SToken->value.str);
+                TableAdd(*new, stoken->local_table); // Adding the new element into Table
+                free(new->name);
+                free(new->level_stack);
+                free(new);
+            }
+
+
+            ret = ret &&
+            t_id(stoken) && 
+            t_vertical_bar(stoken) &&
+            if_while_body(stoken);
+
+            if (ret == false){
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+
+            stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
+
+            ret = ret &&
+            t_else(stoken) &&
+            if_while_body(stoken);
+
+            if (ret == false){
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+
+
+            stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
+            stoken->stack_size--;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            if (stoken->level_stack == NULL){
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+            return ret;
+        }
+        else {
+            PrecResultPtr result = preced_analysis(stoken->SToken, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            stoken->SToken = result->NextTotken;
+
+            //Changind the position is stack
+            stoken->stack_size++;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+            stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
+
+            if (stoken->level_stack == NULL){
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+
+            ret = ret &&
+            t_cl_bracket(stoken) &&
+            if_while_body(stoken);
+
+            if (ret == false){
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+
+            // going into else
+            stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
+
+            ret = ret &&
+            t_else(stoken) &&
+            if_while_body(stoken);
+
+            if (ret == false){
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+
+            // stepping out of else
+            stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
+            stoken->stack_size--;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            if (stoken->level_stack == NULL){
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+
+            return ret;
+        }
+    }
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
+        PrecResultPtr result = preced_analysis(stoken->SToken, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        stoken->SToken = result->NextTotken;
+
+        //Changind the position is stack
+        stoken->stack_size++;
+        stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+        stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
+
+        if (stoken->level_stack == NULL){
+            fprintf(stderr,"Internal error\n");
+            exit(99);
+        }
+
+        ret = ret &&
+        t_cl_bracket(stoken) &&
+        if_while_body(stoken);
+
+        if (ret == false){
+            fprintf(stderr, "Syntax error\n");
+            exit(2);
+        }
+
+        stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
+
+        ret = ret &&
+        t_else(stoken) &&
+        if_while_body(stoken);
+
+        if (ret == false){
+            fprintf(stderr, "Syntax error\n");
+            exit(2);
+        }
+
+        stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
+        stoken->stack_size--;
+        stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+        if (stoken->level_stack == NULL){
+            fprintf(stderr,"Internal error\n");
+            exit(99);
+        }
+
+        return ret;
+    }
+    else {
+        fprintf(stderr, "Syntax error\n");
+        exit(2);
+    }
 }
 
+/*
+ *  While
+ */
+
 bool cycle(TokenStoragePtr stoken){
-    return t_while(stoken) &&
-    t_op_bracket(stoken) &&
-    e_null_exp(stoken) &&
-    if_while_body(stoken);
+    bool ret;
+    ret = t_while(stoken) &&
+    t_op_bracket(stoken);
+
+    if (ret == false){
+        fprintf(stderr, "Syntax error\n");
+        exit(2);
+    }
+
+    // Check the variant of the condition (null or exp)
+    if (stoken->SToken->type == ID){
+        Elem_id * var_id = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        if (var_id == NULL){
+            fprintf(stderr, "undefined variable");
+            exit(3);
+        }
+        if (var_id->FnVar.Var_id.type.nullable){ // Nullable path
+            var_id->FnVar.Var_id.used = true;
+            Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
+            new->Type = VARIABLE;
+            new->FnVar.Var_id.type.type = var_id->FnVar.Var_id.type.type; // Placeholder
+            new->FnVar.Var_id.type.nullable = false; // Implicit false
+            new->FnVar.Var_id.used = false; // Variable not used by default
+            new->FnVar.Var_id.const_t = false; // Variable not used by default
+
+            //Changind the position is stack
+            stoken->stack_size++;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+            stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
+
+            if (stoken->level_stack == NULL){
+                free(new);
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+
+            new->stack_size = stoken->stack_size; // Creating the new variable
+            copy_levels(stoken->level_stack, &(new->level_stack), stoken->stack_size);
+
+            ret = ret &&
+            t_id(stoken) &&
+            t_cl_bracket(stoken) &&
+            t_vertical_bar(stoken);
+
+            if (ret == false){
+                free(new->level_stack);
+                free(new);
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+            if (stoken->SToken->type == ID){
+                new->name = strdup(stoken->SToken->value.str);
+                TableAdd(*new, stoken->local_table); // Adding the new element into Table
+                free(new->name);
+                free(new->level_stack);
+                free(new);
+            }
+
+            ret = ret &&
+            t_id(stoken) && 
+            t_vertical_bar(stoken) &&
+            if_while_body(stoken);
+
+            if (ret == false){
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+
+            //Changing the position back
+            stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
+            stoken->stack_size--;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            if (stoken->level_stack == NULL){
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+            return ret;
+ 
+        }
+        else {
+            PrecResultPtr result = preced_analysis(stoken->SToken, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            stoken->SToken = result->NextTotken;
+
+            //Changind the position is stack
+            stoken->stack_size++;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+            stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
+
+            if (stoken->level_stack == NULL){
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+
+            ret = ret &&
+            t_cl_bracket(stoken) &&
+            if_while_body(stoken);
+
+            if (ret == false){
+                fprintf(stderr, "Syntax error\n");
+                exit(2);
+            }
+
+            stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
+            stoken->stack_size--;
+            stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+            if (stoken->level_stack == NULL){
+                fprintf(stderr,"Internal error\n");
+                exit(99);
+            }
+
+            return ret;
+        }
+    }
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
+        PrecResultPtr result = preced_analysis(stoken->SToken, true, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        stoken->SToken = result->NextTotken;
+
+        //Changind the position is stack
+        stoken->stack_size++;
+        stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+        stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
+
+        if (stoken->level_stack == NULL){
+            fprintf(stderr,"Internal error\n");
+            exit(99);
+        }
+
+        ret = ret &&
+        t_cl_bracket(stoken) &&
+        if_while_body(stoken);
+
+        if (ret == false){
+            fprintf(stderr, "Syntax error\n");
+            exit(2);
+        }
+
+        stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
+        stoken->stack_size--;
+        stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
+
+        if (stoken->level_stack == NULL){
+            fprintf(stderr,"Internal error\n");
+            exit(99);
+        }
+        return ret;
+    }
+    else {
+        fprintf(stderr, "Syntax error\n");
+        exit(2);
+    }
+}
+
+
+/*
+ *  Return
+ */
+bool e_return_exp(TokenStoragePtr stoken){
+    // Search for the current function
+    Elem_id *curr_func = NULL;
+    curr_func = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
+    if (curr_func == NULL){
+        fprintf(stderr, "Something went wrong\n");
+        exit(99);
+    }
+
+    if (curr_func->FnVar.Fn_id.return_type.type == VOID){
+        if (stoken->SToken->type != SEMICOLON){
+            fprintf(stderr, "Expression void return statement\n");
+            exit(4);
+        }
+        return t_semicolon(stoken);
+    }
+
+    Elem_id *ret_fn = NULL;
+    Elem_id *ret_var = NULL;
+    if (stoken->SToken->type == ID){ // If id search if its a function or variable
+        ret_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+        ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
+        // If both pointers not null
+        if (ret_fn != NULL && ret_var != NULL){
+            fprintf(stderr, "Function with the same name as variable\n");
+            exit(10);
+        }
+        if (ret_fn == NULL && ret_var == NULL){
+            fprintf(stderr, "Function or variable not defined\n");
+            exit(3);
+        }
+    }
+
+    // Returning IFJ func
+    if (stoken->SToken->type == IFJ){
+        fprintf(stderr, "cannot return function\n");
+        exit(4);
+    }
+
+    // Trying to return void in non-void fn
+    else if(stoken->SToken->type == SEMICOLON){
+        fprintf(stderr, "Returning void in non-void func\n");
+        exit(4);
+    }
+
+    // Returning func
+    else if (ret_fn != NULL){ 
+        fprintf(stderr, "cannot return function\n");
+        exit(4);
+    }
+
+    // Returning null
+    else if(stoken->SToken->type == NULL_VALUE){
+        if(curr_func->FnVar.Fn_id.return_type.nullable == false){
+            fprintf(stderr, "cannot return null\n");
+            exit(4);
+        }
+        stoken->returned = true;
+        return t_null(stoken) &&
+        t_semicolon(stoken);
+    }
+
+    // returning id expression or string variable
+    else if(ret_var != NULL){
+        if (ret_var->FnVar.Var_id.type.type == U8){
+            if (curr_func->FnVar.Fn_id.return_type.type != U8) {
+                fprintf(stderr, "Wrong return type\n");
+                exit(4);
+            }
+            if (ret_var->FnVar.Var_id.type.nullable) {
+                if (!curr_func->FnVar.Fn_id.return_type.nullable){
+                    fprintf(stderr, "Wrong return type\n");
+                    exit(4);
+                }
+            }
+            stoken->returned = true;
+            ret_var->FnVar.Var_id.used = true;
+            return t_id(stoken) &&
+            t_semicolon(stoken);
+        }
+        else {
+            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+            if (result == NULL){
+                fprintf(stderr,"Strasne obrovska chyba\n");
+                exit(99);
+            }
+            if (result->Error != 0){
+                fprintf(stderr,"Exp error\n");
+                exit(result->Error);
+            }
+            if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
+                fprintf(stderr, "Wrong return type\n");
+                exit(4);
+            }
+            stoken->SToken = result->NextTotken;
+            stoken->returned = true;
+            return t_semicolon(stoken);
+        }
+    }
+
+    // Assigning non-string literals
+    else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            fprintf(stderr,"Strasne obrovska chyba\n");
+            exit(99);
+        }
+        if (result->Error != 0){
+            fprintf(stderr,"Exp error\n");
+            exit(result->Error);
+        }
+        if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
+            fprintf(stderr, "Wrong return type\n");
+            exit(4);
+        }
+        stoken->SToken = result->NextTotken;
+        stoken->returned = true;
+        return t_semicolon(stoken);
+    }
+
+    // Assigning string
+    else if(stoken->SToken->type == STRING){
+        fprintf(stderr, "Returning string not allowd\n");
+        exit(4);
+    }
+    fprintf(stderr, "Syntax Error\n");
+    exit(2);
 }
 
 bool fn_return(TokenStoragePtr stoken){
     return t_return(stoken) &&
-    e_return_exp(stoken) &&
-    t_semicolon(stoken);
+    e_return_exp(stoken);
 }
 
+/*
+ *  Main switchboard
+ */
 bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     /*
     *   Variable definition
     */
     if (stoken->SToken->type == VAR || stoken->SToken->type == CONST){
-        return var_def(stoken) &&
+        bool ret;
+
+        TreeElement *new = TreeInsert(stoken->current_node, NULL);
+        new->Data.NodeType = ASSIGN_NODE;
+        stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+        ret = var_def(stoken) &&
         fn_body(stoken);
+        if (!ret){
+            syn_error(stoken);
+        }
+
+        stoken->current_node = stoken->current_node->DadNode;
+
+        return ret;
     }
     /*
     *   Function calling or assignment
     */
     else if(stoken->SToken->type == ID || stoken->SToken->type == UNDERSCORE){ // Or _
-        Elem_id *tmp = NULL;
+        Elem_id *tmp_fn = NULL;
+        Elem_id *tmp_var = NULL;
         if (stoken->SToken->type == ID){
-            tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+            tmp_fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
+            tmp_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         }
-        if (tmp != NULL){
-            if (tmp->FnVar.Fn_id.return_type.type != VOID){
+        if (tmp_var != NULL && tmp_fn != NULL){
+            fprintf(stderr, "function and variable with the same name defined\n");
+            exit(10);
+        }
+        else if(tmp_fn != NULL){
+            if (tmp_fn->FnVar.Fn_id.return_type.type != VOID){
                 fprintf(stderr, "return type dumped\n");
                 exit(4);
             }
             return fn_call(stoken) &&
             fn_body(stoken);
         }
-        if (stoken->SToken->type == ID){
-            tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
-        }
-        if (tmp != NULL || stoken->SToken->type == UNDERSCORE){
+        else if (tmp_var != NULL || stoken->SToken->type == UNDERSCORE){
             return assign(stoken) &&
             fn_body(stoken);
         }
@@ -776,7 +1302,7 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     *   Return from function
     */
     else if(stoken->SToken->type == RETURN){
-        return fn_return(stoken) && // Todo sematics
+        return fn_return(stoken) && // Sematics
         fn_body(stoken);
     }
     /*
@@ -785,6 +1311,11 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     else {
         return true;
     }
+}
+
+bool l_type(TokenStoragePtr stoken){
+    return t_nullable(stoken) &&
+    t_type_keyword(stoken);
 }
 
 bool params(TokenStoragePtr stoken){
@@ -800,10 +1331,19 @@ bool params(TokenStoragePtr stoken){
     }
 }
 
+bool l_type_fndef(TokenStoragePtr stoken){
+    if (stoken->SToken->type == VOID){
+        return t_void(stoken);
+    }
+    else {
+        return l_type(stoken);
+    }
+}
+
 bool fn_def(TokenStoragePtr stoken){
     return t_pub(stoken) &&
     t_fn(stoken) &&
-    t_id_fn(stoken) && // Setting stoken context
+    t_id_fn(stoken) && // Setting stoken
     t_op_bracket(stoken) &&
     params(stoken) && // Does just syntactic checks in the second walkthrough
     t_cl_bracket(stoken) &&
@@ -811,21 +1351,56 @@ bool fn_def(TokenStoragePtr stoken){
 }
 
 bool functions(TokenStoragePtr stoken){
+    static int node_counter = 0;
     if (stoken->SToken->type == END_OF_FILE) {
         return t_eof(stoken); // End of file
     }
     else {
-        if (stoken->current_fn != NULL){ // Freeing stoken context
+        bool ret;
+        if (stoken->current_fn != NULL){ // Reseting stoken
             free(stoken->current_fn);
             stoken->current_fn = NULL;
             free(stoken->level_stack);
+            stoken->local_table = NULL;
+            stoken->returned = false;
             stoken->level_stack = NULL;
             stoken->stack_size = 0;
+            stoken->last_poped = 0;
         }
-        return fn_def(stoken) && // Setting stoke context
+        // Setting current tree node
+        stoken->current_node = stoken->current_node->Node[node_counter];
+        ret = fn_def(stoken) && // Setting stoke context
         t_op_cr_bracket(stoken) &&
         fn_body(stoken) && // Main syntax and sematics validation
-        t_cl_cr_bracket(stoken) &&
+        t_cl_cr_bracket(stoken);
+
+        if (ret == false){ // Syntax check
+            syn_error(stoken);
+        }
+
+        stoken->current_node = stoken->current_node->DadNode;
+
+        if (stoken->returned == false){ // Return check
+            fprintf(stderr, "missing return\n");
+            exit(6);
+        }
+
+        // Checking for variable usage
+
+        Elem_id *elem_loc;
+        for (int j = 0; j < TABLE_SIZE; j++){
+            elem_loc = stoken->local_table[j];
+            if (elem_loc == NULL){
+                continue;
+            }
+            if (elem_loc->FnVar.Var_id.used == 0){
+                fprintf(stderr, "Unused variable!\n");
+                exit(9);
+            }
+        }
+
+
+        return ret &&
         functions(stoken); // Recursive calling
     }
 }
@@ -849,30 +1424,51 @@ int main(){
     bool result = false;
     TokenStoragePtr stoken = malloc(sizeof(TokenStorage));
     if (stoken == NULL){
-        return 99;
+        exit(99);
     }
 
     Queue *queue;
     SymTable *glob_table;
     SymTable *ifj_table;
+    // Tables init
     queue = queue_init();
     glob_table = TableInit();
     ifj_table = TableInit();
+
+    // Tree init
+    TreeElement *tree_root;
+    TreeRootPtr x = TreeInit();
+    tree_root = x->Root;
+    tree_root->Data.Type = ROOT_NODE;
 
     stoken->queue = queue;
     stoken->glob_table = glob_table;
     stoken->ifj_table = ifj_table;
     stoken->current_fn = NULL;
 
-    queue_fill(stoken);
+    queue_fill(stoken, tree_root);
+
+    // Searching for main, if not defined exit
+    Elem_id *tmp = TableSearch("main", NULL, 0, stoken->glob_table);
+    if (tmp == NULL){
+        fprintf(stderr, "Main not defined\n");
+        exit(3);
+    }
+    else if (tmp->FnVar.Fn_id.return_type.type != VOID || tmp->FnVar.Fn_id.num_of_params != 0){
+        fprintf(stderr, "Main has wrong params\n");
+        exit(4);
+    }
+
     ifj_table_fill(stoken);
 
     free(stoken->current_fn);
     stoken->current_fn = NULL;
-    stoken->SStoredToken = NULL;
+    stoken->returned = false;
     stoken->local_table = NULL;
     stoken->level_stack = NULL;
     stoken->stack_size = 0;
+    stoken->last_poped = 0;
+    stoken->current_node = tree_root;
     stoken->SToken = queue_next_token(queue);
 
     result = start(stoken);
@@ -885,13 +1481,13 @@ int main(){
             continue;
         }
         printf("--Globals--\n");
-        printf("%s\n",elem->name);
-        printf("%d\n",elem->FnVar.Fn_id.return_type);
-        printf("%d\n",elem->FnVar.Fn_id.return_type.nullable);
-        printf("%d\n",elem->FnVar.Fn_id.num_of_params);
+        printf("fn_name: %s\n",elem->name);
+        printf("fn_return: %d\n",elem->FnVar.Fn_id.return_type);
+        printf("fn_return_null: %d\n",elem->FnVar.Fn_id.return_type.nullable);
+        printf("fn_num_of_params: %d\n",elem->FnVar.Fn_id.num_of_params);
         for (int i = 0; i < elem->FnVar.Fn_id.num_of_params; i++){
-            printf("%d\n",elem->FnVar.Fn_id.type_of_params[i].type);
-            printf("%d\n",elem->FnVar.Fn_id.type_of_params[i].nullable);
+            printf("fn_param: %d\n",elem->FnVar.Fn_id.type_of_params[i].type);
+            printf("fn_param_null: %d\n",elem->FnVar.Fn_id.type_of_params[i].nullable);
         }
         Elem_id *elem_loc;
         for (int j = 0; j < 1001; j++){
@@ -900,19 +1496,25 @@ int main(){
             continue;
         }
         printf("--Locals--\n");
-        printf("%s\n",elem_loc->name);
-        printf("%d\n",elem_loc->stack_size);
+        printf("name: %s\n",elem_loc->name);
+        printf("stack_size: %d\n",elem_loc->stack_size);
+        printf("stack_cont: ");
         for (int y = 0; y < elem_loc->stack_size; y++){
-            printf("%d ",elem_loc->level_stack[y]);
+            printf("%d,",elem_loc->level_stack[y]);
         }
         printf("\n");
-        printf("%d\n",elem_loc->FnVar.Var_id.type.type);
-        printf("%d\n",elem_loc->FnVar.Var_id.type.nullable);
-        printf("%d\n",elem_loc->FnVar.Var_id.const_t);
+        printf("type: %d\n",elem_loc->FnVar.Var_id.type.type);
+        printf("nullable: %d\n",elem_loc->FnVar.Var_id.type.nullable);
+        printf("const: %d\n",elem_loc->FnVar.Var_id.const_t);
         }
     }
-    printf("%d\n", result);
+    print_tree(tree_root);
+    printf("%d\n", tree_root->Data.NodeType);
     // !! Debug output
+    if (result == false){
+        fprintf(stderr, "syntax error\n");
+        exit(2);
+    }
     TableClear(ifj_table, FUNCTION);
     dealloc_stoken(stoken);
 }

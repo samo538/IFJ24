@@ -4,6 +4,8 @@
  */
 
 #include"lexer.h"
+#include "token.h"
+#include <string.h>
 
 const char* tokenTypeKeywords[]= {
 	"const",
@@ -23,11 +25,27 @@ const char* tokenTypeKeywords[]= {
 };
 
 void lexer_error() {
+	fprintf(stderr, "lexer error\n");
 	exit(1);
 }
 
+Token *copy_token(Token *old_token){
+	Token *new_token;
+	new_token = malloc(sizeof(Token));
+	if (new_token == NULL){
+		fprintf(stderr, "something went wrong\n");
+		exit(99);
+	}
+	new_token->type = old_token->type;
+	new_token->value = old_token->value;
+	if (new_token->type == STRING || new_token->type == ID){
+		new_token->value.str = strdup(old_token->value.str);
+	}
+	return new_token;
+}
+
 void realloc_str(char** str, size_t* strSize, size_t length) {
-	if(length == *strSize) {
+	while(length >= *strSize) {
 		*strSize += 20;
 		*str = (char*)realloc(*str, sizeof(char) * (*strSize));
 		if(str == NULL) {//TODO: pořešit alloc error
@@ -347,20 +365,20 @@ void multi_line_string_type(TokenPtr token, char input) {
             input = getchar();
             if ('\n' == input) { break; }
         	if(0 < (int)input && (int)input <= 9) {
-        		token->value.str[length] = '\\';
-				token->value.str[length+1] = '0';
-				token->value.str[length+2] = '0';
-				token->value.str[length+3] = (int)input;
-    			length+=4;
-    			realloc_str(&token->value.str, &strSize, length);
+    				length+=4;
+    				realloc_str(&token->value.str, &strSize, length);
+        		token->value.str[length-4] = '\\';
+						token->value.str[length-3] = '0';
+						token->value.str[length-2] = '0';
+						token->value.str[length-1] = (int)input;
         	}
         	else if((9 < (int)input && (int)input <= 32) || (int)input == 92 || (int)input == 35) {
-        		token->value.str[length] = '\\';
-				token->value.str[length+1] = '0';
-				token->value.str[length+2] = ((int)input /10)+48;
-				token->value.str[length+3] = ((int)input %10)+48;
-    			length+=4;
-    			realloc_str(&token->value.str, &strSize, length);
+    				length+=4;
+    				realloc_str(&token->value.str, &strSize, length);
+        		token->value.str[length-4] = '\\';
+						token->value.str[length-3] = '0';
+						token->value.str[length-2] = ((int)input /10)+48;
+						token->value.str[length-1] = ((int)input %10)+48;
         	}
         	else {
         		token->value.str[length] = input;
@@ -400,8 +418,11 @@ void string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
     input = getchar();
-    token->value.str[0] = input;
-    size_t length = 1;
+    size_t length = 0;
+    if (input != '"') {
+        token->value.str[0] = input;
+        length = 1;
+    }
 
     while('"' != input) {
         input = getchar();
@@ -413,39 +434,39 @@ void string_type(TokenPtr token, char input) {
        	char c = getchar();
         switch(c) {
           	case 'n': {
-          			token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '1';
-                    token->value.str[length+3] = '0';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
-					continue;
+          			token->value.str[length-4] = '\\';
+                token->value.str[length-3] = '0';
+                token->value.str[length-2] = '1';
+                token->value.str[length-1] = '0';
+								continue;
                   break;}
         	case 'r': {
-                  	token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '1';
-                    token->value.str[length+3] = '3';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
+                  	token->value.str[length-4] = '\\';
+                    token->value.str[length-3] = '0';
+                    token->value.str[length-2] = '1';
+                    token->value.str[length-1] = '3';
 					continue;
                   break;}
         	case 't': {
-                  	token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '0';
-                    token->value.str[length+3] = '9';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
+                  	token->value.str[length-4] = '\\';
+                    token->value.str[length-3] = '0';
+                    token->value.str[length-2] = '0';
+                    token->value.str[length-1] = '9';
 					continue;
                   break;}
         	case '\\': {
-                  	token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '9';
-                    token->value.str[length+3] = '2';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
+                  	token->value.str[length-4] = '\\';
+                    token->value.str[length-3] = '0';
+                    token->value.str[length-2] = '9';
+                    token->value.str[length-1] = '2';
 					continue;
                   break;}
         	case '\'': {
@@ -500,20 +521,20 @@ void string_type(TokenPtr token, char input) {
 		}
 
     	if(0 < (int)input && (int)input <= 9) {
-    		token->value.str[length] = '\\';
-			token->value.str[length+1] = '0';
-			token->value.str[length+2] = '0';
-			token->value.str[length+3] = (int)input;
     		length+=4;
     		realloc_str(&token->value.str, &strSize, length);
+    		token->value.str[length-4] = '\\';
+			token->value.str[length-3] = '0';
+			token->value.str[length-2] = '0';
+			token->value.str[length-1] = (int)input;
     	}
     	else if((9 < (int)input && (int)input <= 32) || (int)input == 92 || (int)input == 35) {
-			token->value.str[length] = '\\';
-			token->value.str[length+1] = '0';
-			token->value.str[length+2] = ((int)input /10)+48;
-			token->value.str[length+3] = ((int)input %10)+48;
     		length+=4;
     		realloc_str(&token->value.str, &strSize, length);
+			token->value.str[length-4] = '\\';
+			token->value.str[length-3] = '0';
+			token->value.str[length-2] = ((int)input /10)+48;
+			token->value.str[length-1] = ((int)input %10)+48;
     	}
         else {
         	token->value.str[length] = input;

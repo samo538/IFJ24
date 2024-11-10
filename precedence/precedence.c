@@ -137,6 +137,9 @@ int operator_reduction(StackBasePtr stack){
         return -1;
     }
 
+    operator->Data.NodeType = EXPRESSION_NODE;
+
+
     //vytvorenie podstromu
     ret_element = TreeElementConnect(operator, E_1);
     if(ret_element == NULL){
@@ -181,12 +184,18 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
     {
     case ID:
         Elem_id *id = TableSearch(stack->ActiveElement->Tree->Data.Token->value.str, level, level_size, Table);
+        if(id == NULL){
+            error_type = 3;
+            return -1;
+        }
         if(!(id->FnVar.Var_id.type.nullable)){
             if(id->FnVar.Var_id.type.type == I32){
                 stack->ActiveElement->Tree->Data.Type = I32_VAR;
+                id->FnVar.Var_id.used = true;
             }
             else if(id->FnVar.Var_id.type.type == F64){
                 stack->ActiveElement->Tree->Data.Type = F64_VAR;
+                id->FnVar.Var_id.used = true;
             }
             else{
                 error_type = 7;
@@ -208,6 +217,8 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
     default:
         break;
     }
+
+    stack->ActiveElement->Tree->Data.NodeType = EXPRESSION_NODE;
 
     ret_element = Down(stack);
     if(ret_element == NULL){
@@ -369,7 +380,7 @@ int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr st
     return rule;
 }
 
-PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue){
+PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue){
 
     int prec_table[14][14] = {{REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
                                 {REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
@@ -454,12 +465,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
                 }
             }
 
-            if((counter == 0) && (rel_op == true)){
-                n_token = second_token;
-            }
-            else{
-                n_token = queue_next_token(queue);
-            }
+            n_token = queue_next_token(queue);
         
             break;
 
@@ -467,14 +473,10 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
             ret = take_next(stack, n_token);
             if(ret == -1){
                 goto error;
-            }
-
-            if((counter == 0) && (rel_op == true)){
-                n_token = second_token;
-            }
-            else{
-                n_token = queue_next_token(queue);
-            }
+            }          
+            
+            n_token = queue_next_token(queue);
+            
 
             ret = equal(stack);
             if(ret == -1){
@@ -501,6 +503,11 @@ PrecResultPtr preced_analysis(TokenPtr first_token, TokenPtr second_token, bool 
         }    
         
         counter ++;
+    }
+
+    if(rel_op == true && rel_op_counter == 0){
+        error_type = 7;
+        goto error;
     }
 
     if(leaves_control(stack->TopElement->Tree)){

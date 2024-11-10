@@ -3,6 +3,7 @@
 
 #include "../lexer/token.h"
 #include "../symtable/symtable.h"
+#include "../tree/tree.h"
 
 typedef TokenPtr *Queue_t;
 
@@ -12,9 +13,8 @@ typedef struct {
 }Queue;
 
 typedef struct{
-    // Tokens
+    // Token
     TokenPtr SToken;
-    TokenPtr SStoredToken;
     // Queue
     Queue *queue;
     // Symtables
@@ -23,9 +23,14 @@ typedef struct{
     SymTable *ifj_table;
     // Current function
     char *current_fn;
+    bool returned;
+    // Current tree node
+    TreeElementPtr current_node;
     // Current stack
     int *level_stack;
     int stack_size;
+    // Helper variable for level_stack
+    int last_poped;
 }TokenStorage, *TokenStoragePtr;
 
 void queue_add_token(Queue *queue, TokenPtr token);
@@ -36,7 +41,7 @@ void queue_free(Queue *queue);
 
 Queue *queue_init();
 
-void queue_fill(TokenStoragePtr stoken);
+void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node);
 
 void ifj_table_fill(TokenStoragePtr stoken);
 

@@ -6,6 +6,8 @@
 #include "queue.h"
 #include "queue_fill.h"
 
+#include "../tree/tree.h"
+
 #include "../lexer/lexer.h"
 
 #define SIZE_IFJ_FN 13
@@ -38,19 +40,28 @@ void queue_free(Queue *queue){
 Queue *queue_init(){
     Queue * new = malloc(sizeof(Queue));
     if (new == NULL){
-        //TODO error
+        exit(99);
     }
     new->Queue_act = NULL;
     new->Queue_size = 0;
     return new;
 }
 
-void queue_fill(TokenStoragePtr stoken){
+void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
     TokenPtr tmp;
     while ((tmp = next_token())->type != END_OF_FILE){
         if (tmp->type == PUB){
             stoken->SToken = tmp;
-            fn_def_q(stoken);
+
+            TreeElement *new;
+            new = TreeInsert(tree_node, NULL);
+            if (new == NULL){
+                fprintf(stderr, "something went wrong\n");
+                exit(99);
+            }
+            new->Data.NodeType = TOP_FUNCTION_NODE;
+
+            fn_def_q(stoken, &new->Data.Token);
             queue_add_token(stoken->queue, stoken->SToken); // Add the last token
             if (stoken->SToken->type == END_OF_FILE){
                 fprintf(stderr, "syntax error\n");
