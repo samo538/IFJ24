@@ -184,6 +184,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                     }
                 }
             }
+            ret_var->FnVar.Var_id.used = true;
             return t_id(stoken) &&
             t_semicolon(stoken);
         }
@@ -374,6 +375,7 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             exit(3);
         }
         if (fn->FnVar.Fn_id.type_of_params[pos].type == tmp->FnVar.Var_id.type.type){
+            tmp->FnVar.Var_id.used = true; // Used this var
             return t_id(stoken) &&
             t_comma(stoken) &&
             call_params(stoken, fn, pos + 1);
@@ -462,6 +464,7 @@ bool ifj_call(TokenStoragePtr stoken){
                 fprintf(stderr, "Undefined variable\n");
                 exit(3);
             }
+            var->FnVar.Var_id.used = true; // Used this variable
             ret = ret && t_id(stoken);
             if (ret == false){
                 syn_error(stoken);
@@ -584,6 +587,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
                     exit(7);
                 }
             }
+            ret_var->FnVar.Var_id.used = true; // Used this var
             return t_id(stoken) &&
             t_semicolon(stoken);
         }
@@ -693,12 +697,14 @@ bool if_else(TokenStoragePtr stoken){
             exit(3);
         }
         if (var_id->FnVar.Var_id.type.nullable){
+            var_id->FnVar.Var_id.used = true;
             Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
             new->Type = VARIABLE;
             new->FnVar.Var_id.type.type = var_id->FnVar.Var_id.type.type; // Placeholder
             new->FnVar.Var_id.type.nullable = false; // Implicit false
             new->FnVar.Var_id.used = false; // Variable not used by default
             new->FnVar.Var_id.const_t = false; // Variable not used by default
+            new->FnVar.Var_id.used = false;
 
             //Changind the position is stack
             stoken->stack_size++;
@@ -797,6 +803,7 @@ bool if_else(TokenStoragePtr stoken){
                 exit(2);
             }
 
+            // going into else
             stoken->level_stack[stoken->stack_size - 1]++; // Moving into else
 
             ret = ret &&
@@ -808,6 +815,7 @@ bool if_else(TokenStoragePtr stoken){
                 exit(2);
             }
 
+            // stepping out of else
             stoken->last_poped = stoken->level_stack[stoken->stack_size - 1]; // Pop last item from the stack
             stoken->stack_size--;
             stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
@@ -901,6 +909,7 @@ bool cycle(TokenStoragePtr stoken){
             exit(3);
         }
         if (var_id->FnVar.Var_id.type.nullable){ // Nullable path
+            var_id->FnVar.Var_id.used = true;
             Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
             new->Type = VARIABLE;
             new->FnVar.Var_id.type.type = var_id->FnVar.Var_id.type.type; // Placeholder
@@ -1096,6 +1105,7 @@ bool e_return_exp(TokenStoragePtr stoken){
         exit(4);
     }
 
+    // Trying to return void in non-void fn
     else if(stoken->SToken->type == SEMICOLON){
         fprintf(stderr, "Returning void in non-void func\n");
         exit(4);
@@ -1132,6 +1142,7 @@ bool e_return_exp(TokenStoragePtr stoken){
                 }
             }
             stoken->returned = true;
+            ret_var->FnVar.Var_id.used = true;
             return t_id(stoken) &&
             t_semicolon(stoken);
         }
@@ -1331,6 +1342,22 @@ bool functions(TokenStoragePtr stoken){
             fprintf(stderr, "missing return\n");
             exit(6);
         }
+
+        // Checking for variable usage
+
+        Elem_id *elem_loc;
+        for (int j = 0; j < TABLE_SIZE; j++){
+            elem_loc = stoken->local_table[j];
+            if (elem_loc == NULL){
+                continue;
+            }
+            if (elem_loc->FnVar.Var_id.used == 0){
+                fprintf(stderr, "Unused variable!\n");
+                exit(9);
+            }
+        }
+
+
         return ret &&
         functions(stoken); // Recursive calling
     }
