@@ -432,7 +432,7 @@ bool t_id(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
+bool t_id_var(TokenStoragePtr stoken, Elem_id *new, Token **tree_id){
     if (stoken->SToken->type == ID){
         Elem_id *tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         if (tmp != NULL){

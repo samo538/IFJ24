@@ -131,6 +131,7 @@ bool t_void_q(TokenStoragePtr stoken){
         return false;
     }
 }
+
 bool t_id_func_q(TokenStoragePtr stoken, Elem_id **TableElement){
     if (stoken->SToken->type == ID){
         if(TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table) != NULL){
@@ -147,6 +148,9 @@ bool t_id_func_q(TokenStoragePtr stoken, Elem_id **TableElement){
         elem.FnVar.Fn_id.type_of_params = NULL;
         elem.FnVar.Fn_id.return_type.nullable = false; // Implicit nullable false
         elem.FnVar.Fn_id.LocalSymTable = TableInit();
+
+        Token *new_tkn = copy_token(stoken->SToken);
+        *token = new_tkn;
 
         TableAdd(elem, stoken->glob_table); // Adding and element to the symtable
         *TableElement = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);

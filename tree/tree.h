@@ -24,6 +24,23 @@ enum NodeTypes{
     ID_NODE, // 11
 };
 
+enum NodeTypes{
+    // Top nodes
+    ROOT_NODE,
+    TOP_FUNCTION_NODE,
+    // Main sub nodes
+    ASSIGN_NODE,
+    DEFINITION_NODE,
+    RETURN_NODE,
+    WHILE_NODE,
+    IF_NODE,
+    FUNCTION_NODE,
+    IFJ_FUNCTION_NODE,
+    // "Leaf" nodes
+    EXPRESSION_NODE,
+    ID_NODE,
+};
+
 typedef struct TreeData
 {
     // Used by code gen

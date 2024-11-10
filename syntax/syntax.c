@@ -143,12 +143,12 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         }
     }
 
-    // Assigning IFJ func
+    // Assigning IFJ func TODO TREE
     if (stoken->SToken->type == IFJ){
         return ifj_call_var(stoken, new);
     }
 
-    // Assigning func
+    // Assigning func TODO TREE
     else if (ret_fn != NULL){ 
         if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
             if (ret_fn->FnVar.Fn_id.return_type.type == VOID){
@@ -173,7 +173,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         return fn_call(stoken);
     }
 
-    // Assigning null
+    // Assigning null TODO TREE
     else if(stoken->SToken->type == NULL_VALUE){
         if (new->FnVar.Var_id.type.type == END_OF_FILE){
             fprintf(stderr, "cannot determine type\n");
@@ -241,6 +241,8 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
                     exit(7);
                 }
             }
+            // New tree node
+            TreeElementConnect(stoken->current_node, result->Tree);
             stoken->SToken = result->NextTotken;
             // Connecting expression to the main tree
             TreeElementConnect(stoken->current_node, result->Tree);
@@ -334,7 +336,7 @@ bool var_def(TokenStoragePtr stoken){
 
     // Tree node for ID created in t_id_var
     ret = l_var_const(stoken, new) && // Filling up new
-    t_id_var(stoken, new) && // Filling up the name / checking for redef
+    t_id_var(stoken, new, &tree_id->Data.Token) && // Filling up the name / checking for redef
     l_type_vardef(stoken, new) && // Implicit/Explicit definition
     t_eq(stoken) &&
     e_var_exp_def(stoken, new); // Adding value
@@ -1387,8 +1389,21 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
     *   Variable definition
     */
     if (stoken->SToken->type == VAR || stoken->SToken->type == CONST){
-        return var_def(stoken) &&
+        bool ret;
+
+        TreeElement *new = TreeInsert(stoken->current_node, NULL);
+        new->Data.NodeType = ASSIGN_NODE;
+        stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
+
+        ret = var_def(stoken) &&
         fn_body(stoken);
+        if (!ret){
+            syn_error(stoken);
+        }
+
+        stoken->current_node = stoken->current_node->DadNode;
+
+        return ret;
     }
     /*
     *   Function calling or assignment
