@@ -61,7 +61,7 @@ void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
             }
             new->Data.NodeType = TOP_FUNCTION_NODE;
 
-            fn_def_q(stoken, &new->Data.Token);
+            fn_def_q(stoken, &new->Data.TableElement);
             queue_add_token(stoken->queue, stoken->SToken); // Add the last token
             if (stoken->SToken->type == END_OF_FILE){
                 fprintf(stderr, "syntax error\n");

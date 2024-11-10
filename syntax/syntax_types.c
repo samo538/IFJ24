@@ -432,7 +432,7 @@ bool t_id(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_id_var(TokenStoragePtr stoken, Elem_id *new, Token **tree_id){
+bool t_id_var(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == ID){
         Elem_id *tmp = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         if (tmp != NULL){
@@ -444,7 +444,6 @@ bool t_id_var(TokenStoragePtr stoken, Elem_id *new, Token **tree_id){
             fprintf(stderr,"Function/Variable with the same name not allowed\n");
             exit(5);
         }
-        *tree_id = copy_token(stoken->SToken);
         new->name = strdup(stoken->SToken->value.str);
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);

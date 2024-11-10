@@ -37,7 +37,7 @@ bool t_int(TokenStoragePtr stoken);
 bool t_float(TokenStoragePtr stoken);
 bool t_null(TokenStoragePtr stoken);
 bool t_id(TokenStoragePtr stoken);
-bool t_id_var(TokenStoragePtr stoken, Elem_id *new_elem, Token **token_id);
+bool t_id_var(TokenStoragePtr stoken, Elem_id *new_elem);
 bool t_id_fn(TokenStoragePtr stoken);
 bool t_id_ifj(TokenStoragePtr stoken);
 bool t_underline(TokenStoragePtr stoken);

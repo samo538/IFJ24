@@ -131,7 +131,7 @@ bool t_void_q(TokenStoragePtr stoken){
         return false;
     }
 }
-bool t_id_func_q(TokenStoragePtr stoken, Token **token){
+bool t_id_func_q(TokenStoragePtr stoken, Elem_id **TableElement){
     if (stoken->SToken->type == ID){
         if(TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table) != NULL){
             fprintf(stderr, "double fn def\n");
@@ -148,10 +148,8 @@ bool t_id_func_q(TokenStoragePtr stoken, Token **token){
         elem.FnVar.Fn_id.return_type.nullable = false; // Implicit nullable false
         elem.FnVar.Fn_id.LocalSymTable = TableInit();
 
-        Token *new_tkn = copy_token(stoken->SToken);
-        *token = new_tkn;
-
         TableAdd(elem, stoken->glob_table); // Adding and element to the symtable
+        *TableElement = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
 
         if (stoken->current_fn != NULL){ // Setting new current fn
             free(stoken->current_fn);
@@ -367,10 +365,10 @@ bool params_q(TokenStoragePtr stoken){
     }
 }
 
-bool fn_def_q(TokenStoragePtr stoken, Token **token){
+bool fn_def_q(TokenStoragePtr stoken, Elem_id **table_element){
     return t_pub_q(stoken) &&
     t_fn_q(stoken) &&
-    t_id_func_q(stoken, token) &&
+    t_id_func_q(stoken, table_element) &&
     t_op_bracket_q(stoken) &&
     params_q(stoken) &&
     t_cl_bracket_q(stoken) &&

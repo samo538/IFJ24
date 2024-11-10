@@ -3,6 +3,6 @@
 
 #include "../queue/queue.h"
 
-bool fn_def_q(TokenStoragePtr stoken, Token **token);
+bool fn_def_q(TokenStoragePtr stoken, Elem_id **token);
 
 #endif
