@@ -4,6 +4,8 @@
  */
 
 #include"lexer.h"
+#include "token.h"
+#include <string.h>
 
 const char* tokenTypeKeywords[]= {
 	"const",
@@ -23,7 +25,23 @@ const char* tokenTypeKeywords[]= {
 };
 
 void lexer_error() {
+	fprintf(stderr, "lexer error\n");
 	exit(1);
+}
+
+Token *copy_token(Token *old_token){
+	Token *new_token;
+	new_token = malloc(sizeof(Token));
+	if (new_token == NULL){
+		fprintf(stderr, "something went wrong\n");
+		exit(99);
+	}
+	new_token->type = old_token->type;
+	new_token->value = old_token->value;
+	if (new_token->type == STRING || new_token->type == ID){
+		new_token->value.str = strdup(old_token->value.str);
+	}
+	return new_token;
 }
 
 void realloc_str(char** str, size_t* strSize, size_t length) {

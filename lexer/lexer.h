@@ -15,6 +15,8 @@ extern const char* tokenTypeKeywords[];
 
 TokenPtr next_token();
 
+Token *copy_token(Token *old_token);
+
 void choose_type(TokenPtr token, char input);
 
 void number_type(TokenPtr token, char input);
