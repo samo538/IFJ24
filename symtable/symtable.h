@@ -28,7 +28,8 @@ typedef struct fn_id{
     Id_type return_type;
     int num_of_params;
     Id_type *type_of_params;
-    struct elem_id **LocalSymTable;
+    struct elem_id **TableParams; // Pointer to local variables that repressent the arguments
+    struct elem_id **LocalSymTable; // Pointer to the whole table
 }Fn_id;
 
 union FnVar{

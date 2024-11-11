@@ -145,6 +145,7 @@ bool t_id_func_q(TokenStoragePtr stoken, Elem_id **TableElement){
         elem.stack_size = 0;
         elem.FnVar.Fn_id.num_of_params = 0;
         elem.FnVar.Fn_id.type_of_params = NULL;
+        elem.FnVar.Fn_id.TableParams = NULL;
         elem.FnVar.Fn_id.return_type.nullable = false; // Implicit nullable false
         elem.FnVar.Fn_id.LocalSymTable = TableInit();
 
@@ -173,6 +174,7 @@ bool t_id_param_q(TokenStoragePtr stoken, Elem_id *new){
 
         new->name = strdup(stoken->SToken->value.str);
 
+        // Adding the number of params and their type
         int count = ++tmp->FnVar.Fn_id.num_of_params;
         tmp->FnVar.Fn_id.type_of_params = realloc(tmp->FnVar.Fn_id.type_of_params, sizeof(Id_type) * count);
         tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].nullable = false; // Implicit false on nullable;
@@ -353,7 +355,13 @@ bool params_q(TokenStoragePtr stoken){
         t_comma_q(stoken) &&
         params_q(stoken);
 
+        // Adding to local sym table and to function parameters
         TableAdd(*new, tmp->FnVar.Fn_id.LocalSymTable);
+        int *level = malloc(sizeof(int));
+        level[0] = 1;
+        tmp->FnVar.Fn_id.TableParams = realloc(tmp->FnVar.Fn_id.TableParams, sizeof(Elem_id *) * tmp->FnVar.Fn_id.num_of_params);
+        tmp->FnVar.Fn_id.TableParams[tmp->FnVar.Fn_id.num_of_params - 1] = TableSearch(new->name, level, 1, tmp->FnVar.Fn_id.LocalSymTable);
+        free(level);
         free(new->name);
         free(new->level_stack);
         free(new);
