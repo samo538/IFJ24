@@ -78,13 +78,25 @@ void gen_expression(TreeElementPtr tree) {
 }
 
 void gen_definition(TreeElementPtr tree) {
-    printf("%s\n",get_var_name(tree->Node[0]));
+    char* name = get_var_name(tree->Node[0]);
+    printf("DEFVAR %s\n",name);
+    free(name);
 
     gen_assign(tree);
 }
 
 void gen_assign(TreeElementPtr tree) {
-    
+    //right node
+    if(tree->Node[1]->Data.NodeType == EXPRESSION_NODE) {
+        gen_expression(tree->Node[1]);
+    } else {
+        gen_func_call(tree->Node[1]);
+    }
+
+    //left node
+    char* name = get_var_name(tree->Node[0]);
+    printf("POP %s\n",name);
+    free(name);
 }
 
 void gen_func_call(TreeElementPtr tree) {
@@ -101,25 +113,39 @@ void gen_ifj_write(TreeElementPtr tree) {
         switch(arg->Data.Token->type) {
             case STRING: {
                 printf("WRITE string@%s\n",arg->Data.Token->value.str);
-                break;
+                
+                return;
             }
             case I32_VAR: {
                 printf("WRITE int@%d\n",arg->Data.Token->value.i);
-                break;
+
+                return;
             }
             case F64_VAR: {
                 printf("WRITE float@%a\n",arg->Data.Token->value.f64);
+                
+                return;
             }
         }
+
+        char* name = get_var_name(arg);
+        printf("WRITE %s\n",name);
+        free(name);
     }
 }
 
 char* get_var_name(TreeElementPtr tree) {
-    
-    char* name = "LF@";
+    char* name = (char*)malloc(sizeof(char)*256);
+    if (name == NULL) {
+        exit(99);
+    }
+    strcpy(name,"LF@");
     strcat(name,tree->Data.TableElement->name);
-    /*for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
-        strcat(name,itoa(tree->Data.TableElement->level_stack[i]));
-    }*/
+    for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
+        char layer[10];
+        sprintf(layer,"%d",tree->Data.TableElement->level_stack[i]);
+        strcat(name,layer);
+    }
+
     return name;
 }
