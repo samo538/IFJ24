@@ -521,43 +521,45 @@ bool ifj_call(TokenStoragePtr stoken){
         stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
         if (stoken->SToken->type == F64_VAR){
+            TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
+            new_node->Data.NodeType = ARG_NODE;
+            new_node->Data.Token = copy_token(stoken->SToken);
+
             ret = ret && t_float(stoken);
             if (ret == false){
                 syn_error(stoken);
             }
+        }
+        else if (stoken->SToken->type == I32_VAR){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
-        }
-        else if (stoken->SToken->type == I32_VAR){
+
             ret = ret && t_int(stoken);
             if (ret == false){
                 syn_error(stoken);
             }
+
+        }
+        else if (stoken->SToken->type == STRING){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
 
-        }
-        else if (stoken->SToken->type == STRING){
             ret = ret && t_string(stoken);
             if (ret == false){
                 syn_error(stoken);
             }
+        }
+        else if (stoken->SToken->type == NULL_VALUE){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
 
-        }
-        else if (stoken->SToken->type == NULL_VALUE){
             ret = ret && t_null(stoken);
             if (ret == false){
                 syn_error(stoken);
             }
-            TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
-            new_node->Data.NodeType = ARG_NODE;
-            new_node->Data.Token = copy_token(stoken->SToken);
-
         }
         else if (stoken->SToken->type == ID){
         Elem_id *var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
@@ -1685,7 +1687,7 @@ int main(){
     TreeElement *tree_root;
     TreeRootPtr x = TreeInit();
     tree_root = x->Root;
-    tree_root->Data.Type = ROOT_NODE;
+    tree_root->Data.NodeType = ROOT_NODE;
 
     stoken->queue = queue;
     stoken->glob_table = glob_table;
@@ -1728,7 +1730,7 @@ int main(){
         }
         printf("--Globals--\n");
         printf("fn_name: %s\n",elem->name);
-        printf("fn_return: %d\n",elem->FnVar.Fn_id.return_type);
+        printf("fn_return: %d\n",elem->FnVar.Fn_id.return_type.type);
         printf("fn_return_null: %d\n",elem->FnVar.Fn_id.return_type.nullable);
         printf("fn_num_of_params: %d\n",elem->FnVar.Fn_id.num_of_params);
         for (int i = 0; i < elem->FnVar.Fn_id.num_of_params; i++){
