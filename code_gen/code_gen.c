@@ -14,7 +14,7 @@ void gen_code(TreeElementPtr tree) {
             break;
         }
         main = tree->Node[i];
-        mainPosition++;
+        mainPosition=i;
     }
 
     gen_main(main);
@@ -55,7 +55,7 @@ void gen_main(TreeElementPtr main) {
                 break;
             }
             case IFJ_FUNCTION_NODE: {
-                choose_ifj_func(main->Node[i]);
+                choose_ifj_func(main->Node[i], NULL);
             }
         }
     }
@@ -63,9 +63,13 @@ void gen_main(TreeElementPtr main) {
     printf("POPFRAME\n");
 }
 
-void choose_ifj_func(TreeElementPtr tree) {
+void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
     if(strcmp("write", tree->Data.TableElement->name) == 0) {
         gen_ifj_write(tree);
+    } else if (strcmp("length", tree->Data.TableElement->name) == 0) {
+        gen_ifj_length(tree, var);
+    } else if(strcmp("string", tree->Data.TableElement->name) == 0) {
+        gen_ifj_string(tree,var);
     }
 }
 
@@ -94,7 +98,7 @@ void gen_func(TreeElementPtr func) {
                 break;
             }
             case IFJ_FUNCTION_NODE: {
-                choose_ifj_func(func->Node[i]);
+                choose_ifj_func(func->Node[i], NULL);
             }
         }
     }
@@ -136,15 +140,11 @@ void gen_expression(TreeElementPtr tree) {
             printf("MULS\n");
             break;}
         case DIVIDE:{
-            printf("IDIFS\n");
-            break;}
+            if(tree->Data.Type == 29) {printf("IDIVS\n");}
+            else {printf("DIVS\n");}
+            break;
+        }
     }
-    //tree->Data.Type
-    //if var/cost push
-    //if oper use stackInstrucion
-    //check for předefinování
-
-
 }
 
 void gen_definition(TreeElementPtr tree) {
@@ -157,10 +157,19 @@ void gen_definition(TreeElementPtr tree) {
 
 void gen_assign(TreeElementPtr tree) {
     //right node
-    if(tree->Node[1]->Data.NodeType == EXPRESSION_NODE) {
-        gen_expression(tree->Node[1]);
-    } else {
-        gen_func_call(tree->Node[1]);
+    switch (tree->Node[1]->Data.NodeType) {
+        case (EXPRESSION_NODE): {
+            gen_expression(tree->Node[1]);
+            break;
+        }
+        case (FUNCTION_NODE): {
+            gen_func_call(tree->Node[1]);
+            break;
+        }
+        case (IFJ_FUNCTION_NODE): {
+            choose_ifj_func(tree->Node[1], tree->Node[0]);
+            return;
+        }
     }
 
     //left node
@@ -202,6 +211,32 @@ void gen_ifj_write(TreeElementPtr tree) {
         printf("WRITE %s\n",name);
         free(name);
     }
+}
+
+void gen_ifj_length(TreeElementPtr tree, TreeElementPtr var) {
+    char* length;
+    char* str;
+    length = get_var_name(var);
+    if(tree->Node[0]->Data.Token->type == STRING) {
+        str = tree->Node[0]->Data.Token->value.str;
+        printf("STRLEN %s string@%s\n",length,str);
+    }
+    else {
+        str = get_var_name(tree->Node[0]);
+        printf("STRLEN %s %s\n",length,str);
+        free(str);
+    }
+    free(length);
+
+}
+
+void gen_ifj_string(TreeElementPtr tree, TreeElementPtr var) {
+    char* dest;
+    char* str;
+    str = tree->Node[0]->Data.Token->value.str;
+    dest = get_var_name(var);
+    printf("MOVE %s string@%s\n",dest,str);
+
 }
 
 char* get_var_name(TreeElementPtr tree) {
