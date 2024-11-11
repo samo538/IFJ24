@@ -13,6 +13,7 @@
 void gen_code(TreeElementPtr tree);
 void gen_main(TreeElementPtr main);
 void gen_func(TreeElementPtr func);
+void gen_func_call(TreeElementPtr tree);
 void gen_definition(TreeElementPtr tree);
 void choose_ifj_func(TreeElementPtr tree);
 void gen_assign(TreeElementPtr tree);
