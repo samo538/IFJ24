@@ -22,6 +22,8 @@
 
 #include "../tree/tree.h"
 
+#include "../code_gen/code_gen.h"
+
 #include <stdio.h>
 
 // Debug output func
@@ -1755,6 +1757,8 @@ int main(){
     print_tree(tree_root);
     printf("%d\n", tree_root->Data.NodeType);
     // !! Debug output
+    gen_code(tree_root);
+
     if (result == false){
         fprintf(stderr, "syntax error\n");
         exit(2);
