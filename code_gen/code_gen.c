@@ -148,7 +148,7 @@ void gen_expression(TreeElementPtr tree) {
 }
 
 void gen_definition(TreeElementPtr tree) {
-    //printf("%s\n",get_var_name(tree->Node[0])); //todo uncoment after fixed
+    //printf("%s\n",get_var_name(tree->Node[0]));
     printf("def:\n");
     gen_assign(tree);
 }
