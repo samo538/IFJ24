@@ -165,7 +165,7 @@ void gen_assign(TreeElementPtr tree) {
 
     //left node
     char* name = get_var_name(tree->Node[0]);
-    printf("POP %s\n",name);
+    printf("POPS %s\n",name);
     free(name);
 }
 
