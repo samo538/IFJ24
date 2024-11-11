@@ -71,20 +71,92 @@ void choose_ifj_func(TreeElementPtr tree) {
 
 void gen_func(TreeElementPtr func) {
     printf("%s\n",func->Data.TableElement->name);
+    for(int i=0;i < func->NodeCounter;i++) {
+        switch(func->Node[i]->Data.NodeType) {
+            case ASSIGN_NODE: {
+                gen_assign(func->Node[i]);
+                break;
+            }
+            case DEFINITION_NODE: {
+                gen_definition(func->Node[i]);
+                break;
+            }
+            case RETURN_NODE: {
+                break;
+            }
+            case WHILE_NODE: {
+                break;
+            }
+            case IF_NODE: {
+                break;
+            }
+            case FUNCTION_NODE: {
+                break;
+            }
+            case IFJ_FUNCTION_NODE: {
+                choose_ifj_func(func->Node[i]);
+            }
+        }
+    }
 }
 
 void gen_expression(TreeElementPtr tree) {
+    for(int i = 0; i < tree->NodeCounter;i++) {
+        gen_expression(tree->Node[i]);
+    }
+    //printf("Kokot:%d\n",tree->Data.Token->type);
+    switch (tree->Data.Token->type) {
+        case I32_VAR: { //konst
+            //add redef
+            printf("PUSHS int@%d\n", tree->Data.Token->value.i);
+            if(tree->Data.ChangeType) {
+                printf("INT2FLOATS\n");
+            }
+            break;
+        }
+        case F64_VAR: { //konst
+            //add redef
+            printf("PUSHS float@%a\n",tree->Data.Token->value.f64);
+            if(tree->Data.ChangeType) {
+                printf("FLOAT2INTS\n");
+            }
+            break;
+        }
+        case ID: { //variable //zatím nejde
+            //printf("PUSH LF@%d\n",tree->Data);
+            break;
+        }
+        case PLUS:{
+            printf("ADDS\n");
+            break;}
+        case MINUS:{
+            printf("SUBS\n");
+            break;}
+        case MULTIPLY:{
+            printf("MULS\n");
+            break;}
+        case DIVIDE:{
+            printf("IDIFS\n");
+            break;}
+    }
+    //tree->Data.Type
+    //if var/cost push
+    //if oper use stackInstrucion
+    //check for předefinování
+
 
 }
 
 void gen_definition(TreeElementPtr tree) {
-    printf("%s\n",get_var_name(tree->Node[0]));
-
+    //printf("%s\n",get_var_name(tree->Node[0])); //todo uncoment after fixed
+    printf("def:\n");
     gen_assign(tree);
 }
 
 void gen_assign(TreeElementPtr tree) {
-    
+    printf("kokot:%d\n",tree->Node[1]->Data.NodeType);
+    if(tree->Node[1]->Data.NodeType == EXPRESSION_NODE)
+    {gen_expression(tree->Node[1]);}
 }
 
 void gen_func_call(TreeElementPtr tree) {
