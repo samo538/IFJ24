@@ -1,6 +1,7 @@
 /**
  *  @file lexer/lexer.c
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
+ *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
  */
 
 #include"lexer.h"
@@ -418,11 +419,8 @@ void string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
     input = getchar();
+    ungetc(input,stdin);
     size_t length = 0;
-    if (input != '"') {
-        token->value.str[0] = input;
-        length = 1;
-    }
 
     while('"' != input) {
         input = getchar();
