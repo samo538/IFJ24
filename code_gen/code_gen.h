@@ -20,5 +20,6 @@ void gen_expression(TreeElementPtr tree);
 void gen_while(TreeElementPtr tree);
 void gen_condition(TreeElementPtr tree);
 void gen_ifj_write(TreeElementPtr tree);
+char* get_var_name(TreeElementPtr tree);
 
 #endif //IFJ24_CODE_GEN_H

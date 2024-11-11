@@ -27,12 +27,19 @@ void gen_code(TreeElementPtr tree) {
 }
 
 void gen_main(TreeElementPtr main) {
+
+    //Local Frame
+    printf("CREATEFRAME\n");
+    printf("PUSHFRAME\n");
+
     for(int i=0;i < main->NodeCounter;i++) {
         switch(main->Node[i]->Data.NodeType) {
             case ASSIGN_NODE: {
+                gen_assign(main->Node[i]);
                 break;
             }
             case DEFINITION_NODE: {
+                gen_definition(main->Node[i]);
                 break;
             }
             case RETURN_NODE: {
@@ -52,6 +59,8 @@ void gen_main(TreeElementPtr main) {
             }
         }
     }
+
+    printf("POPFRAME\n");
 }
 
 void choose_ifj_func(TreeElementPtr tree) {
@@ -68,6 +77,16 @@ void gen_expression(TreeElementPtr tree) {
 
 }
 
+void gen_definition(TreeElementPtr tree) {
+    printf("%s\n",get_var_name(tree->Node[0]));
+
+    gen_assign(tree);
+}
+
+void gen_assign(TreeElementPtr tree) {
+    
+}
+
 void gen_func_call(TreeElementPtr tree) {
 
 }
@@ -79,20 +98,28 @@ void gen_condition(TreeElementPtr tree) {
 void gen_ifj_write(TreeElementPtr tree) {
     TreeElementPtr arg = tree->Node[0];
     if(arg->Data.NodeType == ARG_NODE) {
-        printf("%i %i\n",arg->Data.Token->type,COMMA);
-        printf("%s\n",arg->Data.Token->value.str);
         switch(arg->Data.Token->type) {
             case STRING: {
-                printf("WRITE string@%s",arg->Data.Token->value.str);
+                printf("WRITE string@%s\n",arg->Data.Token->value.str);
                 break;
             }
-            case I32: {
-                printf("WRITE int@%s",arg->Data.Token->value.i);
+            case I32_VAR: {
+                printf("WRITE int@%d\n",arg->Data.Token->value.i);
                 break;
             }
-            case F64: {
-                printf("WRITE float@%s",arg->Data.Token->value.f64);
+            case F64_VAR: {
+                printf("WRITE float@%a\n",arg->Data.Token->value.f64);
             }
         }
     }
+}
+
+char* get_var_name(TreeElementPtr tree) {
+    
+    char* name = "LF@";
+    strcat(name,tree->Data.TableElement->name);
+    /*for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
+        strcat(name,itoa(tree->Data.TableElement->level_stack[i]));
+    }*/
+    return name;
 }
