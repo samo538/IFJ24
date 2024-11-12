@@ -456,14 +456,16 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             exit(4);
         }
     }
-    else { // else Syntactic error
+    else if (stoken->SToken->type == CLOSING_BRACKET){
+        if (fn->FnVar.Fn_id.num_of_params != pos){
+            fprintf(stderr, "not enough params\n");
+            exit(4);
+        }
+        return true;
+    }
+    else {
         syn_error(stoken);
     }
-    if (fn->FnVar.Fn_id.num_of_params != pos){
-        fprintf(stderr, "not enough params\n");
-        exit(4);
-    }
-    return true;
 }
 
 bool fn_call(TokenStoragePtr stoken){
