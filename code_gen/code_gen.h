@@ -13,13 +13,15 @@
 void gen_code(TreeElementPtr tree);
 void gen_main(TreeElementPtr main);
 void gen_func(TreeElementPtr func);
-void gen_func_switch(TreeElementPtr func);
+void gen_func_switch(TreeElementPtr func, bool isMain);
 void gen_func_call(TreeElementPtr tree);
+void gen_while(TreeElementPtr tree, bool isMain);
+void choose_node_type(TreeElementPtr func, bool isMain);
+void gen_return(TreeElementPtr tree, bool isMain);
 void gen_definition(TreeElementPtr tree);
 void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var);
 void gen_assign(TreeElementPtr tree);
 void gen_expression(TreeElementPtr tree);
-void gen_while(TreeElementPtr tree);
 void gen_condition(TreeElementPtr tree);
 void gen_ifj_write(TreeElementPtr tree);
 void gen_ifj_length(TreeElementPtr tree, TreeElementPtr var);
