@@ -3,10 +3,12 @@
 //
 #include "code_gen.h"
 
+unsigned int ifCounter = 0;
+unsigned int whileCounter = 0;
+
 void gen_code(TreeElementPtr tree) {
     printf(".IFJcode24\n");
 
-    //find main
     TreeElementPtr main = tree->Node[0];
     int mainPosition = 0;
     for(int i=1;i < tree->NodeCounter;i++) {
@@ -17,6 +19,7 @@ void gen_code(TreeElementPtr tree) {
         main = tree->Node[i];
     }
 
+    //find main
     gen_main(main);
 
     for(int i=0;i < tree->NodeCounter;i++) {
@@ -32,7 +35,9 @@ void gen_main(TreeElementPtr main) {
     printf("CREATEFRAME\n");
     printf("PUSHFRAME\n");
 
-    gen_func_switch(main);
+    gen_func_switch(main, true);
+
+    Fn_id fnId = main->Data.TableElement->FnVar.Fn_id;
 
     printf("POPFRAME\n");
     printf("EXIT int@0\n");
@@ -67,39 +72,45 @@ void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
-void gen_func_switch(TreeElementPtr func) {
+void gen_func_switch(TreeElementPtr func, bool isMain) {
     for(int i=0;i < func->NodeCounter;i++) {
-        switch(func->Node[i]->Data.NodeType) {
-            case ASSIGN_NODE: {
-                gen_assign(func->Node[i]);
-                break;
-            }
-            case DEFINITION_NODE: {
-                gen_definition(func->Node[i]);
-                break;
-            }
-            case RETURN_NODE: {
-                break;
-            }
-            case WHILE_NODE: {
-                break;
-            }
-            case IF_NODE: {
-                break;
-            }
-            case FUNCTION_NODE: {
-                gen_func_call(func->Node[i]);
-                break;
-            }
-            case IFJ_FUNCTION_NODE: {
-                choose_ifj_func(func->Node[i], NULL);
-            }
+        choose_node_type(func->Node[i], isMain);
+    }
+}
+
+void choose_node_type(TreeElementPtr func, bool isMain) {
+    switch(func->Data.NodeType) {
+        case ASSIGN_NODE: {
+            gen_assign(func);
+            break;
+        }
+        case DEFINITION_NODE: {
+            gen_definition(func);
+            break;
+        }
+        case RETURN_NODE: {
+            gen_return(func, isMain);
+            break;
+        }
+        case WHILE_NODE: {
+            gen_while(func, isMain);
+            break;
+        }
+        case IF_NODE: {
+            break;
+        }
+        case FUNCTION_NODE: {
+            gen_func_call(func);
+            break;
+        }
+        case IFJ_FUNCTION_NODE: {
+            choose_ifj_func(func, NULL);
         }
     }
 }
 
 void gen_func(TreeElementPtr func) {
-    printf("LABEL %s\n",func->Data.TableElement->name);
+    printf("LABEL func_%s\n",func->Data.TableElement->name);
     printf("CREATEFRAME\n");
     printf("PUSHFRAME\n");
 
@@ -107,14 +118,44 @@ void gen_func(TreeElementPtr func) {
 
     for(int i=0;i < fnId.num_of_params;i++) {
         char* name = get_var_name_from_table(fnId.TableParams[i]);
+        printf("DEFVAR %s\n",name);
         printf("POPS %s\n",name);
         free(name);
     }
 
-    gen_func_switch(func);
+    gen_func_switch(func, false);
+
+    if(fnId.return_type.type == VOID) {
+        printf("POPFRAME\n");
+        printf("RETURN\n");
+    }
+}
+
+void gen_while(TreeElementPtr tree, bool isMain) {
+    unsigned int currentWhile = whileCounter;
+    whileCounter++;
+
+    printf("LABEL while%d\n",currentWhile);
+
+    for(int i = 2;i < tree->NodeCounter;i++) {
+        choose_node_type(tree->Node[i], isMain);
+    }
+
+    printf("JUMP  while%d\n",currentWhile);
+    printf("LABEL whileend%d\n",currentWhile);
+}
+
+void gen_return(TreeElementPtr tree, bool isMain) {
+    if(tree->NodeCounter == 1) {
+        gen_expression(tree->Node[0]);
+    }
 
     printf("POPFRAME\n");
-    printf("RETURN\n");
+    if(isMain) {
+        printf("EXIT int@0\n");
+    } else {
+        printf("RETURN\n");
+    }
 }
 
 void gen_expression(TreeElementPtr tree) {
@@ -218,7 +259,7 @@ void gen_func_call(TreeElementPtr tree) {
         free(name);
     }
 
-    printf("CALL %s\n",tree->Data.TableElement->name);
+    printf("CALL func_%s\n",tree->Data.TableElement->name);
 }
 
 void gen_condition(TreeElementPtr tree) {
@@ -480,7 +521,7 @@ char* get_var_name(TreeElementPtr tree) {
     if (name == NULL) {
         exit(99);
     }
-    strcpy(name,"LF@");
+    strcpy(name,"LF@var_");
     strcat(name,tree->Data.TableElement->name);
     for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
         char layer[10];
@@ -496,7 +537,7 @@ char* get_var_name_from_table(Elem_id* tableElement) {
     if (name == NULL) {
         exit(99);
     }
-    strcpy(name,"LF@");
+    strcpy(name,"LF@var_");
     strcat(name,tableElement->name);
     for(int i=0;i < tableElement->stack_size;i++) {
         char layer[10];

@@ -5,7 +5,7 @@ return res;
 }
 pub fn main() void {
 const a = ifj.string("ahoj ");
-var ct : []u8 = ifj.string("svete");
+var ct : []u8 = ifj.string("svete\n");
 ct = build(a, ct);
 ifj.write(ct);
 }
