@@ -161,7 +161,6 @@ void gen_while(TreeElementPtr tree, bool isMain) {
         char* newVar = get_var_name(tree->Node[0]);
         char* oldVar = get_var_name(tree->Node[1]);
         printf("DEFVAR %s\n",newVar);
-        printf("MOVE %s %s\n",newVar, oldVar);
         free(newVar);
         free(oldVar);
     }
@@ -174,8 +173,11 @@ void gen_while(TreeElementPtr tree, bool isMain) {
     printf("LABEL while%d\n",currentWhile);
 
     if(tree->Data.isNullCond) {
+        char* newVar = get_var_name(tree->Node[0]);
         char* oldVar = get_var_name(tree->Node[1]);
         printf("JUMPIFEQ whileend%d nil@nil %s\n",currentWhile,oldVar);
+        printf("MOVE %s %s\n",newVar, oldVar);
+        free(newVar);
         free(oldVar);
     } else {
         gen_expression(tree->Node[1]->Node[0]);//left
