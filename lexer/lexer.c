@@ -421,10 +421,18 @@ void string_type(TokenPtr token, char input) {
     input = getchar();
     ungetc(input,stdin);
     size_t length = 0;
+    if(input == '"') {
+        char c = getchar();
+        if(c == '"') {
+            token->value.str[length] = '\0';
+            token->type = STRING;
+            return;
+        }
+    }
 
     while('"' != input) {
         input = getchar();
-        if('"' == input) {break;}
+        if('"' == input) { break;}
         if('\n' == input) {lexer_error();}
 
 
@@ -541,7 +549,6 @@ void string_type(TokenPtr token, char input) {
         }
 
     }
-    getchar();
     token->value.str[length] = '\0';
     token->type = STRING;
 }
