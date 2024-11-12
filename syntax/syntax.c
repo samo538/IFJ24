@@ -1736,6 +1736,13 @@ int main(){
         for (int i = 0; i < elem->FnVar.Fn_id.num_of_params; i++){
             printf("fn_param: %d\n",elem->FnVar.Fn_id.type_of_params[i].type);
             printf("fn_param_null: %d\n",elem->FnVar.Fn_id.type_of_params[i].nullable);
+            printf("fn_name_of_param: %s\n", elem->FnVar.Fn_id.TableParams[i]->name);
+            printf("fn_stack_len_of_param: %d\n", elem->FnVar.Fn_id.TableParams[i]->stack_size);
+            printf("fn_stack_cont: ");
+            for (int y = 0; y < elem->FnVar.Fn_id.TableParams[i]->stack_size; y++){
+                printf("%d,",elem->FnVar.Fn_id.TableParams[i]->level_stack[y]);
+            }
+            printf("\n");
         }
         Elem_id *elem_loc;
         for (int j = 0; j < 1001; j++){
