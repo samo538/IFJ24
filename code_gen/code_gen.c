@@ -136,6 +136,23 @@ void gen_func(TreeElementPtr func) {
     }
 }
 
+void put_def_before_while(TreeElementPtr tree) {
+    if(tree->Data.NodeType == DEFINITION_NODE) {
+        char* name = get_var_name(tree->Node[0]);
+        printf("DEFVAR %s\n",name);
+        free(name);
+
+        tree->Data.NodeType = ASSIGN_NODE;
+
+    } else if (tree->Data.NodeType == WHILE_NODE || tree->Data.NodeType == IF_NODE) {
+        //TODO:fix null
+
+        for(int i=2;i < tree->NodeCounter;i++) {
+            put_def_before_while(tree->Node[i]);
+        }
+    }
+}
+
 void gen_while(TreeElementPtr tree, bool isMain) {
     unsigned int currentWhile = whileCounter;
     whileCounter++;
@@ -147,6 +164,11 @@ void gen_while(TreeElementPtr tree, bool isMain) {
         printf("MOVE %s %s\n",newVar, oldVar);
         free(newVar);
         free(oldVar);
+    }
+
+    //find DEFINITION NODES and change to assign
+    for(int i = 2;i < tree->NodeCounter;i++) {
+        put_def_before_while(tree->Node[i]);
     }
 
     printf("LABEL while%d\n",currentWhile);

@@ -1726,51 +1726,6 @@ int main(){
 
     result = start(stoken);
 
-    // !! Debug output
-    Elem_id *elem;
-    for (int i = 0; i < 1001; i++){
-        elem = stoken->glob_table[i];
-        if (elem == NULL){
-            continue;
-        }
-        printf("--Globals--\n");
-        printf("fn_name: %s\n",elem->name);
-        printf("fn_return: %d\n",elem->FnVar.Fn_id.return_type.type);
-        printf("fn_return_null: %d\n",elem->FnVar.Fn_id.return_type.nullable);
-        printf("fn_num_of_params: %d\n",elem->FnVar.Fn_id.num_of_params);
-        for (int i = 0; i < elem->FnVar.Fn_id.num_of_params; i++){
-            printf("fn_param: %d\n",elem->FnVar.Fn_id.type_of_params[i].type);
-            printf("fn_param_null: %d\n",elem->FnVar.Fn_id.type_of_params[i].nullable);
-            printf("fn_name_of_param: %s\n", elem->FnVar.Fn_id.TableParams[i]->name);
-            printf("fn_stack_len_of_param: %d\n", elem->FnVar.Fn_id.TableParams[i]->stack_size);
-            printf("fn_stack_cont: ");
-            for (int y = 0; y < elem->FnVar.Fn_id.TableParams[i]->stack_size; y++){
-                printf("%d,",elem->FnVar.Fn_id.TableParams[i]->level_stack[y]);
-            }
-            printf("\n");
-        }
-        Elem_id *elem_loc;
-        for (int j = 0; j < 1001; j++){
-        elem_loc = elem->FnVar.Fn_id.LocalSymTable[j];
-        if (elem_loc == NULL){
-            continue;
-        }
-        printf("--Locals--\n");
-        printf("name: %s\n",elem_loc->name);
-        printf("stack_size: %d\n",elem_loc->stack_size);
-        printf("stack_cont: ");
-        for (int y = 0; y < elem_loc->stack_size; y++){
-            printf("%d,",elem_loc->level_stack[y]);
-        }
-        printf("\n");
-        printf("type: %d\n",elem_loc->FnVar.Var_id.type.type);
-        printf("nullable: %d\n",elem_loc->FnVar.Var_id.type.nullable);
-        printf("const: %d\n",elem_loc->FnVar.Var_id.const_t);
-        }
-    }
-    print_tree(tree_root);
-    printf("%d\n", tree_root->Data.NodeType);
-    // !! Debug output
     gen_code(tree_root);
 
     if (result == false){

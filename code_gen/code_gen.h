@@ -38,5 +38,6 @@ void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var);
 void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var);
 char* get_var_name(TreeElementPtr tree);
 char* get_var_name_from_table(Elem_id* TableElement);
+void put_def_before_while(TreeElementPtr tree);
 
 #endif //IFJ24_CODE_GEN_H
