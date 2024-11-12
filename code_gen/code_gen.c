@@ -463,8 +463,11 @@ void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
     printf("DEFVAR GF@slenght%d\n",substring_counter);
 
     printf("STRLEN GF@slenght%d,%s\n",substring_counter,origString);
-    printf("LT GF@isnull%d %s int@0\n",substring_counter,i); // j>strlen
+
+    printf("GT GF@isnull%d %s GF@slenght%d\n",substring_counter,j,substring_counter); // j>strlen
     printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("LT GF@isnull%d %s GF@slenght%d\n",substring_counter,i,substring_counter); // i>=strlen jumpni    i<strlen nejumpuj
+    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@false\n",substring_counter,substring_counter);
 
     printf("MOVE %s string@will\\032be\\032substringed\n",finalString);
 
