@@ -541,6 +541,7 @@ void string_type(TokenPtr token, char input) {
         }
 
     }
+    getchar();
     token->value.str[length] = '\0';
     token->type = STRING;
 }
