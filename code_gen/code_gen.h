@@ -13,6 +13,7 @@
 void gen_code(TreeElementPtr tree);
 void gen_main(TreeElementPtr main);
 void gen_func(TreeElementPtr func);
+void gen_func_switch(TreeElementPtr func);
 void gen_func_call(TreeElementPtr tree);
 void gen_definition(TreeElementPtr tree);
 void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var);
@@ -24,5 +25,6 @@ void gen_ifj_write(TreeElementPtr tree);
 void gen_ifj_length(TreeElementPtr tree, TreeElementPtr var);
 void gen_ifj_string(TreeElementPtr tree, TreeElementPtr var);
 char* get_var_name(TreeElementPtr tree);
+char* get_var_name_from_table(Elem_id* TableElement);
 
 #endif //IFJ24_CODE_GEN_H

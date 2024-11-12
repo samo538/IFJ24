@@ -13,8 +13,8 @@ void gen_code(TreeElementPtr tree) {
         if(strcmp("main", main->Data.TableElement->name) == 0) {//check if fn name == main
             break;
         }
+        mainPosition++;
         main = tree->Node[i];
-        mainPosition=i;
     }
 
     gen_main(main);
@@ -32,35 +32,10 @@ void gen_main(TreeElementPtr main) {
     printf("CREATEFRAME\n");
     printf("PUSHFRAME\n");
 
-    for(int i=0;i < main->NodeCounter;i++) {
-        switch(main->Node[i]->Data.NodeType) {
-            case ASSIGN_NODE: {
-                gen_assign(main->Node[i]);
-                break;
-            }
-            case DEFINITION_NODE: {
-                gen_definition(main->Node[i]);
-                break;
-            }
-            case RETURN_NODE: {
-                break;
-            }
-            case WHILE_NODE: {
-                break;
-            }
-            case IF_NODE: {
-                break;
-            }
-            case FUNCTION_NODE: {
-                break;
-            }
-            case IFJ_FUNCTION_NODE: {
-                choose_ifj_func(main->Node[i], NULL);
-            }
-        }
-    }
+    gen_func_switch(main);
 
     printf("POPFRAME\n");
+    printf("EXIT int@0\n");
 }
 
 void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
@@ -73,8 +48,7 @@ void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
     }
 }
 
-void gen_func(TreeElementPtr func) {
-    printf("%s\n",func->Data.TableElement->name);
+void gen_func_switch(TreeElementPtr func) {
     for(int i=0;i < func->NodeCounter;i++) {
         switch(func->Node[i]->Data.NodeType) {
             case ASSIGN_NODE: {
@@ -95,6 +69,7 @@ void gen_func(TreeElementPtr func) {
                 break;
             }
             case FUNCTION_NODE: {
+                gen_func_call(func->Node[i]);
                 break;
             }
             case IFJ_FUNCTION_NODE: {
@@ -104,11 +79,30 @@ void gen_func(TreeElementPtr func) {
     }
 }
 
+void gen_func(TreeElementPtr func) {
+    printf("LABEL %s\n",func->Data.TableElement->name);
+    printf("CREATEFRAME\n");
+    printf("PUSHFRAME\n");
+
+    Fn_id fnId = func->Data.TableElement->FnVar.Fn_id;
+
+    for(int i=0;i < fnId.num_of_params;i++) {
+        char* name = get_var_name_from_table(fnId.TableParams[i]);
+        printf("POPS %s\n",name);
+        free(name);
+    }
+
+    gen_func_switch(func);
+
+    printf("POPFRAME\n");
+    printf("RETURN\n");
+}
+
 void gen_expression(TreeElementPtr tree) {
     for(int i = 0; i < tree->NodeCounter;i++) {
         gen_expression(tree->Node[i]);
     }
-    //printf("Kokot:%d\n",tree->Data.Token->type);
+
     switch (tree->Data.Token->type) {
         case I32_VAR: { //konst
             //add redef
@@ -179,7 +173,31 @@ void gen_assign(TreeElementPtr tree) {
 }
 
 void gen_func_call(TreeElementPtr tree) {
+    for(int i = tree->NodeCounter - 1;i >= 0;i--) {
+        switch(tree->Node[i]->Data.Token->type) {
+            case STRING: {
+                printf("PUSHS string@%s\n",tree->Node[i]->Data.Token->value.str);
 
+                continue;
+            }
+            case I32_VAR: {
+                printf("PUSHS int@%d\n",tree->Node[i]->Data.Token->value.i);
+
+                continue;
+            }
+            case F64_VAR: {
+                printf("PUSHS float@%a\n",tree->Node[i]->Data.Token->value.f64);
+
+                continue;
+            }
+        }
+
+        char* name = get_var_name(tree->Node[i]);
+        printf("PUSHS %s\n",name);
+        free(name);
+    }
+
+    printf("CALL %s\n",tree->Data.TableElement->name);
 }
 
 void gen_condition(TreeElementPtr tree) {
@@ -249,6 +267,22 @@ char* get_var_name(TreeElementPtr tree) {
     for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
         char layer[10];
         sprintf(layer,"%d",tree->Data.TableElement->level_stack[i]);
+        strcat(name,layer);
+    }
+
+    return name;
+}
+
+char* get_var_name_from_table(Elem_id* tableElement) {
+    char* name = (char*)malloc(sizeof(char)*256);
+    if (name == NULL) {
+        exit(99);
+    }
+    strcpy(name,"LF@");
+    strcat(name,tableElement->name);
+    for(int i=0;i < tableElement->stack_size;i++) {
+        char layer[10];
+        sprintf(layer,"%d",tableElement->level_stack[i]);
         strcat(name,layer);
     }
 
