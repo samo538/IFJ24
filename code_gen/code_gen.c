@@ -641,43 +641,43 @@ void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
         jb = true;
     }
 
+    printf("CREATEFRAME\n");
+    printf("DEFVAR TF@isnull%d\n",substring_counter);
+    printf("LT TF@isnull%d %s int@0\n",substring_counter,i); // i<0
+    printf("JUMPIFEQ isnulllabel%d TF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("LT TF@isnull%d %s int@0\n",substring_counter,j); // j<0
+    printf("JUMPIFEQ isnulllabel%d TF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("GT TF@isnull%d %s %s\n",substring_counter,i,j); // i>j
+    printf("JUMPIFEQ isnulllabel%d TF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("DEFVAR TF@slenght%d\n",substring_counter);
 
-    printf("DEFVAR GF@isnull%d\n",substring_counter);
-    printf("LT GF@isnull%d %s int@0\n",substring_counter,i); // i<0
-    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
-    printf("LT GF@isnull%d %s int@0\n",substring_counter,j); // j<0
-    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
-    printf("GT GF@isnull%d %s %s\n",substring_counter,i,j); // i>j
-    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
-    printf("DEFVAR GF@slenght%d\n",substring_counter);
-
-    printf("STRLEN GF@slenght%d %s\n",substring_counter,origString);
-
-
-    printf("GT GF@isnull%d %s GF@slenght%d\n",substring_counter,j,substring_counter); // j>strlen
-    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
-    printf("LT GF@isnull%d %s GF@slenght%d\n",substring_counter,i,substring_counter); // i>=strlen jumpni    i<strlen nejumpuj
-    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@false\n",substring_counter,substring_counter);
+    printf("STRLEN TF@slenght%d %s\n",substring_counter,origString);
 
 
-    printf("DEFVAR GF@substringI%d\n",substring_counter);
-    printf("DEFVAR GF@substringJ%d\n",substring_counter);
-    printf("MOVE GF@substringI%d %s\n",substring_counter,i);
-    printf("MOVE GF@substringJ%d %s\n",substring_counter,j);
-    printf("ADD GF@substringJ%d GF@substringJ%d int@1\n",substring_counter,substring_counter);
+    printf("GT TF@isnull%d %s TF@slenght%d\n",substring_counter,j,substring_counter); // j>strlen
+    printf("JUMPIFEQ isnulllabel%d TF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("LT TF@isnull%d %s TF@slenght%d\n",substring_counter,i,substring_counter); // i>=strlen jumpni    i<strlen nejumpuj
+    printf("JUMPIFEQ isnulllabel%d TF@isnull%d bool@false\n",substring_counter,substring_counter);
 
 
-    printf("DEFVAR GF@tempstring%d\n",substring_counter);
-    printf("DEFVAR GF@char%d\n",substring_counter);
-    printf("MOVE GF@tempstring%d string@\n",substring_counter);
+    printf("DEFVAR TF@substringI%d\n",substring_counter);
+    printf("DEFVAR TF@substringJ%d\n",substring_counter);
+    printf("MOVE TF@substringI%d %s\n",substring_counter,i);
+    printf("MOVE TF@substringJ%d %s\n",substring_counter,j);
+    printf("ADD TF@substringJ%d TF@substringJ%d int@1\n",substring_counter,substring_counter);
+
+
+    printf("DEFVAR TF@tempstring%d\n",substring_counter);
+    printf("DEFVAR TF@char%d\n",substring_counter);
+    printf("MOVE TF@tempstring%d string@\n",substring_counter);
 
     printf("LABEL substringlabel%d\n",substring_counter);
-    printf("GETCHAR GF@char%d %s GF@substringI%d\n",substring_counter,origString,substring_counter);
-    printf("CONCAT GF@tempstring%d GF@tempstring%d GF@char%d \n",substring_counter,substring_counter,substring_counter);
-    printf("ADD GF@substringI%d GF@substringI%d int@1\n",substring_counter,substring_counter);
-    printf("JUMPIFNEQ substringlabel%d GF@substringI%d GF@substringJ%d\n",substring_counter,substring_counter,substring_counter);
+    printf("GETCHAR TF@char%d %s TF@substringI%d\n",substring_counter,origString,substring_counter);
+    printf("CONCAT TF@tempstring%d TF@tempstring%d TF@char%d \n",substring_counter,substring_counter,substring_counter);
+    printf("ADD TF@substringI%d TF@substringI%d int@1\n",substring_counter,substring_counter);
+    printf("JUMPIFNEQ substringlabel%d TF@substringI%d TF@substringJ%d\n",substring_counter,substring_counter,substring_counter);
 
-    printf("MOVE %s GF@tempstring%d\n",finalString,substring_counter);
+    printf("MOVE %s TF@tempstring%d\n",finalString,substring_counter);
 
 
     printf("JUMP subend%d\n",substring_counter);
@@ -721,11 +721,12 @@ void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     }
     dest = get_var_name(var);
 
-    printf("DEFVAR GF@CMPRES%d\n",strcpy_counter);
-    printf("LT GF@CMPRES%d %s %s\n",strcpy_counter,str1,str2);
-    printf("JUMPIFEQ s2bigger%d GF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);
-    printf("LT GF@CMPRES%d %s %s\n",strcpy_counter,str2,str1);
-    printf("JUMPIFEQ s1bigger%d GF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);
+    printf("CREATEFRAME\n");
+    printf("DEFVAR TF@CMPRES%d\n",strcpy_counter);
+    printf("LT TF@CMPRES%d %s %s\n",strcpy_counter,str1,str2);
+    printf("JUMPIFEQ s2bigger%d TF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);
+    printf("LT TF@CMPRES%d %s %s\n",strcpy_counter,str2,str1);
+    printf("JUMPIFEQ s1bigger%d TF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);
     printf("JUMP equal%d\n",strcpy_counter);
 
     printf("LABEL s1bigger%d\n",strcpy_counter);
