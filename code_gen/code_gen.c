@@ -70,6 +70,8 @@ void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
         gen_ifj_ord(tree,var);
     } else if(strcmp("strcmp", tree->Data.TableElement->name) == 0) {
         gen_ifj_strcmp(tree,var);
+    } else if(strcmp("substring", tree->Data.TableElement->name) == 0) {
+        gen_ifj_substring(tree,var);
     }
 
 }
@@ -499,7 +501,7 @@ void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
     printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
     printf("DEFVAR GF@slenght%d\n",substring_counter);
 
-    printf("STRLEN GF@slenght%d,%s\n",substring_counter,origString);
+    printf("STRLEN GF@slenght%d %s\n",substring_counter,origString);
 
     printf("GT GF@isnull%d %s GF@slenght%d\n",substring_counter,j,substring_counter); // j>strlen
     printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
