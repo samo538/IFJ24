@@ -33,6 +33,7 @@ void gen_ifj_i2f(TreeElementPtr tree, TreeElementPtr var);
 void gen_ifj_chr(TreeElementPtr tree, TreeElementPtr var);
 void gen_ifj_ord(TreeElementPtr tree, TreeElementPtr var);
 void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var);
 char* get_var_name(TreeElementPtr tree);
 char* get_var_name_from_table(Elem_id* TableElement);
 
