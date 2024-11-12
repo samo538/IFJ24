@@ -571,14 +571,6 @@ void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     }
     dest = get_var_name(var);
 
-    printf("DEFVAR GF@CMPRES\n");
-    printf("DEFVAR GF@CMPRES\n");
-    printf("LT TF@CMPRES %s %s\n",str1,str2);
-    printf("JUMPIFEQ s2bigger GF@CMPRES bool@true\n");
-    printf("LT TF@CMPRES %s %s\n",str2,str1);
-    printf("JUMPIFEQ s1bigger GF@CMPRES bool@true\n");
-    printf("JUMP equal\n");
-
     printf("DEFVAR GF@CMPRES%d\n",strcpy_counter);
     printf("LT GF@CMPRES%d %s %s\n",strcpy_counter,str1,str2);
     printf("JUMPIFEQ s2bigger%d GF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);

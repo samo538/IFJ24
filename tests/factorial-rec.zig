@@ -21,6 +21,16 @@ return n - m;
 }
 // Definice funkce pro vypocet hodnoty faktorialu
 pub fn factorial(n: i32) i32 {
+var kokot: i32 = 5/6;
+var picus: f64 = 6.2 / 5.2;
+var delkapera: i32 = 0;
+delkapera = ifj.length("kokot");
+ifj.write(delkapera);
+var delka: []u8 = ifj.string("pica");
+delkapera = ifj.length(delka);
+ifj.write(delkapera);
+ifj.write(picus);
+ifj.write(kokot);
 var result: i32 = 0 - 1;
 if (n < 2) {
 result = 1;
