@@ -155,7 +155,43 @@ void gen_while(TreeElementPtr tree, bool isMain) {
         printf("JUMPIFEQ whileend%d nil@nil %s\n",currentWhile,oldVar);
         free(oldVar);
     } else {
-        
+        gen_expression(tree->Node[1]->Node[0]);//left
+        gen_expression(tree->Node[1]->Node[1]);//right
+
+        switch (tree->Node[1]->Data.Token->type) {
+            case LESS: {
+                printf("LTS\n");
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFNEQS whileend%d\n",currentWhile);
+                break;
+            }
+            case MORE: {
+                printf("GTS\n");
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFNEQS whileend%d\n",currentWhile);
+                break;
+            }
+            case LESS_OR_EQUAL: {
+                printf("GTS\n"); //neg
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFEQS whileend%d\n",currentWhile);
+                break;
+            }
+            case MORE_OR_EQUAL: {
+                printf("LTS\n"); //neg
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFEQS whileend%d\n",currentWhile);
+                break;
+            }
+            case EQUAL: {
+                printf("JUMPIFNEQS whileend%d\n",currentWhile);
+                break;
+            }
+            case NOT_EQUAL: {
+                printf("JUMPIFEQS whileend%d\n",currentWhile);
+                break;
+            }
+        }
     }
 
     for(int i = 2;i < tree->NodeCounter;i++) {
