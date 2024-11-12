@@ -138,7 +138,8 @@ int operator_reduction(StackBasePtr stack){
     }
 
     operator->Data.NodeType = EXPRESSION_NODE;
-
+    E_1->Data.NodeType = EXPRESSION_NODE;
+    E_2->Data.NodeType = EXPRESSION_NODE;
 
     //vytvorenie podstromu
     ret_element = TreeElementConnect(operator, E_1);
@@ -188,13 +189,17 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
             error_type = 3;
             return -1;
         }
+        //id nemoze byt typu nullable
         if(!(id->FnVar.Var_id.type.nullable)){
+            //id musi byt cislo
             if(id->FnVar.Var_id.type.type == I32){
+
                 stack->ActiveElement->Tree->Data.Type = I32_VAR;
                 id->FnVar.Var_id.used = true;
                 stack->ActiveElement->Tree->Data.TableElement = id;
             }
             else if(id->FnVar.Var_id.type.type == F64){
+
                 stack->ActiveElement->Tree->Data.Type = F64_VAR;
                 id->FnVar.Var_id.used = true;
                 stack->ActiveElement->Tree->Data.TableElement = id;
@@ -438,8 +443,6 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
             goto error;
         }
 
-                
-
         //vratenie adresy funkcie z tabulky a jej nasledne volanie
         int rule = search_for_rule(prec_table, n_token, stack);
         
@@ -479,7 +482,6 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
             
             n_token = queue_next_token(queue);
             
-
             ret = equal(stack);
             if(ret == -1){
                 goto error;
@@ -512,22 +514,25 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
         goto error;
     }
 
+    //kontrola toho ze vsetky listy musia byt premenne alebo cisla
     if(leaves_control(stack->TopElement->Tree)){
-
+        //alokovanie navratovej struktury pre syntax.c
         PrecResultPtr result = malloc(sizeof(PrecResult));
         if(result == NULL){
             error_type = 99;
             goto error;
         }
-        
+        //vytiahnutie vysledneho stromu zo zasobniku
         result->Tree = Pop(stack);
         if(result->Tree == NULL){
             error_type = 99;
             goto error;
         }
+        //uvolnenie zarazky na zasobniku a uvolnenie zasobniku
         TreeNodeDelete(Pop(stack));
         StackDestroy(stack);
 
+        //vyplnenie navratovej struktury
         result->NextTotken = n_token;
         result->Error = error_type;
         return result;
