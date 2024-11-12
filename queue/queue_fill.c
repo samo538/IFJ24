@@ -352,21 +352,24 @@ bool params_q(TokenStoragePtr stoken){
         ret = t_id_param_q(stoken, new) &&
         t_colon_q(stoken) &&
         l_type_q(stoken, false, new) &&
-        t_comma_q(stoken) &&
-        params_q(stoken);
+        t_comma_q(stoken);
+
+        if (!ret){
+            printf("Syntax Error");
+            exit(2);
+        }
 
         // Adding to local sym table and to function parameters
         TableAdd(*new, tmp->FnVar.Fn_id.LocalSymTable);
-        int *level = malloc(sizeof(int));
-        level[0] = 1;
         tmp->FnVar.Fn_id.TableParams = realloc(tmp->FnVar.Fn_id.TableParams, sizeof(Elem_id *) * tmp->FnVar.Fn_id.num_of_params);
-        tmp->FnVar.Fn_id.TableParams[tmp->FnVar.Fn_id.num_of_params - 1] = TableSearch(new->name, level, 1, tmp->FnVar.Fn_id.LocalSymTable);
-        free(level);
+        tmp->FnVar.Fn_id.TableParams[tmp->FnVar.Fn_id.num_of_params - 1] = TableSearch(new->name, new->level_stack, new->stack_size, tmp->FnVar.Fn_id.LocalSymTable);
         free(new->name);
         free(new->level_stack);
         free(new);
 
-        return ret;
+
+        return ret &&
+        params_q(stoken);
     }
     else {
         return true;
