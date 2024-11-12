@@ -139,8 +139,10 @@ void gen_expression(TreeElementPtr tree) {
             }
             break;
         }
-        case ID: { //variable //zatím nejde
-            //printf("PUSH LF@%d\n",tree->Data);
+        case ID: { //variable
+            char* name = get_var_name(tree);
+            printf("PUSHS %s\n",name);
+            free(name);
             break;
         }
         case PLUS:{
