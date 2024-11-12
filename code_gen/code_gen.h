@@ -24,6 +24,15 @@ void gen_condition(TreeElementPtr tree);
 void gen_ifj_write(TreeElementPtr tree);
 void gen_ifj_length(TreeElementPtr tree, TreeElementPtr var);
 void gen_ifj_string(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_concat(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_readstr(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_readi32(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_readf64(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_f2i(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_i2f(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_chr(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_ord(TreeElementPtr tree, TreeElementPtr var);
+void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var);
 char* get_var_name(TreeElementPtr tree);
 char* get_var_name_from_table(Elem_id* TableElement);
 

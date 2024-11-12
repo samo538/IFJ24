@@ -45,7 +45,26 @@ void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
         gen_ifj_length(tree, var);
     } else if(strcmp("string", tree->Data.TableElement->name) == 0) {
         gen_ifj_string(tree,var);
+    } else if(strcmp("concat", tree->Data.TableElement->name) == 0) {
+        gen_ifj_concat(tree,var);
+    } else if(strcmp("readstr", tree->Data.TableElement->name) == 0) {
+        gen_ifj_readstr(tree,var);
+    } else if(strcmp("readi32", tree->Data.TableElement->name) == 0) {
+        gen_ifj_readi32(tree,var);
+    } else if(strcmp("readf64", tree->Data.TableElement->name) == 0) {
+        gen_ifj_readf64(tree,var);
+    } else if(strcmp("i2f", tree->Data.TableElement->name) == 0) {
+        gen_ifj_i2f(tree,var);
+    } else if(strcmp("f2i", tree->Data.TableElement->name) == 0) {
+        gen_ifj_f2i(tree,var);
+    } else if(strcmp("chr", tree->Data.TableElement->name) == 0) {
+        gen_ifj_chr(tree,var);
+    } else if(strcmp("ord", tree->Data.TableElement->name) == 0) {
+        gen_ifj_ord(tree,var);
+    } else if(strcmp("strcmp", tree->Data.TableElement->name) == 0) {
+        gen_ifj_strcmp(tree,var);
     }
+
 }
 
 void gen_func_switch(TreeElementPtr func) {
@@ -254,6 +273,203 @@ void gen_ifj_string(TreeElementPtr tree, TreeElementPtr var) {
     str = tree->Node[0]->Data.Token->value.str;
     dest = get_var_name(var);
     printf("MOVE %s string@%s\n",dest,str);
+    free(dest);
+}
+
+
+void gen_ifj_concat(TreeElementPtr tree, TreeElementPtr var) {
+    char* dest;
+    char *str1,*str2;
+    bool st1, st2;
+    if(tree->Node[0]->Data.Token->type == STRING) {
+        char *b = "string@";
+        char *a = tree->Node[0]->Data.Token->value.str;
+        str1 = malloc(strlen(a)+strlen(b)+1);
+        strcpy(str1,b);
+        strcat(str1,a);
+        st1 = false;
+    }
+    else {
+        str1 = get_var_name(tree->Node[0]);
+        st1 = true;
+    }
+    if(tree->Node[1]->Data.Token->type == STRING) {
+        char *b = "string@";
+        char *a = tree->Node[1]->Data.Token->value.str;
+        str2 = malloc(strlen(a)+strlen(b)+1);
+        strcpy(str2,b);
+        strcat(str2,a);
+        st2 = false;
+    }
+    else {
+        str2 = get_var_name(tree->Node[1]);
+        st2 = true;
+    }
+
+    dest = get_var_name(var);
+    printf("CONCAT %s %s %s\n",dest,str1,str2);
+    if(st1) { free(str1);}
+    if(st2) { free(str2);}
+}
+
+void gen_ifj_readstr(TreeElementPtr tree, TreeElementPtr var) {
+    char* dest;
+    dest = get_var_name(var);
+    printf("READ %s string\n",dest);
+    free(dest);
+}
+
+void gen_ifj_readi32(TreeElementPtr tree, TreeElementPtr var) {
+    char* dest;
+    dest = get_var_name(var);
+    printf("READ %s int\n",dest);
+    free(dest);
+}
+
+void gen_ifj_readf64(TreeElementPtr tree, TreeElementPtr var) {
+    char* dest;
+    dest = get_var_name(var);
+    printf("READ %s float\n",dest);
+    free(dest);
+}
+
+void gen_ifj_i2f(TreeElementPtr tree, TreeElementPtr var) {
+    char* converted;
+    converted = get_var_name(var);
+    if(tree->Node[0]->Data.Token->type == I32_VAR) {
+        int i;
+        i = tree->Node[0]->Data.Token->value.i;
+        printf("INT2FLOAT %s int@%d\n",converted,i);
+    }
+    else {
+        char* str;
+        str = get_var_name(tree->Node[0]);
+        printf("INT2FLOAT %s %s\n",converted,str);
+        free(str);
+    }
+    free(converted);
+}
+
+void gen_ifj_f2i(TreeElementPtr tree, TreeElementPtr var) {
+    char* converted;
+    converted = get_var_name(var);
+    if(tree->Node[0]->Data.Token->type == F64_VAR) {
+        double i;
+        i = tree->Node[0]->Data.Token->value.f64;
+        printf("FLOAT2INT %s float@%a\n",converted,i);
+    }
+    else {
+        char* str;
+        str = get_var_name(tree->Node[0]);
+        printf("FLOAT2INT %s %s\n",converted,str);
+        free(str);
+    }
+    free(converted);
+}
+
+void gen_ifj_ord(TreeElementPtr tree, TreeElementPtr var) {
+    char* ascii;
+    char* str;
+    char* pos;
+    bool strb;
+    ascii = get_var_name(var);
+    if(tree->Node[0]->Data.Token->type == STRING) {
+        char *b = "string@";
+        char *a = tree->Node[0]->Data.Token->value.str;
+        str = malloc(strlen(a)+strlen(b)+1);
+        strcpy(str,b);
+        strcat(str,a);
+        strb = false;
+    }
+    else {
+        str = get_var_name(tree->Node[0]);
+        strb = true;
+    }
+    if(tree->Node[1]->Data.Token->type == I32_VAR) {
+        int i;
+        i = tree->Node[1]->Data.Token->value.i;
+        printf("STRI2INT %s %s int@%d\n",ascii,str,i);
+    }
+    else {
+        char* numb;
+        numb = get_var_name(tree->Node[1]);
+        printf("STRI2INT %s %s %s\n",ascii,str,numb);
+        free(numb);
+    }
+    free(ascii);
+    if(strb) { free(str);}
+
+}
+
+void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
+    char *dest;
+    char *str1,*str2;
+    bool st1, st2;
+    if(tree->Node[0]->Data.Token->type == STRING) {
+        char *b = "string@";
+        char *a = tree->Node[0]->Data.Token->value.str;
+        str1 = malloc(strlen(a)+strlen(b)+1);
+        strcpy(str1,b);
+        strcat(str1,a);
+        st1 = false;
+    }
+    else {
+        str1 = get_var_name(tree->Node[0]);
+        st1 = true;
+    }
+    if(tree->Node[1]->Data.Token->type == STRING) {
+        char *b = "string@";
+        char *a = tree->Node[1]->Data.Token->value.str;
+        str2 = malloc(strlen(a)+strlen(b)+1);
+        strcpy(str2,b);
+        strcat(str2,a);
+        st2 = false;
+    }
+    else {
+        str2 = get_var_name(tree->Node[1]);
+        st2 = true;
+    }
+    dest = get_var_name(var);
+
+    printf("DEFVAR GF@CMPRES\n");
+    printf("DEFVAR GF@CMPRES\n");
+    printf("LT TF@CMPRES %s %s\n",str1,str2);
+    printf("JUMPIFEQ s2bigger GF@CMPRES bool@true\n");
+    printf("LT TF@CMPRES %s %s\n",str2,str1);
+    printf("JUMPIFEQ s1bigger GF@CMPRES bool@true\n");
+    printf("JUMP equal\n");
+
+    printf("LABEL s1bigger\n");
+    printf("MOVE %s int@1\n",dest);
+    printf("JUMP end\n");
+    printf("LABEL s2bigger\n");
+    printf("MOVE %s int@-1\n",dest);
+    printf("JUMP end\n");
+    printf("LABEL equal\n");
+    printf("MOVE %s int@0\n",dest);
+    printf("LABEL end\n");
+
+    if(st1) { free(str1);}
+    if(st2) { free(str2);}
+
+    free(dest);
+}
+
+void gen_ifj_chr(TreeElementPtr tree, TreeElementPtr var) {
+    char* ascii;
+    char* str;
+    ascii = get_var_name(var);
+    if(tree->Node[0]->Data.Token->type == I32_VAR) {
+        int i;
+        i = tree->Node[0]->Data.Token->value.i;
+        printf("INT2CHAR %s int@%d\n",ascii,i);
+    }
+    else {
+        str = get_var_name(tree->Node[0]);
+        printf("INT2CHAR %s %s\n",ascii,str);
+        free(str);
+    }
+    free(ascii);
 
 }
 
