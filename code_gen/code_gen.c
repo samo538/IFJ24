@@ -524,12 +524,32 @@ void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
 
     printf("STRLEN GF@slenght%d %s\n",substring_counter,origString);
 
+
     printf("GT GF@isnull%d %s GF@slenght%d\n",substring_counter,j,substring_counter); // j>strlen
     printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
     printf("LT GF@isnull%d %s GF@slenght%d\n",substring_counter,i,substring_counter); // i>=strlen jumpni    i<strlen nejumpuj
     printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@false\n",substring_counter,substring_counter);
 
-    printf("MOVE %s string@will\\032be\\032substringed\n",finalString);
+
+    printf("DEFVAR GF@substringI%d\n",substring_counter);
+    printf("DEFVAR GF@substringJ%d\n",substring_counter);
+    printf("MOVE GF@substringI%d %s\n",substring_counter,i);
+    printf("MOVE GF@substringJ%d %s\n",substring_counter,j);
+    printf("ADD GF@substringJ%d GF@substringJ%d int@1\n",substring_counter,substring_counter);
+
+
+    printf("DEFVAR GF@tempstring%d\n",substring_counter);
+    printf("DEFVAR GF@char%d\n",substring_counter);
+    printf("MOVE GF@tempstring%d string@\n",substring_counter);
+
+    printf("LABEL substringlabel%d\n",substring_counter);
+    printf("GETCHAR GF@char%d %s GF@substringI%d\n",substring_counter,origString,substring_counter);
+    printf("CONCAT GF@tempstring%d GF@tempstring%d GF@char%d \n",substring_counter,substring_counter,substring_counter);
+    printf("ADD GF@substringI%d GF@substringI%d int@1\n",substring_counter,substring_counter);
+    printf("JUMPIFNEQ substringlabel%d GF@substringI%d GF@substringJ%d\n",substring_counter,substring_counter,substring_counter);
+
+    printf("MOVE %s GF@tempstring%d\n",finalString,substring_counter);
+
 
     printf("JUMP subend%d\n",substring_counter);
     printf("LABEL isnulllabel%d\n",substring_counter);
@@ -539,16 +559,7 @@ void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
     if(origb) { free(origString);}
     if(ib) { free(i);}
     if(jb) { free(j);}
-    //returning string
-    //paramas string,i,j
 
-    //substring
-    //set cnrt to i
-    //while i<j
-    //getchar tempstring oldsting i
-    //concat substring tempstring
-    //• 𝑖 ≥ ifj.length(𝑠)
-    //• 𝑗 > ifj.length(𝑠)
 }
 
 void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
