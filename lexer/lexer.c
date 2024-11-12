@@ -419,23 +419,20 @@ void string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
     input = getchar();
-    ungetc(input,stdin);
     size_t length = 0;
     if(input == '"') {
-        char c = getchar();
-        if(c == '"') {
-            token->value.str[length] = '\0';
-            token->type = STRING;
-            return;
-        }
+       token->value.str[length] = '\0';
+       token->type = STRING;
+       return;
+    }
+    else {
+        ungetc(input,stdin);
     }
 
-    while('"' != input) {
+    while(true) {
         input = getchar();
         if('"' == input) { break;}
         if('\n' == input) {lexer_error();}
-
-
         if('\\' == input) {
        	char c = getchar();
         switch(c) {
