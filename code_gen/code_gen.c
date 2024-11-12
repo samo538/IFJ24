@@ -101,6 +101,7 @@ void choose_node_type(TreeElementPtr func, bool isMain) {
             break;
         }
         case IF_NODE: {
+            gen_condition(func, isMain);
             break;
         }
         case FUNCTION_NODE: {
@@ -323,7 +324,77 @@ void gen_func_call(TreeElementPtr tree) {
     printf("CALL func_%s\n",tree->Data.TableElement->name);
 }
 
-void gen_condition(TreeElementPtr tree) {
+void gen_condition(TreeElementPtr tree, bool isMain) {
+    unsigned int currentIf = ifCounter;
+    ifCounter++;
+
+    if(tree->Data.isNullCond) {
+        char* newVar = get_var_name(tree->Node[0]);
+        char* oldVar = get_var_name(tree->Node[1]);
+        printf("DEFVAR %s\n",newVar);
+        printf("MOVE %s %s\n",newVar, oldVar);
+        free(newVar);
+        free(oldVar);
+    }
+
+    printf("LABEL if%d\n",currentIf);
+    
+    if(tree->Data.isNullCond) {
+        char* oldVar = get_var_name(tree->Node[1]);
+        printf("JUMPIFEQ else%d nil@nil %s\n",currentIf,oldVar);
+        free(oldVar);
+    } else {
+        gen_expression(tree->Node[1]->Node[0]);//left
+        gen_expression(tree->Node[1]->Node[1]);//right
+
+        switch (tree->Node[1]->Data.Token->type) {
+            case LESS: {
+                printf("LTS\n");
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFNEQS else%d\n",currentIf);
+                break;
+            }
+            case MORE: {
+                printf("GTS\n");
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFNEQS else%d\n",currentIf);
+                break;
+            }
+            case LESS_OR_EQUAL: {
+                printf("GTS\n"); //neg
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFEQS else%d\n",currentIf);
+                break;
+            }
+            case MORE_OR_EQUAL: {
+                printf("LTS\n"); //neg
+                printf("PUSHS bool@true\n");
+                printf("JUMPIFEQS else%d\n",currentIf);
+                break;
+            }
+            case EQUAL: {
+                printf("JUMPIFNEQS else%d\n",currentIf);
+                break;
+            }
+            case NOT_EQUAL: {
+                printf("JUMPIFEQS else%d\n",currentIf);
+                break;
+            }
+        }
+    }
+
+    for(int i = 2;i < tree->NodeCounter;i++) {
+        if(tree->Node[i]->Data.NodeType != ELSE_NODE) {
+            choose_node_type(tree->Node[i], isMain);
+
+            continue;
+        }
+        
+        printf("JUMP ifend%d\n",currentIf);
+        printf("LABEL else%d\n",currentIf);
+    }
+
+    printf("LABEL ifend%d\n",currentIf);
 
 }
 
@@ -629,10 +700,9 @@ void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     dest = get_var_name(var);
 
     printf("DEFVAR GF@CMPRES\n");
-    printf("DEFVAR GF@CMPRES\n");
-    printf("LT TF@CMPRES %s %s\n",str1,str2);
+    printf("LT GF@CMPRES %s %s\n",str1,str2);
     printf("JUMPIFEQ s2bigger GF@CMPRES bool@true\n");
-    printf("LT TF@CMPRES %s %s\n",str2,str1);
+    printf("LT GF@CMPRES %s %s\n",str2,str1);
     printf("JUMPIFEQ s1bigger GF@CMPRES bool@true\n");
     printf("JUMP equal\n");
 
