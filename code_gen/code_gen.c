@@ -5,10 +5,13 @@
 
 unsigned int ifCounter = 0;
 unsigned int whileCounter = 0;
+int strcpy_counter = 0;
+int substring_counter = 0;
 
 void gen_code(TreeElementPtr tree) {
     printf(".IFJcode24\n");
 
+    //find main
     TreeElementPtr main = tree->Node[0];
     int mainPosition = 0;
     for(int i=1;i < tree->NodeCounter;i++) {
@@ -19,7 +22,6 @@ void gen_code(TreeElementPtr tree) {
         main = tree->Node[i];
     }
 
-    //find main
     gen_main(main);
 
     for(int i=0;i < tree->NodeCounter;i++) {
@@ -444,6 +446,85 @@ void gen_ifj_ord(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
+void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
+    char* finalString, *origString, *i, *j;
+    bool origb,ib,jb;
+    finalString = get_var_name(var);
+    if(tree->Node[0]->Data.Token->type == STRING) {
+        char *b = "string@";
+        char *a = tree->Node[0]->Data.Token->value.str;
+        origString = malloc(strlen(a)+strlen(b)+1);
+        strcpy(origString,b);
+        strcat(origString,a);
+        origb = false;
+    }
+    else {
+        origString = get_var_name(tree->Node[0]);
+        origb = true;
+    }
+    if(tree->Node[1]->Data.Token->type == I32_VAR) {
+        char *b = "int@";
+        char a[30];
+        sprintf(a, "%d", tree->Node[1]->Data.Token->value.i);
+        i = malloc(strlen(a)+strlen(b)+1);
+        strcpy(i,b);
+        strcat(i,a);
+        ib = false;
+    }
+    else {
+        i = get_var_name(tree->Node[1]);
+        ib = true;
+    }
+    if(tree->Node[2]->Data.Token->type == I32_VAR) {
+        char *b = "int@";
+        char a[30];
+        sprintf(a, "%d", tree->Node[2]->Data.Token->value.i);
+        j = malloc(strlen(a)+strlen(b)+1);
+        strcpy(j,b);
+        strcat(j,a);
+        jb = false;
+    }
+    else {
+        j = get_var_name(tree->Node[2]);
+        jb = true;
+    }
+
+
+    printf("DEFVAR GF@isnull%d\n",substring_counter);
+    printf("LT GF@isnull%d %s int@0\n",substring_counter,i); // i<0
+    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("LT GF@isnull%d %s int@0\n",substring_counter,j); // j<0
+    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("GT GF@isnull%d %s %s\n",substring_counter,i,j); // i>j
+    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
+    printf("DEFVAR GF@slenght%d\n",substring_counter);
+
+    printf("STRLEN GF@slenght%d,%s\n",substring_counter,origString);
+    printf("LT GF@isnull%d %s int@0\n",substring_counter,i); // j>strlen
+    printf("JUMPIFEQ isnulllabel%d GF@isnull%d bool@true\n",substring_counter,substring_counter);
+
+    printf("MOVE %s string@will\\032be\\032substringed\n",finalString);
+
+    printf("JUMP subend%d\n",substring_counter);
+    printf("LABEL isnulllabel%d\n",substring_counter);
+    printf("MOVE %s nil@nil\n",finalString);
+    printf("LABEL subend%d\n",substring_counter++);
+
+    if(origb) { free(origString);}
+    if(ib) { free(i);}
+    if(jb) { free(j);}
+    //returning string
+    //paramas string,i,j
+
+    //substring
+    //set cnrt to i
+    //while i<j
+    //getchar tempstring oldsting i
+    //concat substring tempstring
+    //• 𝑖 ≥ ifj.length(𝑠)
+    //• 𝑗 > ifj.length(𝑠)
+}
+
 void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     char *dest;
     char *str1,*str2;
@@ -482,15 +563,22 @@ void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     printf("JUMPIFEQ s1bigger GF@CMPRES bool@true\n");
     printf("JUMP equal\n");
 
-    printf("LABEL s1bigger\n");
+    printf("DEFVAR GF@CMPRES%d\n",strcpy_counter);
+    printf("LT GF@CMPRES%d %s %s\n",strcpy_counter,str1,str2);
+    printf("JUMPIFEQ s2bigger%d GF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);
+    printf("LT GF@CMPRES%d %s %s\n",strcpy_counter,str2,str1);
+    printf("JUMPIFEQ s1bigger%d GF@CMPRES%d bool@true\n",strcpy_counter,strcpy_counter);
+    printf("JUMP equal%d\n",strcpy_counter);
+
+    printf("LABEL s1bigger%d\n",strcpy_counter);
     printf("MOVE %s int@1\n",dest);
-    printf("JUMP end\n");
-    printf("LABEL s2bigger\n");
+    printf("JUMP strcmpend%d\n",strcpy_counter);
+    printf("LABEL s2bigger%d\n",strcpy_counter);
     printf("MOVE %s int@-1\n",dest);
-    printf("JUMP end\n");
-    printf("LABEL equal\n");
+    printf("JUMP strcmpend%d\n",strcpy_counter);
+    printf("LABEL equal%d\n",strcpy_counter);
     printf("MOVE %s int@0\n",dest);
-    printf("LABEL end\n");
+    printf("LABEL strcmpend%d\n",strcpy_counter++);
 
     if(st1) { free(str1);}
     if(st2) { free(str2);}
