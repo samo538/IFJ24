@@ -424,13 +424,13 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
     if (type == STRING || type == I32_VAR || type == F64_VAR){
         enum TokenType type_def;
         switch (type) {
-            STRING:
+            case STRING:
                 type_def = U8;
                 break;
-            I32_VAR:
+            case I32_VAR:
                 type_def = I32;
                 break;
-            F64_VAR:
+            case F64_VAR:
                 type_def = F64;
                 break;
         }
