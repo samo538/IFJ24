@@ -9,6 +9,9 @@
 #include "queue_fill.h"
 
 bool q_expect(TokenStoragePtr stoken, enum TokenType type){
+    if (stoken->SToken->type == END_OF_FILE){
+        throw_error(2);
+    }
     if (stoken->SToken->type == type){
         queue_add_token(stoken->queue, stoken->SToken);
         stoken->SToken = next_token();

@@ -60,7 +60,7 @@ Elem_id *TableSearch(char *key, int *level_stack, int level_size, SymTable *Tabl
     // Searches until not found, name must match and level_stack must match
     while (!(Table[index] != NULL && !strcmp(key, Table[index]->name) && level_size == Table[index]->stack_size && compare_levels(level_stack, Table[index]->level_stack, Table[index]->stack_size))){
         if (searched == TABLE_SIZE && level_size == 0){ // Table is full
-            throw_error(99);
+            return NULL;
         }
         if (searched == TABLE_SIZE){ // If not found on this level, try one level bellow (This tries all the levels)
             return TableSearch(key, level_stack, level_size - 1, Table);
@@ -87,6 +87,7 @@ Elem_id *TableAdd(char *key, int *level_stack, int stack_size, SymTable *Table){
     }
 
     Elem_id *IdAdd = malloc(sizeof(Elem_id));
+    Table[index] = IdAdd;
     return Table[index]; // Returns a pointer to the new table entry, expecting the user to fill it
 }
 

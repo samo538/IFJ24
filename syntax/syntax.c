@@ -54,6 +54,15 @@ bool h_check_ifj_fn(char *fn_name){
 }
 
 // expect function for simple sematics checks
+bool t_eof(TokenStoragePtr stoken){
+    if (stoken->SToken->type == END_OF_FILE){
+        dealloc_token(stoken->SToken);
+        return true;
+    }
+    else{
+        throw_error(2);
+    }
+}
 bool t_expect(TokenStoragePtr stoken, enum TokenType type){
     if (stoken->SToken->type == type){
         dealloc_token(stoken->SToken);
@@ -100,7 +109,6 @@ bool t_type_keyword(TokenStoragePtr stoken, Elem_id * new){
         if (new != NULL){
             new->FnVar.Var_id.type.type = F64;
         }
-        new->FnVar.Var_id.type.type = F64;
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -109,7 +117,6 @@ bool t_type_keyword(TokenStoragePtr stoken, Elem_id * new){
         if (new != NULL){
             new->FnVar.Var_id.type.type = I32;
         }
-        new->FnVar.Var_id.type.type = I32;
         dealloc_token(stoken->SToken);
         stoken->SToken = queue_next_token(stoken->queue);
         return true;
@@ -788,7 +795,7 @@ bool assign(TokenStoragePtr stoken){
 bool if_while_body(TokenStoragePtr stoken){
     return t_expect(stoken, OPENING_CURLY_BRACKET) &&
     fn_body(stoken) &&
-    t_expect(stoken, OPENING_CURLY_BRACKET);
+    t_expect(stoken, CLOSING_CURLY_BRACKET);
 }
 
 bool if_while_preced(TokenStoragePtr stoken, bool ifelse){
@@ -829,8 +836,7 @@ bool if_while_preced(TokenStoragePtr stoken, bool ifelse){
     TreeElementConnect(stoken->current_node, result->Tree);
 
 
-    ret = ret &&
-    t_expect(stoken, CLOSING_BRACKET) &&
+    ret = t_expect(stoken, CLOSING_BRACKET) &&
     if_while_body(stoken);
 
     check_ret(ret);
@@ -866,21 +872,14 @@ bool if_while_nullable(TokenStoragePtr stoken, bool ifelse, Elem_id *var_id){
     bool ret;
     var_id->FnVar.Var_id.used = true;
 
-    // Creating a new local element
-    Elem_id *new = malloc(sizeof(Elem_id));
-
     //Changind the position is stack
     stoken->stack_size++;
     stoken->level_stack = realloc(stoken->level_stack, sizeof(int) * stoken->stack_size);
     stoken->level_stack[stoken->stack_size - 1] = stoken->last_poped + 1; // Adding values to stack
 
     if (stoken->level_stack == NULL){
-        free(new);
         throw_error(99);
     }
-
-    new->stack_size = stoken->stack_size; // Creating the new variable
-    copy_levels(stoken->level_stack, &(new->level_stack), stoken->stack_size);
 
     // New tree node
     TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
@@ -893,30 +892,23 @@ bool if_while_nullable(TokenStoragePtr stoken, bool ifelse, Elem_id *var_id){
     new_node->Data.isNullCond = true;
     stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
-    ret = ret &&
-    t_expect(stoken, ID) &&
+    ret = t_expect(stoken, ID) &&
     t_expect(stoken, CLOSING_BRACKET) &&
     t_expect(stoken, VERTICAL_BAR);
 
     if (!ret){
-        free(new->level_stack);
-        free(new);
         throw_error(2);
     }
     if (stoken->SToken->type == ID){
-        Elem_id *table_elem = TableAdd(new->name, new->level_stack, new->stack_size, stoken->local_table);
+        Elem_id *table_elem = TableAdd(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         table_elem->name = strdup(stoken->SToken->value.str);
         table_elem->Type = VARIABLE;
-        table_elem->stack_size = new->stack_size;
-        copy_levels(new->level_stack, &table_elem->level_stack, new->stack_size);
+        table_elem->stack_size = stoken->stack_size;
+        copy_levels(stoken->level_stack, &table_elem->level_stack, stoken->stack_size);
         table_elem->FnVar.Var_id.type.type = var_id->FnVar.Var_id.type.type; // Placeholder
         table_elem->FnVar.Var_id.type.nullable = false; // Implicit false
         table_elem->FnVar.Var_id.used = false; // Variable not used by default
         table_elem->FnVar.Var_id.const_t = false; // Variable not used by default
-
-        free(new->name);
-        free(new->level_stack);
-        free(new);
 
         // Is nullable, Unwrapped variable goes here
         TreeElement *Unwrapped = TreeInsert(stoken->current_node, NULL);
@@ -1051,7 +1043,7 @@ bool e_return_exp(TokenStoragePtr stoken){
     }
 
     // Returning null
-    else if(stoken->SToken->type == NULL_VALUE){
+    if(stoken->SToken->type == NULL_VALUE){
         if(curr_func->FnVar.Fn_id.return_type.nullable == false){
             throw_error(4); // Cannot return null
         }
@@ -1199,8 +1191,18 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
 /*
  * Prolog and function definition
  */
+bool t_nullable(TokenStoragePtr stoken){
+    if (stoken->SToken->type == NULLABLE){
+        dealloc_token(stoken->SToken);
+        stoken->SToken = queue_next_token(stoken->queue);
+        return true;
+    }
+    else{
+        return true;
+    }
+}
 bool l_type(TokenStoragePtr stoken){
-    return t_expect(stoken, NULLABLE) &&
+    return t_nullable(stoken) &&
     t_type_keyword(stoken, NULL);
 }
 
@@ -1263,7 +1265,7 @@ bool fn_def(TokenStoragePtr stoken){
 bool functions(TokenStoragePtr stoken){
     static int node_counter = 0;
     if (stoken->SToken->type == END_OF_FILE) {
-        return t_expect(stoken, END_OF_FILE); // End of program
+        return t_eof(stoken); // End of program
     }
     else { // Setting the context for the function body
         bool ret;
