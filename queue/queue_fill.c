@@ -15,8 +15,7 @@ bool q_expect(TokenStoragePtr stoken, enum TokenType type){
         return true;
     }
     else{
-        syn_error(stoken);
-        return false;
+        throw_error(2);
     }
 }
 
@@ -38,8 +37,7 @@ bool q_u8(TokenStoragePtr stoken, Elem_id *new){
         return true;
     }
     else{
-        syn_error(stoken);
-        return false;
+        throw_error(2);
     }
 }
 bool q_void(TokenStoragePtr stoken){

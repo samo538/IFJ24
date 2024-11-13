@@ -118,6 +118,7 @@ bool t_type_keyword(TokenStoragePtr stoken, Elem_id * new){
         throw_error(2);
     }
 }
+
 bool t_nullable_var(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == NULLABLE){
         new->FnVar.Var_id.type.nullable = true;
@@ -207,7 +208,7 @@ bool def_preced(TokenStoragePtr stoken, Elem_id *new){
     return t_expect(stoken, SEMICOLON);
 }
 
-bool e_var_exp_def_assign(TokenStoragePtr stoken, Elem_id *new){
+bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
     Elem_id *ret_fn = NULL;
     Elem_id *ret_var = NULL;
     if (stoken->SToken->type == ID){ // If id search if its a function or variable
@@ -449,7 +450,7 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
-            return t_expect(stoken, NULL) &&
+            return t_expect(stoken, NULL_VALUE) &&
             t_expect(stoken, COMMA) &&
             call_params(stoken, fn, pos + 1);
         }
@@ -1287,9 +1288,7 @@ bool functions(TokenStoragePtr stoken){
         fn_body(stoken) && // Main syntax and sematics validation
         t_expect(stoken, CLOSING_CURLY_BRACKET);
 
-        if (ret == false){ // Syntax check
-            syn_error(stoken);
-        }
+        check_ret(ret);
 
         // Going up the tree
         stoken->current_node = stoken->current_node->DadNode;
