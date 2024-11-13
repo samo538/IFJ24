@@ -781,13 +781,14 @@ char* get_var_name(TreeElementPtr tree) {
     if (name == NULL) {
         exit(99);
     }
-    strcpy(name,"LF@var_");
-    strcat(name,tree->Data.TableElement->name);
+    strcpy(name,"LF@var");
     for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
         char layer[10];
         sprintf(layer,"%d",tree->Data.TableElement->level_stack[i]);
         strcat(name,layer);
     }
+    strcat(name,"_");
+    strcat(name,tree->Data.TableElement->name);
 
     return name;
 }
@@ -797,13 +798,14 @@ char* get_var_name_from_table(Elem_id* tableElement) {
     if (name == NULL) {
         exit(99);
     }
-    strcpy(name,"LF@var_");
-    strcat(name,tableElement->name);
+    strcpy(name,"LF@var");
     for(int i=0;i < tableElement->stack_size;i++) {
         char layer[10];
         sprintf(layer,"%d",tableElement->level_stack[i]);
         strcat(name,layer);
     }
+    strcat(name,"_");
+    strcat(name,tableElement->name);
 
     return name;
 }
