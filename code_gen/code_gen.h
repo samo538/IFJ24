@@ -1,6 +1,8 @@
-//
-// Created by veve on 8.11.24.
-//
+/**
+ *  @file code_gen/code_gen.h
+ *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
+ *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
+ */
 
 #ifndef IFJ24_CODE_GEN_H
 #define IFJ24_CODE_GEN_H

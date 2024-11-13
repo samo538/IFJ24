@@ -29,6 +29,7 @@ typedef struct TreeData
 {
     // Used by code gen
     bool isNullCond;
+    bool isDef;
     TokenPtr Token;
     enum NodeTypes NodeType;
     Elem_id *TableElement;

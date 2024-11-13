@@ -1,10 +1,11 @@
-//
-// Created by veve on 8.11.24.
-//
+/**
+ *  @file code_gen/code_gen.c
+ *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
+ *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
+ */
+
 #include "code_gen.h"
 
-unsigned int ifCounter = 0;
-unsigned int whileCounter = 0;
 int strcpy_counter = 0;
 int substring_counter = 0;
 
@@ -145,28 +146,34 @@ void put_def_before_while(TreeElementPtr tree) {
         tree->Data.NodeType = ASSIGN_NODE;
 
     } else if (tree->Data.NodeType == WHILE_NODE || tree->Data.NodeType == IF_NODE) {
-        //TODO:fix null
+        //puts |var| definition before first while
+        if(tree->Data.isNullCond && ! tree->Data.isDef) {
+            char* newVar = get_var_name(tree->Node[0]);
+            printf("DEFVAR %s\n",newVar);
+            free(newVar);
+            tree->Data.isDef = true;
+        }
 
-        for(int i=2;i < tree->NodeCounter;i++) {
+        for(int i=0;i < tree->NodeCounter;i++) {
             put_def_before_while(tree->Node[i]);
         }
     }
 }
 
 void gen_while(TreeElementPtr tree, bool isMain) {
+    static unsigned int whileCounter = 0;
     unsigned int currentWhile = whileCounter;
     whileCounter++;
 
-    if(tree->Data.isNullCond) {
+    if(tree->Data.isNullCond && ! tree->Data.isDef) {
         char* newVar = get_var_name(tree->Node[0]);
-        char* oldVar = get_var_name(tree->Node[1]);
         printf("DEFVAR %s\n",newVar);
         free(newVar);
-        free(oldVar);
+        tree->Data.isDef = true;
     }
 
     //find DEFINITION NODES and change to assign
-    for(int i = 2;i < tree->NodeCounter;i++) {
+    for(int i = 0;i < tree->NodeCounter;i++) {
         put_def_before_while(tree->Node[i]);
     }
 
@@ -349,13 +356,17 @@ void gen_func_call(TreeElementPtr tree) {
 }
 
 void gen_condition(TreeElementPtr tree, bool isMain) {
+    static unsigned int ifCounter = 0;
     unsigned int currentIf = ifCounter;
     ifCounter++;
 
     if(tree->Data.isNullCond) {
         char* newVar = get_var_name(tree->Node[0]);
         char* oldVar = get_var_name(tree->Node[1]);
-        printf("DEFVAR %s\n",newVar);
+        if( ! tree->Data.isDef) {
+            printf("DEFVAR %s\n",newVar);
+            tree->Data.isDef = false;
+        }
         printf("MOVE %s %s\n",newVar, oldVar);
         free(newVar);
         free(oldVar);

@@ -21,6 +21,7 @@ TreeRootPtr TreeInit(void){
     tree->Root->Data.Token = NULL;
     tree->Root->Data.Type = 0;
     tree->Root->Data.ChangeType = false;
+    tree->Root->Data.isDef = false;
 
     return tree;
 }
@@ -44,6 +45,7 @@ TreeElementPtr TreeElementCreate(TokenPtr token){
     element->Data.Token = token;
     element->Data.Type = 0;
     element->Data.ChangeType = false;
+    element->Data.isDef = false;
 
     return element;
 }
