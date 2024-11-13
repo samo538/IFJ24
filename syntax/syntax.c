@@ -23,6 +23,8 @@
 
 #include "../code_gen/code_gen.h"
 
+#include "../errors/error.h"
+
 #include <stdio.h>
 #include <threads.h>
 #include <time.h>
