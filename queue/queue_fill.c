@@ -188,7 +188,6 @@ bool q_params(TokenStoragePtr stoken){
 
         // Freeing the allocated memory
         free(info_var->name);
-        free(info_var->level_stack);
         free(info_var);
 
         return ret &&

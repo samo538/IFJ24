@@ -33,3 +33,26 @@ void check_ret(bool ret){
         throw_error(2);
     }
 }
+
+/*void garbage_collector(TokenStoragePtr stoken){
+    if (stoken != NULL){
+        if (stoken->SToken != NULL){
+            dealloc_token(stoken->SToken);
+            stoken->SToken = NULL;
+        }
+        if (stoken->queue != NULL){
+            queue_free(stoken->queue);
+        }
+        if (stoken->glob_table != NULL){
+            TableClear(stoken->glob_table, FUNCTION);
+        }
+        if (stoken->current_fn != NULL){
+            free(stoken->current_fn);
+        }
+        if (stoken->level_stack != NULL){
+            free(stoken->level_stack);
+        }
+        free(stoken);
+        stoken = NULL;
+    }
+} */
