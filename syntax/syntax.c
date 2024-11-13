@@ -8,7 +8,6 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "syntax_types.h"
 #include "syntax.h"
 
 #include "../lexer/token.h"
@@ -28,15 +27,7 @@
 #include <threads.h>
 #include <time.h>
 
-// Debug output func
-void print_tree(TreeElementPtr element){
-
-    for(int i = 0; i < element->NodeCounter; i++){
-        print_tree(element->Node[i]);
-        printf("%d -> ", element->Node[i]->Data.NodeType);
-    }
-}
-// Helper functions
+// Helper ifj function
 const char* embededfunctions[] = {
     "readstr",
     "readi32",
@@ -171,13 +162,11 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
         }
         else { // Explicit type, check data types
             if (new->FnVar.Var_id.type.type != fn->FnVar.Fn_id.return_type.type) {
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
+                throw_error(7); // Wrong assign type
             }
             if (fn->FnVar.Fn_id.return_type.nullable){
                 if(!new->FnVar.Fn_id.return_type.nullable){
-                    fprintf(stderr, "Wrong assign type\n");
-                    exit(7);
+                    throw_error(7); // Wrong assign type
                 }
             }
         }
@@ -192,11 +181,33 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
 
         return ret;
     }
-
     throw_error(2);
 }
 
-bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
+bool def_preced(TokenStoragePtr stoken, Elem_id *new){
+    PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+    if (result == NULL){
+        throw_error(99);
+    }
+    if (result->Error != 0){
+        throw_error(result->Error); // Expression error
+    }
+    if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
+        new->FnVar.Var_id.type.type = result->Tree->Data.Type - 12;
+        new->FnVar.Var_id.type.nullable = false;
+    }
+    else { // Explicit type, check data types
+        if (new->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
+            throw_error(7); // Wrong assign type
+        }
+    }
+    stoken->SToken = result->NextTotken;
+    // Connecting expression to the main tree
+    TreeElementConnect(stoken->current_node, result->Tree);
+    return t_expect(stoken, SEMICOLON);
+}
+
+bool e_var_exp_def_assign(TokenStoragePtr stoken, Elem_id *new){
     Elem_id *ret_fn = NULL;
     Elem_id *ret_var = NULL;
     if (stoken->SToken->type == ID){ // If id search if its a function or variable
@@ -220,21 +231,18 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
     else if (ret_fn != NULL){ 
         if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
             if (ret_fn->FnVar.Fn_id.return_type.type == VOID){
-                fprintf(stderr, "Assigning void\n");
-                exit(7);
+                throw_error(7); // Assigning void
             }
             new->FnVar.Var_id.type.type = ret_fn->FnVar.Fn_id.return_type.type;
             new->FnVar.Var_id.type.nullable = ret_fn->FnVar.Fn_id.return_type.nullable;
         }
         else { // Explicit type, check data types
             if (new->FnVar.Var_id.type.type != ret_fn->FnVar.Fn_id.return_type.type) {
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
+                throw_error(7); // wrong assign type
             }
             if (ret_fn->FnVar.Fn_id.return_type.nullable){ // Check nullables
                 if(!new->FnVar.Fn_id.return_type.nullable){
-                    fprintf(stderr, "Wrong assign type\n");
-                    exit(7);
+                    throw_error(7); // wrong assign type
                 }
             }
         }
@@ -244,12 +252,10 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
     // Assigning null
     else if(stoken->SToken->type == NULL_VALUE){
         if (new->FnVar.Var_id.type.type == END_OF_FILE){
-            fprintf(stderr, "cannot determine type\n");
-            exit(8);
+            throw_error(8); // Cannot determine type
         }
         else if(new->FnVar.Var_id.type.nullable == false){
-            fprintf(stderr, "cannot assign null\n");
-            exit(7);
+            throw_error(7); // Cannot assign null
         }
         // Copy the null pointer
         TreeElement *new = TreeInsert(stoken->current_node, NULL);
@@ -269,13 +275,11 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             }
             else { // Explicit type, check data types
                 if (new->FnVar.Var_id.type.type != ret_var->FnVar.Var_id.type.type) {
-                    fprintf(stderr, "Wrong assign type\n");
-                    exit(7);
+                    throw_error(7); // Wrong assign type
                 }
                 if (ret_var->FnVar.Var_id.type.nullable){ // Check nullables
                     if(!new->FnVar.Var_id.type.nullable){
-                        fprintf(stderr, "Wrong assign type\n");
-                        exit(7);
+                        throw_error(7); // Wrong assign type
                     }
                 }
             }
@@ -290,66 +294,20 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             t_expect(stoken, SEMICOLON);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
-            if (result == NULL){
-                fprintf(stderr,"Strasne obrovska chyba\n");
-                exit(99);
-            }
-            if (result->Error != 0){
-                fprintf(stderr,"Exp error\n");
-                exit(result->Error);
-            }
-            if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
-                new->FnVar.Var_id.type.type = result->Tree->Data.Type - 12;
-                new->FnVar.Var_id.type.nullable = false;
-            }
-            else { // Explicit type, check data types
-                if (new->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
-                    fprintf(stderr, "Wrong assign type\n");
-                    exit(7);
-                }
-            }
-            stoken->SToken = result->NextTotken;
-            // Connecting expression to the main tree
-            TreeElementConnect(stoken->current_node, result->Tree);
-            return t_expect(stoken, SEMICOLON);
+            return def_preced(stoken, new);
         }
     }
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
-        if (result == NULL){
-            fprintf(stderr,"Strasne obrovska chyba\n");
-            exit(99);
-        }
-        if (result->Error != 0){
-            fprintf(stderr,"Exp error\n");
-            exit(result->Error);
-        }
-        if (new->FnVar.Var_id.type.type == END_OF_FILE){ // Implicit type
-            new->FnVar.Var_id.type.type = result->Tree->Data.Type - 12;
-            new->FnVar.Var_id.type.nullable = false;
-        }
-        else { // Explicit type, check data types
-            if (new->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
-            }
-        }
-        stoken->SToken = result->NextTotken;
-        // Connection expression to the main tree
-        TreeElementConnect(stoken->current_node, result->Tree);
-        return t_expect(stoken, SEMICOLON);
+        return def_preced(stoken, new);
     }
 
     // Assigning string
     else if(stoken->SToken->type == STRING){
-        fprintf(stderr, "Assigning string not allowd\n");
-        exit(7);
+        throw_error(7); // Assigning string not allowed
     }
-    fprintf(stderr, "Syntax Error\n");
-    exit(2);
+    throw_error(2);
 }
 
 bool l_type_var(TokenStoragePtr stoken, Elem_id *new){
@@ -429,20 +387,24 @@ bool var_def(TokenStoragePtr stoken){
     check_ret(ret);
 
     Elem_id *inserted =  TableAdd(new->name, new->level_stack, new->stack_size, stoken->local_table);
-    /*new->Type = VARIABLE;
-    new->stack_size = stoken->stack_size; // Setting the stack
-    copy_levels(stoken->level_stack, &new->level_stack, stoken->stack_size);
-    new->FnVar.Var_id.type.type = END_OF_FILE; // Placeholder
-    new->FnVar.Var_id.type.nullable = false; // Implicit false
-    new->FnVar.Var_id.used = false; // Variable not used by default*/
+    inserted->name = strdup(new->name);
+    inserted->Type = VARIABLE;
+    inserted->stack_size = stoken->stack_size; // Setting the stack
+    copy_levels(stoken->level_stack, &inserted->level_stack, stoken->stack_size);
+    inserted->FnVar.Var_id.type.type = new->FnVar.Var_id.type.type; // Placeholder
+    inserted->FnVar.Var_id.type.nullable = new->FnVar.Var_id.type.nullable; // Implicit false
+    inserted->FnVar.Var_id.const_t = new->FnVar.Var_id.const_t;
+    inserted->FnVar.Var_id.used = false; // Variable not used by default*/
     tree_id->Data.TableElement = inserted;
+
+    // Free the helper variable
+    free(new->name); // freeing the added element
+    free(new->level_stack);
+    free(new);
 
     // Moving upper in the tree
     stoken->current_node = stoken->current_node->DadNode;
 
-    free(new->name); // freeing the added element
-    free(new->level_stack);
-    free(new);
     return ret;
 }
 
@@ -628,28 +590,22 @@ bool ifj_call_assign(TokenStoragePtr stoken, bool underscore ,Elem_id *assign_to
     ret = t_expect(stoken, IFJ) &&
     t_expect(stoken, DOT);
 
-    if (!ret){
-        syn_error(stoken);
-    }
+    check_ret(ret);
 
     if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
         Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table);
         if (fn == NULL){
-            fprintf(stderr, "Undefined IFJ function\n");
-            exit(3);
+            throw_error(3); // Undefined IFJ function
         }
         if (!strcmp(fn->name, "write")){
-            fprintf(stderr, "Assigning void\n");
-        exit(7);
+            throw_error(7); // Assigning void
         }
         if (!underscore && assign_to->FnVar.Var_id.type.type != fn->FnVar.Fn_id.return_type.type) {
-            fprintf(stderr, "Wrong assign type\n");
-            exit(7);
+            throw_error(7); // Wrong assign type
         }
         if (!underscore && fn->FnVar.Fn_id.return_type.nullable){
             if(!assign_to->FnVar.Fn_id.return_type.nullable){
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
+                throw_error(7); // Wrong assign type
             }
         }
         // Creating a new tree node
@@ -670,9 +626,25 @@ bool ifj_call_assign(TokenStoragePtr stoken, bool underscore ,Elem_id *assign_to
         return ret;
     }
 
-    syn_error(stoken);
-    return false;
+    throw_error(2);
 }
+bool assign_prec(TokenStoragePtr stoken, bool underscore, Elem_id * assign_to){
+    PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+    if (result == NULL){
+        throw_error(99);
+    }
+    if (result->Error != 0){
+        throw_error(result->Error); // Expression error
+    }
+    if (!underscore && assign_to->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
+        throw_error(7); // Wrong assign type
+    }
+    stoken->SToken = result->NextTotken;
+    // Connecting expression to the main tree
+    TreeElementConnect(stoken->current_node, result->Tree);
+    return t_expect(stoken, SEMICOLON);
+}
+
 bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_to){
     Elem_id *ret_fn = NULL;
     Elem_id *ret_var = NULL;
@@ -681,12 +653,10 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
         ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         // If both pointers not null
         if (ret_fn != NULL && ret_var != NULL){
-            fprintf(stderr, "Function with the same name as variable\n");
-            exit(10);
+            throw_error(10); // Function with the same name as variable
         }
         if (ret_fn == NULL && ret_var == NULL){
-            fprintf(stderr, "Function or varable not defined\n");
-            exit(3);
+            throw_error(3); // Function or variable not defined
         }
     }
 
@@ -698,17 +668,14 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
     // Assigning func
     else if (ret_fn != NULL){ 
         if (ret_fn->FnVar.Fn_id.return_type.type == VOID){
-            fprintf(stderr, "Assigning void\n");
-            exit(7);
+            throw_error(7); // Assigning void
         }
         if (!underscore && assign_to->FnVar.Var_id.type.type != ret_fn->FnVar.Fn_id.return_type.type) {
-            fprintf(stderr, "Wrong assign type\n");
-            exit(7);
+            throw_error(7); // Wrong assign type
         }
         if (!underscore && ret_fn->FnVar.Fn_id.return_type.nullable){
             if(!assign_to->FnVar.Fn_id.return_type.nullable){
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
+                throw_error(7); // Wrong assign type
             }
         }
         return fn_call(stoken);
@@ -717,8 +684,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
     // Assigning null
     else if(stoken->SToken->type == NULL_VALUE){
         if(!underscore && assign_to->FnVar.Var_id.type.nullable == false){
-            fprintf(stderr, "cannot assign null\n");
-            exit(7);
+            throw_error(7); // cannot assign null
         }
         // Copy the null pointer
         TreeElement *new = TreeInsert(stoken->current_node, NULL);
@@ -733,13 +699,11 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
     else if(ret_var != NULL){
         if (ret_var->FnVar.Var_id.type.type == U8){
             if (!underscore && assign_to->FnVar.Var_id.type.type != ret_var->FnVar.Var_id.type.type) {
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
+                throw_error(7); // Wrong assign type
             }
             if (!underscore && ret_var->FnVar.Var_id.type.nullable){
                 if(!assign_to->FnVar.Var_id.type.nullable){
-                    fprintf(stderr, "Wrong assign type\n");
-                    exit(7);
+                    throw_error(7); // Wrong assign type
                 }
             }
             ret_var->FnVar.Var_id.used = true; // Used this var
@@ -753,54 +717,20 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
             t_expect(stoken, SEMICOLON);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
-            if (result == NULL){
-                fprintf(stderr,"Strasne obrovska chyba\n");
-                exit(99);
-            }
-            if (result->Error != 0){
-                fprintf(stderr,"Exp error\n");
-                exit(result->Error);
-            }
-            if (!underscore && assign_to->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
-                fprintf(stderr, "Wrong assign type\n");
-                exit(7);
-            }
-            // Connecting expression to the main tree
-            TreeElementConnect(stoken->current_node, result->Tree);
-            stoken->SToken = result->NextTotken;
-            return t_expect(stoken, SEMICOLON);
+            return assign_prec(stoken, underscore, assign_to);
         }
     }
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
-        if (result == NULL){
-            fprintf(stderr,"Strasne obrovska chyba\n");
-            exit(99);
-        }
-        if (result->Error != 0){
-            fprintf(stderr,"Exp error\n");
-            exit(result->Error);
-        }
-        if (!underscore && assign_to->FnVar.Var_id.type.type != result->Tree->Data.Type - 12) {
-            fprintf(stderr, "Wrong assign type\n");
-            exit(7);
-        }
-        stoken->SToken = result->NextTotken;
-        // Connecting expression to the main tree
-        TreeElementConnect(stoken->current_node, result->Tree);
-        return t_expect(stoken, SEMICOLON);
+        return assign_prec(stoken, underscore, assign_to);
     }
 
     // Assigning string
     else if(stoken->SToken->type == STRING){
-        fprintf(stderr, "Assigning string not allowd\n");
-        exit(7);
+        throw_error(7); // Assigning string not allowed
     }
-    fprintf(stderr, "Syntax Error\n");
-    exit(2);
+    throw_error(2);
 }
 
 bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
@@ -816,16 +746,13 @@ bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
         *assign_to = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         Elem_id *tmp = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
         if (*assign_to == NULL){
-            fprintf(stderr, "undefined variable\n");
-            exit(3);
+            throw_error(3); // undefined variable
         }
         if (*assign_to != NULL && tmp != NULL){
-            fprintf(stderr, "Variable and function with the same name\n");
-            exit(10);
+            throw_error(3); // Variable and function with the same name
         }
         if ((*assign_to)->FnVar.Var_id.const_t == true){
-            fprintf(stderr, "Assigning to const\n");
-            exit(5);
+            throw_error(5); // Assigning to const
         }
         TreeElement *new_node = TreeInsert(stoken->current_node, NULL);
         new_node->Data.NodeType = ID_NODE;
@@ -1057,14 +984,14 @@ bool while_ifelse(TokenStoragePtr stoken, bool ifelse){
             throw_error(3); // undefined variable
         }
         if (var_id->FnVar.Var_id.type.nullable){ // ID but nullable
-            if_while_nullable(stoken, ifelse, var_id);
+            return if_while_nullable(stoken, ifelse, var_id);
         }
         else { // ID but not nullable, go into precedence analysis
-            if_while_preced(stoken, ifelse);
+            return if_while_preced(stoken, ifelse);
         }
     }
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){ 
-        if_while_preced(stoken, ifelse);
+        return if_while_preced(stoken, ifelse);
     }
     else {
         throw_error(2);
@@ -1075,19 +1002,35 @@ bool while_ifelse(TokenStoragePtr stoken, bool ifelse){
 /*
  *  Return
  */
+bool return_preced(TokenStoragePtr stoken ,Elem_id * curr_func){
+        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
+        if (result == NULL){
+            throw_error(99);
+        }
+        if (result->Error != 0){
+            throw_error(result->Error); // Expression error
+        }
+        if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
+            throw_error(4); // Wrong return type
+        }
+        stoken->SToken = result->NextTotken;
+        stoken->returned = true;
+        // Connecting expression to the main tree
+        TreeElementConnect(stoken->current_node, result->Tree);
+        return t_expect(stoken, SEMICOLON);
+}
+
 bool e_return_exp(TokenStoragePtr stoken){
     // Search for the current function
     Elem_id *curr_func = NULL;
     curr_func = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
     if (curr_func == NULL){
-        fprintf(stderr, "Something went wrong\n");
-        exit(99);
+        throw_error(99);
     }
 
     if (curr_func->FnVar.Fn_id.return_type.type == VOID){
         if (stoken->SToken->type != SEMICOLON){
-            fprintf(stderr, "Expression void return statement\n");
-            exit(4);
+            throw_error(4); // Expression void return statement
         }
         return t_expect(stoken, SEMICOLON);
     }
@@ -1099,38 +1042,17 @@ bool e_return_exp(TokenStoragePtr stoken){
         ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         // If both pointers not null
         if (ret_fn != NULL && ret_var != NULL){
-            fprintf(stderr, "Function with the same name as variable\n");
-            exit(10);
+            throw_error(10); // Function with the same name as variable
         }
         if (ret_fn == NULL && ret_var == NULL){
-            fprintf(stderr, "Function or variable not defined\n");
-            exit(3);
+            throw_error(3); // Function or variable not defined
         }
-    }
-
-    // Returning IFJ func
-    if (stoken->SToken->type == IFJ){
-        fprintf(stderr, "cannot return function\n");
-        exit(4);
-    }
-
-    // Trying to return void in non-void fn
-    else if(stoken->SToken->type == SEMICOLON){
-        fprintf(stderr, "Returning void in non-void func\n");
-        exit(4);
-    }
-
-    // Returning func
-    else if (ret_fn != NULL){ 
-        fprintf(stderr, "cannot return function\n");
-        exit(4);
     }
 
     // Returning null
     else if(stoken->SToken->type == NULL_VALUE){
         if(curr_func->FnVar.Fn_id.return_type.nullable == false){
-            fprintf(stderr, "cannot return null\n");
-            exit(4);
+            throw_error(4); // Cannot return null
         }
         // Copy the null pointer
         TreeElement *new = TreeInsert(stoken->current_node, NULL);
@@ -1145,13 +1067,11 @@ bool e_return_exp(TokenStoragePtr stoken){
     else if(ret_var != NULL){
         if (ret_var->FnVar.Var_id.type.type == U8){
             if (curr_func->FnVar.Fn_id.return_type.type != U8) {
-                fprintf(stderr, "Wrong return type\n");
-                exit(4);
+                throw_error(4); // Wrong return type
             }
             if (ret_var->FnVar.Var_id.type.nullable) {
                 if (!curr_func->FnVar.Fn_id.return_type.nullable){
-                    fprintf(stderr, "Wrong return type\n");
-                    exit(4);
+                    throw_error(4); // Wrong return type
                 }
             }
             // New tree node
@@ -1166,56 +1086,20 @@ bool e_return_exp(TokenStoragePtr stoken){
             t_expect(stoken, SEMICOLON);
         }
         else {
-            PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
-            if (result == NULL){
-                fprintf(stderr,"Strasne obrovska chyba\n");
-                exit(99);
-            }
-            if (result->Error != 0){
-                fprintf(stderr,"Exp error\n");
-                exit(result->Error);
-            }
-            if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
-                fprintf(stderr, "Wrong return type\n");
-                exit(4);
-            }
-            stoken->SToken = result->NextTotken;
-            stoken->returned = true;
-            // Connecting expression to the main tree
-            TreeElementConnect(stoken->current_node, result->Tree);
-            return t_expect(stoken, SEMICOLON);
+            return return_preced(stoken, curr_func);
         }
     }
 
     // Assigning non-string literals
     else if(stoken->SToken->type == F64_VAR || stoken->SToken->type == I32_VAR || stoken->SToken->type == OPENING_BRACKET){
-        PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
-        if (result == NULL){
-            fprintf(stderr,"Strasne obrovska chyba\n");
-            exit(99);
-        }
-        if (result->Error != 0){
-            fprintf(stderr,"Exp error\n");
-            exit(result->Error);
-        }
-        if (curr_func->FnVar.Fn_id.return_type.type != result->Tree->Data.Type - 12) {
-            fprintf(stderr, "Wrong return type\n");
-            exit(4);
-        }
-        stoken->SToken = result->NextTotken;
-        stoken->returned = true;
-        // Connecting expression to the main tree
-        TreeElementConnect(stoken->current_node, result->Tree);
-        return t_expect(stoken, SEMICOLON);
+        return return_preced(stoken, curr_func);
     }
 
     // Assigning string
-    else if(stoken->SToken->type == STRING){
-        fprintf(stderr, "Returning string not allowd\n");
-        exit(4);
+    else if(stoken->SToken->type == STRING || stoken->SToken->type == SEMICOLON || stoken->SToken->type == IFJ || ret_fn != NULL){
+        throw_error(4); // returning string not allowed
     }
-    fprintf(stderr, "Syntax Error\n");
-    exit(2);
+    throw_error(2);
 }
 
 bool fn_return(TokenStoragePtr stoken){
@@ -1445,6 +1329,15 @@ bool import_def(TokenStoragePtr stoken){ // Only syntax checks
 
 bool start(TokenStoragePtr stoken){ // Starting point
     return import_def(stoken) && functions(stoken);
+}
+
+// Debug output func
+void print_tree(TreeElementPtr element){
+
+    for(int i = 0; i < element->NodeCounter; i++){
+        print_tree(element->Node[i]);
+        printf("%d -> ", element->Node[i]->Data.NodeType);
+    }
 }
 
 int main(){

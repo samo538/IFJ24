@@ -5,7 +5,6 @@
 #include "../syntax/syntax.h"
 #include "../lexer/lexer.h"
 #include "../lexer/token.h"
-#include "../syntax/syntax_types.h"
 #include "../errors/error.h"
 #include "queue_fill.h"
 
