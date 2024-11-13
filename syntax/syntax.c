@@ -4,6 +4,7 @@
 * Authors: Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
 */
 
+#include <math.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -25,6 +26,7 @@
 #include "../code_gen/code_gen.h"
 
 #include <stdio.h>
+#include <time.h>
 
 // Debug output func
 void print_tree(TreeElementPtr element){
@@ -72,22 +74,18 @@ void syn_error(TokenStoragePtr stoken){
  */
 bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
     bool ret;
-    ret = t_ifj(stoken) &&
-    t_dot(stoken);
+    ret = t_expect(stoken, IFJ) &&
+    t_expect(stoken, DOT);
 
-    if (!ret){
-        syn_error(stoken);
-    }
+    check_ret(ret);
 
     if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
         Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table); // Search inside IFJ
         if (fn == NULL){
-            fprintf(stderr, "Undefined IFJ function\n");
-            exit(3);
+            throw_error(3);
         }
         if (!strcmp(fn->name, "write")){
-            fprintf(stderr, "Assigning void\n");
-            exit(7);
+            throw_error(7);
         }
 
         // Creating a new tree node
@@ -114,18 +112,17 @@ bool ifj_call_var(TokenStoragePtr stoken, Elem_id *new){
         }
         ret = ret &&
         t_id_ifj(stoken) &&
-        t_op_bracket(stoken) &&
+        t_expect(stoken, OPENING_BRACKET) &&
         call_params(stoken, fn, 0) && // Checking the validity of params
-        t_cl_bracket(stoken) &&
-        t_semicolon(stoken);
+        t_expect(stoken, CLOSING_BRACKET) &&
+        t_expect(stoken, SEMICOLON);
 
         stoken->current_node = stoken->current_node->DadNode;
 
         return ret;
     }
 
-    syn_error(stoken);
-    return false;
+    throw_error(2);
 }
 
 bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
@@ -136,12 +133,10 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         ret_var = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
         // If both pointers not null
         if (ret_fn != NULL && ret_var != NULL){
-            fprintf(stderr, "Function with the same name as variable\n");
-            exit(10);
+            throw_error(10);
         }
         if (ret_fn == NULL && ret_var == NULL){
-            fprintf(stderr, "Function or varable not defined\n");
-            exit(3);
+            throw_error(3);
         }
     }
 
@@ -190,8 +185,8 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         new->Data.NodeType = EXPRESSION_NODE;
         new->Data.Token = copy_token(stoken->SToken);
 
-        return t_null(stoken) &&
-        t_semicolon(stoken);
+        return t_expect(stoken, NULL_VALUE) &&
+        t_expect(stoken, SEMICOLON);
     }
 
     // Assigning id expression or string variable
@@ -220,8 +215,8 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             new->Data.TableElement = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
 
             ret_var->FnVar.Var_id.used = true;
-            return t_id(stoken) &&
-            t_semicolon(stoken);
+            return t_expect(stoken, ID) &&
+            t_expect(stoken, SEMICOLON);
         }
         else {
             PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
@@ -246,7 +241,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
             stoken->SToken = result->NextTotken;
             // Connecting expression to the main tree
             TreeElementConnect(stoken->current_node, result->Tree);
-            return t_semicolon(stoken);
+            return t_expect(stoken, SEMICOLON);
         }
     }
 
@@ -274,7 +269,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
         stoken->SToken = result->NextTotken;
         // Connection expression to the main tree
         TreeElementConnect(stoken->current_node, result->Tree);
-        return t_semicolon(stoken);
+        return t_expect(stoken, SEMICOLON);
     }
 
     // Assigning string
@@ -288,12 +283,12 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
 
 bool l_type_var(TokenStoragePtr stoken, Elem_id *new){
     return t_nullable_var(stoken, new) && // Set nullable
-    t_type_keyword_var(stoken, new); // Set type
+    t_type_keyword(stoken, new); // Set type
 }
 
 bool l_type_vardef(TokenStoragePtr stoken, Elem_id * new){
     if (stoken->SToken->type == COLON){ // Explicit definiton
-        return t_colon(stoken) &&
+        return t_expect(stoken, COLON) &&
         l_type_var(stoken, new);
     }
     else { // Implicit definition
@@ -305,11 +300,11 @@ bool l_var_const(TokenStoragePtr stoken, Elem_id *new){
     bool ret;
     if (stoken->SToken->type == VAR){
         new->FnVar.Var_id.const_t = false; // Setting the const flag
-        ret =  t_var(stoken);
+        ret =  t_expect(stoken, VAR);
     }
     else {
         new->FnVar.Var_id.const_t = true; // Setting the const flag
-        ret = t_const(stoken);
+        ret = t_expect(stoken, CONST);
     }
     return ret;
 }
@@ -338,7 +333,7 @@ bool var_def(TokenStoragePtr stoken){
     ret = l_var_const(stoken, new) && // Filling up new
     t_id_var(stoken, new) && // Filling up the name / checking for redef
     l_type_vardef(stoken, new) && // Implicit/Explicit definition
-    t_eq(stoken) &&
+    t_expect(stoken, ASSIGN) &&
     e_var_exp_def(stoken, new); // Adding value
 
     TableAdd(*new, stoken->local_table); // Adding the new element into local table
@@ -366,8 +361,8 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
-            return t_string(stoken) &&
-            t_comma(stoken) &&
+            return t_expect(stoken, STRING) &&
+            t_expect(stoken, COMMA) &&
             call_params(stoken, fn, pos + 1);
         }
         else {
@@ -384,8 +379,8 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
-            return t_int(stoken) &&
-            t_comma(stoken) &&
+            return t_expect(stoken, I32_VAR) &&
+            t_expect(stoken, COMMA) &&
             call_params(stoken, fn, pos + 1);
         }
         else {
@@ -402,8 +397,8 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
-            return t_float(stoken) &&
-            t_comma(stoken) &&
+            return t_expect(stoken, F64_VAR) &&
+            t_expect(stoken, COMMA) &&
             call_params(stoken, fn, pos + 1);
         }
         else {
@@ -420,8 +415,8 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             TreeElement* new_node = TreeInsert(stoken->current_node, NULL);
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
-            return t_null(stoken) &&
-            t_comma(stoken) &&
+            return t_expect(stoken, NULL) &&
+            t_expect(stoken, COMMA) &&
             call_params(stoken, fn, pos + 1);
         }
         else {
@@ -447,8 +442,8 @@ bool call_params(TokenStoragePtr stoken, Elem_id *fn, int pos){
             new_node->Data.Token = copy_token(stoken->SToken);
             new_node->Data.TableElement = tmp;
 
-            return t_id(stoken) &&
-            t_comma(stoken) &&
+            return t_expect(stoken, ID) &&
+            t_expect(stoken, COMMA) &&
             call_params(stoken, fn, pos + 1);
         }
         else {
@@ -482,11 +477,11 @@ bool fn_call(TokenStoragePtr stoken){
     new_node->Data.TableElement = fn;
     stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
-    ret = t_id(stoken) &&
-    t_op_bracket(stoken) &&
+    ret = t_expect(stoken, ID) &&
+    t_expect(stoken, OPENING_BRACKET) &&
     call_params(stoken, fn, 0) && // Sematics action, check params validity
-    t_cl_bracket(stoken) &&
-    t_semicolon(stoken);
+    t_expect(stoken, CLOSING_BRACKET) &&
+    t_expect(stoken, SEMICOLON);
 
     stoken->current_node = stoken->current_node->DadNode;
 
@@ -498,8 +493,8 @@ bool fn_call(TokenStoragePtr stoken){
  */
 bool ifj_call(TokenStoragePtr stoken){
     bool ret;
-    ret = t_ifj(stoken) &&
-    t_dot(stoken);
+    ret = t_expect(stoken, IFJ) &&
+    t_expect(stoken, DOT);
 
     if (stoken->SToken->type == ID && h_check_ifj_fn(stoken->SToken->value.str)){
         Elem_id *fn = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->ifj_table);
@@ -513,7 +508,7 @@ bool ifj_call(TokenStoragePtr stoken){
         }
         ret = ret &&
         t_id_ifj(stoken) &&
-        t_op_bracket(stoken);
+        t_expect(stoken, OPENING_BRACKET);
 
         if (ret == false){
             syn_error(stoken);
@@ -530,7 +525,7 @@ bool ifj_call(TokenStoragePtr stoken){
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
 
-            ret = ret && t_float(stoken);
+            ret = ret && t_expect(stoken, F64_VAR);
             if (ret == false){
                 syn_error(stoken);
             }
@@ -540,7 +535,7 @@ bool ifj_call(TokenStoragePtr stoken){
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
 
-            ret = ret && t_int(stoken);
+            ret = ret && t_expect(stoken, I32_VAR);
             if (ret == false){
                 syn_error(stoken);
             }
@@ -551,7 +546,7 @@ bool ifj_call(TokenStoragePtr stoken){
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
 
-            ret = ret && t_string(stoken);
+            ret = ret && t_expect(stoken, STRING);
             if (ret == false){
                 syn_error(stoken);
             }
@@ -561,7 +556,7 @@ bool ifj_call(TokenStoragePtr stoken){
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
 
-            ret = ret && t_null(stoken);
+            ret = ret && t_expect(stoken, NULL_VALUE);
             if (ret == false){
                 syn_error(stoken);
             }
@@ -577,7 +572,7 @@ bool ifj_call(TokenStoragePtr stoken){
             new_node->Data.NodeType = ARG_NODE;
             new_node->Data.Token = copy_token(stoken->SToken);
             new_node->Data.TableElement = var;
-            ret = ret && t_id(stoken);
+            ret = ret && t_expect(stoken, ID);
             if (ret == false){
                 syn_error(stoken);
             }
@@ -591,9 +586,9 @@ bool ifj_call(TokenStoragePtr stoken){
         stoken->current_node = stoken->current_node->DadNode;
 
         return ret &&
-        t_comma(stoken) &&
-        t_cl_bracket(stoken) &&
-        t_semicolon(stoken);
+        t_expect(stoken, COMMA) &&
+        t_expect(stoken, CLOSING_BRACKET) &&
+        t_expect(stoken, SEMICOLON);
     }
 
     syn_error(stoken);
@@ -605,8 +600,8 @@ bool ifj_call(TokenStoragePtr stoken){
  */
 bool ifj_call_assign(TokenStoragePtr stoken, bool underscore ,Elem_id *assign_to){
     bool ret;
-    ret = t_ifj(stoken) &&
-    t_dot(stoken);
+    ret = t_expect(stoken, IFJ) &&
+    t_expect(stoken, DOT);
 
     if (!ret){
         syn_error(stoken);
@@ -640,10 +635,10 @@ bool ifj_call_assign(TokenStoragePtr stoken, bool underscore ,Elem_id *assign_to
 
         ret = ret &&
         t_id_ifj(stoken) &&
-        t_op_bracket(stoken) &&
+        t_expect(stoken, OPENING_BRACKET) &&
         call_params(stoken, fn, 0) && // Checking the validity of params
-        t_cl_bracket(stoken) &&
-        t_semicolon(stoken);
+        t_expect(stoken, CLOSING_BRACKET) &&
+        t_expect(stoken, SEMICOLON);
 
         stoken->current_node = stoken->current_node->DadNode;
 
@@ -705,8 +700,8 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
         new->Data.NodeType = EXPRESSION_NODE;
         new->Data.Token = copy_token(stoken->SToken);
 
-        return t_null(stoken) &&
-        t_semicolon(stoken);
+        return t_expect(stoken, NULL_VALUE) &&
+        t_expect(stoken, SEMICOLON);
     }
 
     // Assigning id expression or string variable
@@ -729,8 +724,8 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
             new->Data.Token = copy_token(stoken->SToken);
             new->Data.TableElement = TableSearch(stoken->SToken->value.str, stoken->level_stack, stoken->stack_size, stoken->local_table);
 
-            return t_id(stoken) &&
-            t_semicolon(stoken);
+            return t_expect(stoken, ID) &&
+            t_expect(stoken, SEMICOLON);
         }
         else {
             PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
@@ -749,7 +744,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
             // Connecting expression to the main tree
             TreeElementConnect(stoken->current_node, result->Tree);
             stoken->SToken = result->NextTotken;
-            return t_semicolon(stoken);
+            return t_expect(stoken, SEMICOLON);
         }
     }
 
@@ -771,7 +766,7 @@ bool e_var_exp_assign(TokenStoragePtr stoken, bool underscore, Elem_id *assign_t
         stoken->SToken = result->NextTotken;
         // Connecting expression to the main tree
         TreeElementConnect(stoken->current_node, result->Tree);
-        return t_semicolon(stoken);
+        return t_expect(stoken, SEMICOLON);
     }
 
     // Assigning string
@@ -789,7 +784,7 @@ bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
         tree_id->Data.NodeType = ID_NODE;
         tree_id->Data.Token = copy_token(stoken->SToken);
         *underscore = true;
-        return t_underline(stoken);
+        return t_expect(stoken, UNDERSCORE);
     }
     else {
         *underscore = false;
@@ -812,7 +807,7 @@ bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
         new_node->Data.TableElement = *assign_to;
         new_node->Data.Token = copy_token(stoken->SToken);
 
-        return t_id(stoken);
+        return t_expect(stoken, ID);
     }
 }
 bool assign(TokenStoragePtr stoken){
@@ -825,7 +820,7 @@ bool assign(TokenStoragePtr stoken){
     stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
     ret = l_id_assign(stoken, &underscore, &assign_to) && // Assign_to
-    t_eq(stoken) &&
+    t_expect(stoken, ASSIGN) &&
     e_var_exp_assign(stoken, underscore, assign_to); // Assigment
 
     stoken->current_node = stoken->current_node->DadNode;
@@ -838,15 +833,15 @@ bool assign(TokenStoragePtr stoken){
  */
 
 bool if_while_body(TokenStoragePtr stoken){
-    return t_op_cr_bracket(stoken) &&
+    return t_expect(stoken, OPENING_CURLY_BRACKET) &&
     fn_body(stoken) &&
-    t_cl_cr_bracket(stoken);
+    t_expect(stoken, OPENING_CURLY_BRACKET);
 }
 
 bool if_else(TokenStoragePtr stoken){
     bool ret;
-    ret = t_if(stoken) &&
-    t_op_bracket(stoken);
+    ret = t_expect(stoken, IF) &&
+    t_expect(stoken, OPENING_BRACKET);
     if (ret == false){
         fprintf(stderr, "Syntax error\n");
         exit(2);
@@ -890,9 +885,9 @@ bool if_else(TokenStoragePtr stoken){
             stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
             ret = ret &&
-            t_id(stoken) &&
-            t_cl_bracket(stoken) &&
-            t_vertical_bar(stoken);
+            t_expect(stoken, ID) &&
+            t_expect(stoken, CLOSING_BRACKET) &&
+            t_expect(stoken, VERTICAL_BAR);
 
             if (ret == false){
                 free(new->level_stack);
@@ -918,8 +913,8 @@ bool if_else(TokenStoragePtr stoken){
 
 
             ret = ret &&
-            t_id(stoken) && 
-            t_vertical_bar(stoken) &&
+            t_expect(stoken, ID) && 
+            t_expect(stoken, VERTICAL_BAR) &&
             if_while_body(stoken);
 
             if (ret == false){
@@ -932,7 +927,7 @@ bool if_else(TokenStoragePtr stoken){
             else_node->Data.NodeType = ELSE_NODE;
 
             ret = ret &&
-            t_else(stoken) &&
+            t_expect(stoken, ELSE) &&
             if_while_body(stoken);
 
             if (ret == false){
@@ -990,7 +985,7 @@ bool if_else(TokenStoragePtr stoken){
             }
 
             ret = ret &&
-            t_cl_bracket(stoken) &&
+            t_expect(stoken, CLOSING_BRACKET) &&
             if_while_body(stoken);
 
             if (ret == false){
@@ -1006,7 +1001,7 @@ bool if_else(TokenStoragePtr stoken){
 
 
             ret = ret &&
-            t_else(stoken) &&
+            t_expect(stoken, ELSE) &&
             if_while_body(stoken);
 
             if (ret == false){
@@ -1064,7 +1059,7 @@ bool if_else(TokenStoragePtr stoken){
         }
 
         ret = ret &&
-        t_cl_bracket(stoken) &&
+        t_expect(stoken, CLOSING_BRACKET) &&
         if_while_body(stoken);
 
         if (ret == false){
@@ -1077,7 +1072,7 @@ bool if_else(TokenStoragePtr stoken){
         else_node->Data.NodeType = ELSE_NODE;
 
         ret = ret &&
-        t_else(stoken) &&
+        t_expect(stoken, ELSE) &&
         if_while_body(stoken);
 
         if (ret == false){
@@ -1110,8 +1105,8 @@ bool if_else(TokenStoragePtr stoken){
 
 bool cycle(TokenStoragePtr stoken){
     bool ret;
-    ret = t_while(stoken) &&
-    t_op_bracket(stoken);
+    ret = t_expect(stoken, WHILE) &&
+    t_expect(stoken, OPENING_BRACKET);
 
     if (ret == false){
         fprintf(stderr, "Syntax error\n");
@@ -1156,9 +1151,9 @@ bool cycle(TokenStoragePtr stoken){
 
 
             ret = ret &&
-            t_id(stoken) &&
-            t_cl_bracket(stoken) &&
-            t_vertical_bar(stoken);
+            t_expect(stoken, ID) &&
+            t_expect(stoken, CLOSING_BRACKET) &&
+            t_expect(stoken, VERTICAL_BAR);
 
             if (ret == false){
                 free(new->level_stack);
@@ -1184,8 +1179,8 @@ bool cycle(TokenStoragePtr stoken){
             Cond_node->Data.TableElement = var_id;
 
             ret = ret &&
-            t_id(stoken) && 
-            t_vertical_bar(stoken) &&
+            t_expect(stoken, ID) && 
+            t_expect(stoken, VERTICAL_BAR) &&
             if_while_body(stoken);
 
             if (ret == false){
@@ -1243,7 +1238,7 @@ bool cycle(TokenStoragePtr stoken){
             }
 
             ret = ret &&
-            t_cl_bracket(stoken) &&
+            t_expect(stoken, CLOSING_BRACKET) &&
             if_while_body(stoken);
 
             if (ret == false){
@@ -1300,7 +1295,7 @@ bool cycle(TokenStoragePtr stoken){
         }
 
         ret = ret &&
-        t_cl_bracket(stoken) &&
+        t_expect(stoken, CLOSING_BRACKET) &&
         if_while_body(stoken);
 
         if (ret == false){
@@ -1344,7 +1339,7 @@ bool e_return_exp(TokenStoragePtr stoken){
             fprintf(stderr, "Expression void return statement\n");
             exit(4);
         }
-        return t_semicolon(stoken);
+        return t_expect(stoken, SEMICOLON);
     }
 
     Elem_id *ret_fn = NULL;
@@ -1392,8 +1387,8 @@ bool e_return_exp(TokenStoragePtr stoken){
         new->Data.NodeType = EXPRESSION_NODE;
         new->Data.Token = copy_token(stoken->SToken);
         stoken->returned = true;
-        return t_null(stoken) &&
-        t_semicolon(stoken);
+        return t_expect(stoken, NULL_VALUE) &&
+        t_expect(stoken, SEMICOLON);
     }
 
     // returning id expression or string variable
@@ -1417,8 +1412,8 @@ bool e_return_exp(TokenStoragePtr stoken){
 
             stoken->returned = true;
             ret_var->FnVar.Var_id.used = true;
-            return t_id(stoken) &&
-            t_semicolon(stoken);
+            return t_expect(stoken, ID) &&
+            t_expect(stoken, SEMICOLON);
         }
         else {
             PrecResultPtr result = preced_analysis(stoken->SToken, false, stoken->level_stack, stoken->stack_size, stoken->local_table, stoken->queue);
@@ -1438,7 +1433,7 @@ bool e_return_exp(TokenStoragePtr stoken){
             stoken->returned = true;
             // Connecting expression to the main tree
             TreeElementConnect(stoken->current_node, result->Tree);
-            return t_semicolon(stoken);
+            return t_expect(stoken, SEMICOLON);
         }
     }
 
@@ -1461,7 +1456,7 @@ bool e_return_exp(TokenStoragePtr stoken){
         stoken->returned = true;
         // Connecting expression to the main tree
         TreeElementConnect(stoken->current_node, result->Tree);
-        return t_semicolon(stoken);
+        return t_expect(stoken, SEMICOLON);
     }
 
     // Assigning string
@@ -1481,7 +1476,7 @@ bool fn_return(TokenStoragePtr stoken){
     new_node->Data.NodeType = RETURN_NODE;
     stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
-    ret = t_return(stoken) &&
+    ret = t_expect(stoken, RETURN) &&
     e_return_exp(stoken);
 
     stoken->current_node = stoken->current_node->DadNode;
@@ -1566,16 +1561,16 @@ bool fn_body(TokenStoragePtr stoken){ // Main switchboard
 }
 
 bool l_type(TokenStoragePtr stoken){
-    return t_nullable(stoken) &&
-    t_type_keyword(stoken);
+    return t_expect(stoken, NULLABLE) &&
+    t_type_keyword(stoken, NULL);
 }
 
 bool params(TokenStoragePtr stoken){
     if (stoken->SToken->type == ID){
-        return t_id(stoken) &&
-        t_colon(stoken) &&
+        return t_expect(stoken, ID) &&
+        t_expect(stoken, COLON) &&
         l_type(stoken) &&
-        t_comma(stoken) &&
+        t_expect(stoken, COMMA) &&
         params(stoken);
     }
     else {
@@ -1585,7 +1580,7 @@ bool params(TokenStoragePtr stoken){
 
 bool l_type_fndef(TokenStoragePtr stoken){
     if (stoken->SToken->type == VOID){
-        return t_void(stoken);
+        return t_expect(stoken, VOID);
     }
     else {
         return l_type(stoken);
@@ -1593,39 +1588,40 @@ bool l_type_fndef(TokenStoragePtr stoken){
 }
 
 bool fn_def(TokenStoragePtr stoken){
-    return t_pub(stoken) &&
-    t_fn(stoken) &&
+    return t_expect(stoken, PUB) &&
+    t_expect(stoken, FN) &&
     t_id_fn(stoken) && // Setting stoken
-    t_op_bracket(stoken) &&
+    t_expect(stoken, OPENING_BRACKET) &&
     params(stoken) && // Does just syntactic checks in the second walkthrough
-    t_cl_bracket(stoken) &&
+    t_expect(stoken, CLOSING_BRACKET) &&
     l_type_fndef(stoken); // Just syntactic check
 }
 
 bool functions(TokenStoragePtr stoken){
     static int node_counter = 0;
     if (stoken->SToken->type == END_OF_FILE) {
-        return t_eof(stoken); // End of file
+        return t_expect(stoken, END_OF_FILE); // End of program
     }
     else {
         bool ret;
-        if (stoken->current_fn != NULL){ // Reseting stoken
-            free(stoken->current_fn);
-            stoken->current_fn = NULL;
-            free(stoken->level_stack);
-            stoken->local_table = NULL;
-            stoken->returned = false;
-            stoken->level_stack = NULL;
-            stoken->stack_size = 0;
-            stoken->last_poped = 0;
-        }
+        free(stoken->current_fn);
+        stoken->current_fn = NULL;
+        free(stoken->level_stack);
+        stoken->level_stack = NULL;
+        stoken->local_table = NULL;
+        stoken->returned = false;
+        stoken->level_stack = NULL;
+        stoken->stack_size = 0;
+        stoken->last_poped = 0;
+
         // Setting current tree node
         stoken->current_node = stoken->current_node->Node[node_counter];
         node_counter++;
+
         ret = fn_def(stoken) && // Setting stoke context
-        t_op_cr_bracket(stoken) &&
+        t_expect(stoken, OPENING_CURLY_BRACKET) &&
         fn_body(stoken) && // Main syntax and sematics validation
-        t_cl_cr_bracket(stoken);
+        t_expect(stoken, CLOSING_CURLY_BRACKET);
 
         if (ret == false){ // Syntax check
             syn_error(stoken);
@@ -1658,18 +1654,18 @@ bool functions(TokenStoragePtr stoken){
     }
 }
 
-bool import_def(TokenStoragePtr stoken){ // Only syntax analysis
-    return t_const(stoken) &&
-    t_ifj(stoken) &&
-    t_eq(stoken) &&
-    t_at_import(stoken) &&
-    t_op_bracket(stoken) &&
+bool import_def(TokenStoragePtr stoken){ // Only syntax checks, sematics were done in first go through
+    return t_expect(stoken, CONST) &&
+    t_expect(stoken, IFJ) &&
+    t_expect(stoken, ASSIGN) &&
+    t_expect(stoken, IMPORT) &&
+    t_expect(stoken, OPENING_BRACKET) &&
     t_string_prolog(stoken) &&
-    t_cl_bracket(stoken) &&
-    t_semicolon(stoken);
+    t_expect(stoken, CLOSING_BRACKET) &&
+    t_expect(stoken, SEMICOLON);
 }
 
-bool start(TokenStoragePtr stoken){
+bool start(TokenStoragePtr stoken){ // Starting point
     return import_def(stoken) && functions(stoken);
 }
 
@@ -1677,43 +1673,37 @@ int main(){
     bool result = false;
     TokenStoragePtr stoken = malloc(sizeof(TokenStorage));
     if (stoken == NULL){
-        exit(99);
+        throw_error(99);
     }
 
-    Queue *queue;
-    SymTable *glob_table;
-    SymTable *ifj_table;
-    // Tables init
-    queue = queue_init();
-    glob_table = TableInit();
-    ifj_table = TableInit();
+    // Table and queue init
+    stoken->queue = queue_init();
+    stoken->glob_table = TableInit();
+    stoken->ifj_table = TableInit();
+    stoken->current_fn = NULL;
 
     // Tree init
     TreeElement *tree_root;
-    TreeRootPtr x = TreeInit();
-    tree_root = x->Root;
+    TreeRootPtr t_init = TreeInit();
+    tree_root = t_init->Root;
     tree_root->Data.NodeType = ROOT_NODE;
 
-    stoken->queue = queue;
-    stoken->glob_table = glob_table;
-    stoken->ifj_table = ifj_table;
-    stoken->current_fn = NULL;
-
+    // filling the queue and the first go through
     queue_fill(stoken, tree_root);
 
     // Searching for main, if not defined exit
     Elem_id *tmp = TableSearch("main", NULL, 0, stoken->glob_table);
-    if (tmp == NULL){
-        fprintf(stderr, "Main not defined\n");
-        exit(3);
+    if (tmp == NULL){ 
+        throw_error(3); // Main is not defined
     }
     else if (tmp->FnVar.Fn_id.return_type.type != VOID || tmp->FnVar.Fn_id.num_of_params != 0){
-        fprintf(stderr, "Main has wrong params\n");
-        exit(4);
+        throw_error(4); // Main has wrong params
     }
 
+    // Filling the ifj table
     ifj_table_fill(stoken);
 
+    // Setting fresh context for the second go through
     free(stoken->current_fn);
     stoken->current_fn = NULL;
     stoken->returned = false;
@@ -1722,8 +1712,9 @@ int main(){
     stoken->stack_size = 0;
     stoken->last_poped = 0;
     stoken->current_node = tree_root;
-    stoken->SToken = queue_next_token(queue);
+    stoken->SToken = queue_next_token(stoken->queue);
 
+    // Second go through
     result = start(stoken);
 
     gen_code(tree_root);
@@ -1732,7 +1723,9 @@ int main(){
         fprintf(stderr, "syntax error\n");
         exit(2);
     }
-    TableClear(ifj_table, FUNCTION);
+
+    // Freeing everything
+    TableClear(stoken->ifj_table, FUNCTION);
     dealloc_stoken(stoken);
 }
 

@@ -7,6 +7,7 @@
 
 typedef TokenPtr *Queue_t;
 
+// Queue struct
 typedef struct {
     Queue_t Queue_act;
     int Queue_size;
@@ -33,16 +34,22 @@ typedef struct{
     int last_poped;
 }TokenStorage, *TokenStoragePtr;
 
+// Adds token to the queue
 void queue_add_token(Queue *queue, TokenPtr token);
 
+// Gets token from the queue
 TokenPtr queue_next_token(Queue *queue);
 
+// Frees the queue
 void queue_free(Queue *queue);
 
+// Creates the queue
 Queue *queue_init();
 
+// Function to start the first go through
 void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node);
 
+// Function to fill the ifj table
 void ifj_table_fill(TokenStoragePtr stoken);
 
 #endif

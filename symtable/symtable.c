@@ -9,6 +9,7 @@
 #include <strings.h>
 
 #include "symtable.h"
+#include "../errors/error.h"
 
 bool copy_levels(int *level1, int **level2, int level_size){
     if (level1 == NULL){
@@ -53,15 +54,16 @@ SymTable *TableInit(){
     return SymTable;
 }
 
-Elem_id *TableSearch(char *key, int *level, int level_size, SymTable *Table){
-    int index = HashFn(key, level, level_size);
+Elem_id *TableSearch(char *key, int *level_stack, int level_size, SymTable *Table){
+    int index = HashFn(key, level_stack, level_size);
     int searched = 0;
-    while (!(Table[index] != NULL && !strcmp(key, Table[index]->name) && level_size == Table[index]->stack_size && compare_levels(level, Table[index]->level_stack, Table[index]->stack_size))){
+    // Searches until not found, name must match and level_stack must match
+    while (!(Table[index] != NULL && !strcmp(key, Table[index]->name) && level_size == Table[index]->stack_size && compare_levels(level_stack, Table[index]->level_stack, Table[index]->stack_size))){
         if (searched == TABLE_SIZE && level_size == 0){ // Table is full
-            return NULL;
+            throw_error(99);
         }
-        if (searched == TABLE_SIZE){ // Table is full
-            return TableSearch(key, level, level_size - 1, Table);
+        if (searched == TABLE_SIZE){ // If not found on this level, try one level bellow (This tries all the levels)
+            return TableSearch(key, level_stack, level_size - 1, Table);
         }
         index = (index + 1) % TABLE_SIZE;
         searched++;
@@ -69,40 +71,23 @@ Elem_id *TableSearch(char *key, int *level, int level_size, SymTable *Table){
     return Table[index];
 }
 
-bool TableAdd(Elem_id Elem,SymTable *Table){
-    int index = HashFn(Elem.name, Elem.level_stack, Elem.stack_size);
+Elem_id *TableAdd(char *key, int *level_stack, int stack_size, SymTable *Table){
+    int index = HashFn(key, level_stack, stack_size);
     int searched = 0;
     while (Table[index] != NULL){
         if (searched == TABLE_SIZE){ // Table is full
-            return false;
+            throw_error(99);
         }
-        if(!strcmp(Elem.name, Table[index]->name) && Elem.stack_size == Table[index]->stack_size && compare_levels(Elem.level_stack, Table[index]->level_stack, Elem.stack_size)){ // Elem alredy in the table
-            Table[index]->Type = Elem.Type;
-            if (Table[index]->Type == VARIABLE){
-                Table[index]->FnVar = Elem.FnVar;
-            }
-            else {
-                Elem_id **tmp = Table[index]->FnVar.Fn_id.LocalSymTable;
-                Table[index]->FnVar = Elem.FnVar;
-                if (Elem.FnVar.Fn_id.LocalSymTable == NULL){ // If LocalTable is set to NULL, save the initialized Table
-                    Table[index]->FnVar.Fn_id.LocalSymTable = tmp;
-                }
-            }
-            return true;
+        if(!strcmp(key, Table[index]->name) && stack_size == Table[index]->stack_size && compare_levels(level_stack, Table[index]->level_stack, stack_size)){
+            // If the element is already in the table, Its always a redefinition of a variable/func
+            throw_error(5);
         }
-
         index = (index + 1) % TABLE_SIZE;
         searched++;
-
     }
+
     Elem_id *IdAdd = malloc(sizeof(Elem_id));
-    IdAdd->name = strdup(Elem.name);
-    copy_levels( Elem.level_stack, &IdAdd->level_stack, Elem.stack_size);
-    IdAdd->stack_size = Elem.stack_size;
-    IdAdd->Type = Elem.Type;
-    IdAdd->FnVar = Elem.FnVar;
-    Table[index] = IdAdd;
-    return true;
+    return Table[index]; // Returns a pointer to the new table entry, expecting the user to fill it
 }
 
 void TableClear(SymTable *Table, Type VarFn){
@@ -114,6 +99,7 @@ void TableClear(SymTable *Table, Type VarFn){
             if(Table[i] != NULL){
                 free(Table[i]->name);
                 free(Table[i]->FnVar.Fn_id.type_of_params);
+                free(Table[i]->FnVar.Fn_id.TableParams);
                 TableClear(Table[i]->FnVar.Fn_id.LocalSymTable, VARIABLE);
                 free(Table[i]);
             }

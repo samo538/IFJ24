@@ -1,12 +1,16 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+
 #include "../syntax/syntax.h"
 #include "../lexer/lexer.h"
+#include "../lexer/token.h"
+#include "../syntax/syntax_types.h"
+#include "../errors/error.h"
 #include "queue_fill.h"
 
-bool t_pub_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == PUB){
+bool q_expect(TokenStoragePtr stoken, enum TokenType type){
+    if (stoken->SToken->type == type){
         queue_add_token(stoken->queue, stoken->SToken);
         stoken->SToken = next_token();
         return true;
@@ -17,90 +21,14 @@ bool t_pub_q(TokenStoragePtr stoken){
     }
 }
 
-bool t_fn_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == FN){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_cl_bracket_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == CLOSING_BRACKET){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_colon_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == COLON){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_comma_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == COMMA){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_op_bracket_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == OPENING_BRACKET){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_op_sq_bracket_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == OPENING_SQUARE_BRACKET){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_cl_sq_bracket_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == CLOSING_SQUARE_BRACKET){
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-bool t_u8_q(TokenStoragePtr stoken, bool ret){
+bool q_u8(TokenStoragePtr stoken, Elem_id *new){
     if (stoken->SToken->type == U8){
         Elem_id *tmp;
         tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
-        if (ret == false){
+        if (new != NULL){
             tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = U8;
+            new->FnVar.Var_id.type.type = U8;
         }
         else{
             tmp->FnVar.Fn_id.return_type.type = U8;
@@ -115,10 +43,9 @@ bool t_u8_q(TokenStoragePtr stoken, bool ret){
         return false;
     }
 }
-bool t_void_q(TokenStoragePtr stoken){
+bool q_void(TokenStoragePtr stoken){
     if (stoken->SToken->type == VOID){
-        Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
+        Elem_id *tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
         tmp->FnVar.Fn_id.return_type.type = VOID;
 
@@ -127,51 +54,91 @@ bool t_void_q(TokenStoragePtr stoken){
         return true;
     }
     else{
-        syn_error(stoken);
-        return false;
+        throw_error(2);
     }
 }
-bool t_id_func_q(TokenStoragePtr stoken, Elem_id **TableElement){
-    if (stoken->SToken->type == ID){
-        if(TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table) != NULL){
-            fprintf(stderr, "double fn def\n");
-            exit(5);
+
+
+
+bool q_nullable(TokenStoragePtr stoken, Elem_id *new){
+    if (stoken->SToken->type == NULLABLE){
+        Elem_id *tmp = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
+
+        if (new != NULL){
+            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].nullable = true;
+            new->FnVar.Var_id.type.nullable = true;
+        }
+        else{
+            tmp->FnVar.Fn_id.return_type.nullable = true;
         }
 
-        Elem_id elem; // Creation of an element
-        elem.Type = FUNCTION;
-        elem.name = stoken->SToken->value.str;
-        elem.level_stack = NULL;
-        elem.stack_size = 0;
-        elem.FnVar.Fn_id.num_of_params = 0;
-        elem.FnVar.Fn_id.type_of_params = NULL;
-        elem.FnVar.Fn_id.TableParams = NULL;
-        elem.FnVar.Fn_id.return_type.nullable = false; // Implicit nullable false
-        elem.FnVar.Fn_id.LocalSymTable = TableInit();
-
-        TableAdd(elem, stoken->glob_table); // Adding and element to the symtable
-        *TableElement = TableSearch(stoken->SToken->value.str, NULL, 0, stoken->glob_table);
-
-        if (stoken->current_fn != NULL){ // Setting new current fn
-            free(stoken->current_fn);
-        }
-        stoken->current_fn = strdup(stoken->SToken->value.str);
-
-        queue_add_token(stoken->queue, stoken->SToken); // adding token to queue
+        queue_add_token(stoken->queue, stoken->SToken);
         stoken->SToken = next_token();
         return true;
     }
     else{
-        syn_error(stoken);
-        return false;
+        return true;
+    }
+}
+bool q_type_keyword(TokenStoragePtr stoken, Elem_id *new){
+    Elem_id *tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
+
+    if (stoken->SToken->type == OPENING_SQUARE_BRACKET){
+        new->FnVar.Var_id.type.type = U8;
+        return q_expect(stoken, OPENING_SQUARE_BRACKET) &&
+        q_expect(stoken, CLOSING_SQUARE_BRACKET) &&
+        q_u8(stoken, new);
+    }
+    else if (stoken->SToken->type == F64){
+        if (new != NULL){
+            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = F64;
+            new->FnVar.Var_id.type.type = F64;
+        }
+        else{
+            tmp->FnVar.Fn_id.return_type.type = F64;
+        }
+
+        queue_add_token(stoken->queue, stoken->SToken);
+        stoken->SToken = next_token();
+        return true;
+    }
+    else if (stoken->SToken->type == I32){
+        if (new != NULL){
+            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = I32;
+            new->FnVar.Var_id.type.type = I32;
+        }
+        else{
+            tmp->FnVar.Fn_id.return_type.type = I32;
+        }
+
+        queue_add_token(stoken->queue, stoken->SToken);
+        stoken->SToken = next_token();
+        return true;
+    }
+    else{
+        throw_error(2);
     }
 }
 
-bool t_id_param_q(TokenStoragePtr stoken, Elem_id *new){
-    if (stoken->SToken->type == ID){
-        Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, NULL,0, stoken->glob_table);
+bool q_type_param(TokenStoragePtr stoken, Elem_id *new){
+    return q_nullable(stoken, new) &&
+    q_type_keyword(stoken, new);
+}
 
+bool l_type_fndef_q(TokenStoragePtr stoken){
+    if (stoken->SToken->type == VOID){
+        return q_void(stoken);
+    }
+    else {
+        return q_type_param(stoken, NULL);
+    }
+}
+
+bool q_id_param(TokenStoragePtr stoken, Elem_id *new){
+    if (stoken->SToken->type == ID){
+        Elem_id *tmp = TableSearch(stoken->current_fn, NULL,0, stoken->glob_table);
+
+        // Setting the name of the variable
         new->name = strdup(stoken->SToken->value.str);
 
         // Adding the number of params and their type
@@ -184,204 +151,93 @@ bool t_id_param_q(TokenStoragePtr stoken, Elem_id *new){
         return true;
     }
     else{
-        syn_error(stoken);
-        return false;
+        throw_error(2);
     }
 }
 
-bool t_nullable_q(TokenStoragePtr stoken, bool ret){
-    if (stoken->SToken->type == NULLABLE){
-        Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
-        if (ret == false){
-            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].nullable = true;
-        }
-        else{
-            tmp->FnVar.Fn_id.return_type.nullable = true;
-        }
-
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        return true;
-    }
-}
-bool t_type_keyword_q(TokenStoragePtr stoken, bool ret){
-    if (stoken->SToken->type == OPENING_SQUARE_BRACKET){
-        return t_op_sq_bracket_q(stoken) &&
-        t_cl_sq_bracket_q(stoken) &&
-        t_u8_q(stoken, ret);
-    }
-    else if (stoken->SToken->type == F64){
-        Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
-
-        if (ret == false){
-            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = F64;
-        }
-        else{
-            tmp->FnVar.Fn_id.return_type.type = F64;
-        }
-
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else if (stoken->SToken->type == I32){
-        Elem_id *tmp;
-        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
-
-        if (ret == false){
-            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = I32;
-        }
-        else{
-            tmp->FnVar.Fn_id.return_type.type = I32;
-        }
-
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-
-bool t_nullable_q_new(TokenStoragePtr stoken, bool ret, Elem_id *new){
-    if (stoken->SToken->type == NULLABLE){
-        Elem_id *tmp;
-        new->FnVar.Var_id.type.nullable = true;
-        tmp = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
-        if (ret == false){
-            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].nullable = true;
-        }
-        else{
-            tmp->FnVar.Fn_id.return_type.nullable = true;
-        }
-
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        return true;
-    }
-}
-bool t_type_keyword_q_new(TokenStoragePtr stoken, bool ret, Elem_id *new){
-    if (stoken->SToken->type == OPENING_SQUARE_BRACKET){
-        new->FnVar.Var_id.type.type = U8;
-        return t_op_sq_bracket_q(stoken) &&
-        t_cl_sq_bracket_q(stoken) &&
-        t_u8_q(stoken, ret);
-    }
-    else if (stoken->SToken->type == F64){
-        Elem_id *tmp;
-        new->FnVar.Var_id.type.type = F64;
-        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
-
-        if (ret == false){
-            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = F64;
-        }
-        else{
-            tmp->FnVar.Fn_id.return_type.type = F64;
-        }
-
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else if (stoken->SToken->type == I32){
-        Elem_id *tmp;
-        new->FnVar.Var_id.type.type = I32;
-        tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
-
-        if (ret == false){
-            tmp->FnVar.Fn_id.type_of_params[tmp->FnVar.Fn_id.num_of_params - 1].type = I32;
-        }
-        else{
-            tmp->FnVar.Fn_id.return_type.type = I32;
-        }
-
-        queue_add_token(stoken->queue, stoken->SToken);
-        stoken->SToken = next_token();
-        return true;
-    }
-    else{
-        syn_error(stoken);
-        return false;
-    }
-}
-
-bool l_type_q(TokenStoragePtr stoken, bool ret, Elem_id *new){
-    if (new == NULL){
-        return t_nullable_q(stoken, ret) &&
-        t_type_keyword_q(stoken, ret);
-    }
-    else {
-        return t_nullable_q_new(stoken, ret, new) &&
-        t_type_keyword_q_new(stoken, ret, new);
-    }
-}
-
-bool l_type_fndef_q(TokenStoragePtr stoken){
-    if (stoken->SToken->type == VOID){
-        return t_void_q(stoken);
-    }
-    else {
-        return l_type_q(stoken, true, NULL);
-    }
-}
-
-bool params_q(TokenStoragePtr stoken){
+bool q_params(TokenStoragePtr stoken){
     if (stoken->SToken->type == ID){
-        Elem_id *tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
+        Elem_id *tmp = TableSearch(stoken->current_fn, NULL, 0, stoken->glob_table);
         bool ret;
-        Elem_id *new = malloc(sizeof(Elem_id)); // Creating a new local element
-        new->Type = VARIABLE;
-        new->stack_size = 1; // Setting the stack
-        new->level_stack = malloc(sizeof(int));
-        new->level_stack[0] = 1;
-        new->FnVar.Var_id.type.type = END_OF_FILE; // Placeholder
-        new->FnVar.Var_id.type.nullable = false; // Implicit false
-        new->FnVar.Var_id.const_t = true;
-        new->FnVar.Var_id.used = false; // Variable not used by default
 
-        ret = t_id_param_q(stoken, new) &&
-        t_colon_q(stoken) &&
-        l_type_q(stoken, false, new) &&
-        t_comma_q(stoken);
+        // storing info about the variable here
+        Elem_id *info_var = malloc(sizeof(Elem_id)); // Creating a new local element
 
-        if (!ret){
-            printf("Syntax Error");
-            exit(2);
-        }
+        ret = q_id_param(stoken, info_var) &&
+        q_expect(stoken, COLON) &&
+        q_type_param(stoken, info_var) &&
+        q_expect(stoken, COMMA);
 
-        // Adding to local sym table and to function parameters
-        TableAdd(*new, tmp->FnVar.Fn_id.LocalSymTable);
+        check_ret(ret);
+
+        int *level_stack = malloc(sizeof(int));
+        level_stack[0] = 1;
+        Elem_id *new_var = TableAdd(info_var->name, level_stack, 1,tmp->FnVar.Fn_id.LocalSymTable);
+
+        new_var->name = strdup(info_var->name);
+        new_var->level_stack = level_stack;
+        new_var->stack_size = 1;
+        new_var->Type = VARIABLE;
+        new_var->FnVar = info_var->FnVar;
+        new_var->FnVar.Var_id.const_t = true; // function parameters are const
+        new_var->FnVar.Var_id.used = false; // function parameters are const
+
+        // Adding to the TableParams
         tmp->FnVar.Fn_id.TableParams = realloc(tmp->FnVar.Fn_id.TableParams, sizeof(Elem_id *) * tmp->FnVar.Fn_id.num_of_params);
-        tmp->FnVar.Fn_id.TableParams[tmp->FnVar.Fn_id.num_of_params - 1] = TableSearch(new->name, new->level_stack, new->stack_size, tmp->FnVar.Fn_id.LocalSymTable);
-        free(new->name);
-        free(new->level_stack);
-        free(new);
+        tmp->FnVar.Fn_id.TableParams[tmp->FnVar.Fn_id.num_of_params - 1] = new_var;
 
+        // Freeing the allocated memory
+        free(info_var->name);
+        free(info_var->level_stack);
+        free(info_var);
 
         return ret &&
-        params_q(stoken);
+        q_params(stoken);
     }
     else {
         return true;
+    }
+}
+
+bool q_id_func(TokenStoragePtr stoken, Elem_id **TableElement){
+    if (stoken->SToken->type == ID){
+        Elem_id *new_fn; // Creation of an element
+
+        // TableAdd also checks for redefinitions
+        new_fn = TableAdd(stoken->SToken->value.str, NULL, 0, stoken->glob_table); // Adding and element to the symtable
+
+        // Fills the new element
+        new_fn->Type = FUNCTION;
+        new_fn->name = strdup(stoken->SToken->value.str);
+        new_fn->level_stack = NULL;
+        new_fn->stack_size = 0;
+        new_fn->FnVar.Fn_id.num_of_params = 0;
+        new_fn->FnVar.Fn_id.type_of_params = NULL;
+        new_fn->FnVar.Fn_id.TableParams = NULL;
+        new_fn->FnVar.Fn_id.return_type.nullable = false; // Implicit nullable false
+        new_fn->FnVar.Fn_id.LocalSymTable = TableInit();
+
+        // Adding to tree
+        *TableElement = new_fn;
+
+        free(stoken->current_fn); // Free on NULL does nothing
+        stoken->current_fn = strdup(stoken->SToken->value.str);
+
+        queue_add_token(stoken->queue, stoken->SToken); // adding token to queue
+        stoken->SToken = next_token();
+        return true;
+    }
+    else{
+        throw_error(2);
     }
 }
 
 bool fn_def_q(TokenStoragePtr stoken, Elem_id **table_element){
-    return t_pub_q(stoken) &&
-    t_fn_q(stoken) &&
-    t_id_func_q(stoken, table_element) &&
-    t_op_bracket_q(stoken) &&
-    params_q(stoken) &&
-    t_cl_bracket_q(stoken) &&
+    return q_expect(stoken, PUB) &&
+    q_expect(stoken, FN) &&
+    q_id_func(stoken, table_element) &&
+    q_expect(stoken, OPENING_BRACKET) &&
+    q_params(stoken) &&
+    q_expect(stoken, CLOSING_BRACKET) &&
     l_type_fndef_q(stoken);
 }

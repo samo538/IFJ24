@@ -10,12 +10,14 @@
 
 #include "../lexer/lexer.h"
 
+#include "../errors/error.h"
+
 #define SIZE_IFJ_FN 13
 
 void queue_add_token(Queue *queue, TokenPtr token){
     queue->Queue_act = realloc(queue->Queue_act, sizeof(TokenPtr) * (queue->Queue_size + 1));
     if (queue->Queue_act == NULL){
-        //TODO error
+        throw_error(99);
     }
     queue->Queue_act[queue->Queue_size] = token;
     queue->Queue_size++;
@@ -24,8 +26,7 @@ void queue_add_token(Queue *queue, TokenPtr token){
 TokenPtr queue_next_token(Queue *queue){
     static int counter = 0;
     if (queue->Queue_size <= counter){
-        printf("invalid read\n"); //TODO real error
-        return NULL;
+        throw_error(99);
     }
     TokenPtr tmp = queue->Queue_act[counter];
     counter++;
@@ -53,19 +54,18 @@ void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
         if (tmp->type == PUB){
             stoken->SToken = tmp;
 
-            TreeElement *new;
-            new = TreeInsert(tree_node, NULL);
-            if (new == NULL){
-                fprintf(stderr, "something went wrong\n");
-                exit(99);
+            // New tree element representing the top function
+            TreeElement *new_node = TreeInsert(tree_node, NULL);
+            if (new_node == NULL){
+                throw_error(99);
             }
-            new->Data.NodeType = TOP_FUNCTION_NODE;
+            new_node->Data.NodeType = TOP_FUNCTION_NODE;
 
-            fn_def_q(stoken, &new->Data.TableElement);
+            fn_def_q(stoken, &new_node->Data.TableElement); // First go through
             queue_add_token(stoken->queue, stoken->SToken); // Add the last token
+
             if (stoken->SToken->type == END_OF_FILE){
-                fprintf(stderr, "syntax error\n");
-                exit(2);
+                throw_error(2);
             }
         }
         else{
@@ -151,22 +151,21 @@ void ifj_table_fill(TokenStoragePtr stoken){
     {U8, I32},
     {I32}};
 
-    Elem_id tmp;
-    tmp.Type = FUNCTION;
-    tmp.stack_size = 0;
-    tmp.level_stack = NULL;
-    tmp.FnVar.Fn_id.LocalSymTable = NULL;
+    // Entering the ifj functions into the special table
     for (int i = 0; i < SIZE_IFJ_FN; i++){
-        tmp.name = embededfunctions[i];
-        tmp.FnVar.Fn_id.return_type.type = ret_type[i];
-        tmp.FnVar.Fn_id.return_type.nullable = ret_type_null[i];
-        tmp.FnVar.Fn_id.num_of_params = num_param[i];
-        tmp.FnVar.Fn_id.type_of_params = malloc(sizeof(Id_type) * num_param[i]);
+        Elem_id *new_ifj = TableAdd(embededfunctions[i], NULL, 0, stoken->ifj_table);
+        new_ifj->Type = FUNCTION;
+        new_ifj->stack_size = 0;
+        new_ifj->level_stack = NULL;
+        new_ifj->FnVar.Fn_id.LocalSymTable = NULL;
+        new_ifj->name = strdup(embededfunctions[i]);
+        new_ifj->FnVar.Fn_id.return_type.type = ret_type[i];
+        new_ifj->FnVar.Fn_id.return_type.nullable = ret_type_null[i];
+        new_ifj->FnVar.Fn_id.num_of_params = num_param[i];
+        new_ifj->FnVar.Fn_id.type_of_params = malloc(sizeof(Id_type) * num_param[i]);
         for (int j = 0; j < num_param[i]; j++){
-            tmp.FnVar.Fn_id.type_of_params[j].nullable = false;
-            tmp.FnVar.Fn_id.type_of_params[j].type = param_type[i][j];
+            new_ifj->FnVar.Fn_id.type_of_params[j].nullable = false;
+            new_ifj->FnVar.Fn_id.type_of_params[j].type = param_type[i][j];
         }
-        TableAdd(tmp, stoken->ifj_table);
-        //free(tmp.FnVar.Fn_id.type_of_params);
     }
 }
