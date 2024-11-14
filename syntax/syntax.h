@@ -1,3 +1,8 @@
+/**
+ *  @file syntax.h
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
+
 #ifndef SYNTAX_H
 #define SYNTAX_H
 

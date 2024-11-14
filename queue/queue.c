@@ -1,3 +1,7 @@
+/**
+ *  @file queue.c
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,11 +9,8 @@
 
 #include "queue.h"
 #include "queue_fill.h"
-
 #include "../tree/tree.h"
-
 #include "../lexer/lexer.h"
-
 #include "../errors/error.h"
 
 #define SIZE_IFJ_FN 13
@@ -50,6 +51,7 @@ Queue *queue_init(){
 
 void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
     TokenPtr tmp;
+    bool ret;
     while ((tmp = next_token())->type != END_OF_FILE){
         if (tmp->type == PUB){
             stoken->SToken = tmp;
@@ -61,7 +63,8 @@ void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
             }
             new_node->Data.NodeType = TOP_FUNCTION_NODE;
 
-            fn_def_q(stoken, &new_node->Data.TableElement); // First go through
+            ret = fn_def_q(stoken, &new_node->Data.TableElement); // First go through
+            check_ret(ret);
             queue_add_token(stoken->queue, stoken->SToken); // Add the last token
 
             if (stoken->SToken->type == END_OF_FILE){
@@ -72,7 +75,7 @@ void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
             queue_add_token(stoken->queue, tmp);
         }
     }
-    queue_add_token(stoken->queue, tmp);
+    queue_add_token(stoken->queue, tmp); // Adds the END_OF_FILE token
 }
 
 void ifj_table_fill(TokenStoragePtr stoken){

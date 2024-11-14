@@ -1,3 +1,7 @@
+/**
+ *  @file queue_fill.h
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 #ifndef QUEUE_FILL
 #define QUEUE_FILL
 

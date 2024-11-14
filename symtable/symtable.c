@@ -1,7 +1,7 @@
-/*
-*   file: Symtable
-*   Author: Samuel Luptak
-*/
+/**
+ *  @file symtable.c
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 
 #include <stdbool.h>
 #include <stdlib.h>

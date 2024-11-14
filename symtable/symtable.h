@@ -1,3 +1,7 @@
+/**
+ *  @file symtable.h
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
 

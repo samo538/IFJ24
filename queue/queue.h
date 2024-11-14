@@ -1,3 +1,7 @@
+/**
+ *  @file queue.h
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 #ifndef QUEUE_H
 #define QUEUE_H
 

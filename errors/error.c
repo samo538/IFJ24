@@ -1,3 +1,7 @@
+/**
+ *  @file error.c
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

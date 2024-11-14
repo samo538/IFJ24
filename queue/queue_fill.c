@@ -1,8 +1,11 @@
+/**
+ *  @file queue_fill.c
+ *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
+ */
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "../syntax/syntax.h"
 #include "../lexer/lexer.h"
 #include "../lexer/token.h"
 #include "../errors/error.h"
@@ -84,7 +87,9 @@ bool q_type_keyword(TokenStoragePtr stoken, Elem_id *new){
     Elem_id *tmp = TableSearch(stoken->current_fn,NULL, 0, stoken->glob_table);
 
     if (stoken->SToken->type == OPENING_SQUARE_BRACKET){
-        new->FnVar.Var_id.type.type = U8;
+        if (new != NULL){
+            new->FnVar.Var_id.type.type = U8;
+        }
         return q_expect(stoken, OPENING_SQUARE_BRACKET) &&
         q_expect(stoken, CLOSING_SQUARE_BRACKET) &&
         q_u8(stoken, new);
