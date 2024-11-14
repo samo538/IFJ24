@@ -3,10 +3,11 @@
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
  */
+#include <string.h>
 
 #include"lexer.h"
 #include "token.h"
-#include <string.h>
+#include "../errors/error.h"
 
 const char* tokenTypeKeywords[]= {
 	"const",
@@ -26,16 +27,14 @@ const char* tokenTypeKeywords[]= {
 };
 
 void lexer_error() {
-	fprintf(stderr, "lexer error\n");
-	exit(1);
+	throw_error(1);
 }
 
 Token *copy_token(Token *old_token){
 	Token *new_token;
 	new_token = malloc(sizeof(Token));
 	if (new_token == NULL){
-		fprintf(stderr, "something went wrong\n");
-		exit(99);
+		throw_error(99);
 	}
 	new_token->type = old_token->type;
 	new_token->value = old_token->value;
