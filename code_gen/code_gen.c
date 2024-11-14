@@ -11,6 +11,7 @@ int substring_counter = 0;
 
 void gen_code(TreeElementPtr tree) {
     printf(".IFJcode24\n");
+    printf("DEFVAR GF@_\n");
 
     //find main
     TreeElementPtr main = tree->Node[0];
@@ -240,9 +241,9 @@ void gen_return(TreeElementPtr tree, bool isMain) {
     }
 
     printf("POPFRAME\n");
-    if(isMain) {
+    if(isMain) {//if RETURN was used in main -> ERROR
         printf("EXIT int@0\n");
-    } else {
+    } else {//if EXIT was used in func -> end of program
         printf("RETURN\n");
     }
 }
@@ -781,7 +782,15 @@ char* get_var_name(TreeElementPtr tree) {
     if (name == NULL) {
         exit(99);
     }
+
+    if(tree->Data.TableElement == NULL && tree->Data.Token->type == UNDERSCORE) { //checks for _ var
+    	strcpy(name,"GF@_");
+
+	return name;
+    }
+
     strcpy(name,"LF@var");
+    //concats all layers into variable name
     for(int i=0;i < tree->Data.TableElement->stack_size;i++) {
         char layer[10];
         sprintf(layer,"%d",tree->Data.TableElement->level_stack[i]);
@@ -793,7 +802,7 @@ char* get_var_name(TreeElementPtr tree) {
     return name;
 }
 
-char* get_var_name_from_table(Elem_id* tableElement) {
+char* get_var_name_from_table(Elem_id* tableElement) { //used only when generation func parametrs -> no need for _
     char* name = (char*)malloc(sizeof(char)*256);
     if (name == NULL) {
         exit(99);
