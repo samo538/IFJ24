@@ -1,0 +1,58 @@
+.IFJcode24
+DEFVAR GF@_
+CREATEFRAME
+PUSHFRAME
+WRITE string@Zadejte\032cislo\032pro\032vypocet\032faktorialu\010
+DEFVAR LF@var1_a
+READ LF@var1_a int
+DEFVAR LF@var11_val
+MOVE LF@var11_val LF@var1_a
+LABEL if0
+JUMPIFEQ else0 nil@nil LF@var1_a
+LABEL if1
+PUSHS LF@var11_val
+PUSHS int@0
+LTS
+PUSHS bool@true
+JUMPIFNEQS else1
+WRITE string@Faktorial\032
+WRITE LF@var11_val
+WRITE string@\032nelze\032spocitat\010
+JUMP ifend1
+LABEL else1
+DEFVAR LF@var112_d
+INT2FLOAT LF@var112_d LF@var11_val
+DEFVAR LF@var112_vysl
+PUSHS float@0x1p+0
+POPS LF@var112_vysl
+LABEL while0
+PUSHS LF@var112_d
+PUSHS int@0
+INT2FLOATS
+GTS
+PUSHS bool@true
+JUMPIFNEQS whileend0
+PUSHS LF@var112_vysl
+PUSHS LF@var112_d
+MULS
+POPS LF@var112_vysl
+PUSHS LF@var112_d
+PUSHS float@0x1p+0
+SUBS
+POPS LF@var112_d
+JUMP  while0
+LABEL whileend0
+WRITE string@Vysledek:\032
+WRITE LF@var112_vysl
+WRITE string@\032=\032
+DEFVAR LF@var112_vysl_i32
+FLOAT2INT LF@var112_vysl_i32 LF@var112_vysl
+WRITE LF@var112_vysl_i32
+WRITE string@\010
+LABEL ifend1
+JUMP ifend0
+LABEL else0
+WRITE string@Faktorial\032pro\032null\032nelze\032spocitat\010
+LABEL ifend0
+POPFRAME
+EXIT int@0

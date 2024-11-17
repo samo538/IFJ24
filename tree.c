@@ -1,7 +1,12 @@
+/**
+ *  @file syntax.c
+ *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
+ */
+
 #include <stdlib.h>
 
 #include "tree.h"
-#include "../lexer/lexer.h"
+#include "lexer.h"
 
 TreeRootPtr TreeInit(void){
 

@@ -80,9 +80,10 @@ pub fn main() void {
         ifj.write("gecko zle nedasa cele zle\n");
     }
 
-    ifj.write(\\ahjklfwdegrs
+    ifj.write(\\testahjklfwdegrs
     \\aefshdgjvl
-    \\sdlfgkkjnds);
+    \\sdlfgkkjnds
+    );
 
 
 

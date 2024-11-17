@@ -1,2 +1,2 @@
 all:
-	gcc -g syntax/syntax.c lexer/lexer.c queue/queue.c symtable/symtable.c queue/queue_fill.c precedence/precedence.c tree/tree.c precedence/stack.c errors/error.c code_gen/code_gen.c -o compiler
+	gcc -g syntax.c lexer.c queue.c symtable.c queue_fill.c precedence.c tree.c stack.c error.c code_gen.c -o compiler

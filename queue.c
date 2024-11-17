@@ -9,9 +9,9 @@
 
 #include "queue.h"
 #include "queue_fill.h"
-#include "../tree/tree.h"
-#include "../lexer/lexer.h"
-#include "../errors/error.h"
+#include "tree.h"
+#include "lexer.h"
+#include "error.h"
 
 #define SIZE_IFJ_FN 13
 

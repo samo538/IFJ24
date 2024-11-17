@@ -1,5 +1,5 @@
 /**
- *  @file lexer/lexer.h
+ *  @file lexer.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  */
 #ifndef LEXER_H

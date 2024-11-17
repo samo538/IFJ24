@@ -9,7 +9,7 @@
 #include <strings.h>
 
 #include "symtable.h"
-#include "../errors/error.h"
+#include "error.h"
 
 bool copy_levels(int *level1, int **level2, int level_size){
     if (level1 == NULL){

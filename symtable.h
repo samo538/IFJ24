@@ -6,7 +6,7 @@
 #define SYMTABLE_H
 
 #include <stdbool.h>
-#include "../lexer/token.h"
+#include "token.h"
 
 // Static size, because the assingment said so
 #define TABLE_SIZE 1001

@@ -5,9 +5,9 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-#include "../lexer/token.h"
-#include "../symtable/symtable.h"
-#include "../tree/tree.h"
+#include "token.h"
+#include "symtable.h"
+#include "tree.h"
 
 typedef TokenPtr *Queue_t;
 

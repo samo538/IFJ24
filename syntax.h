@@ -6,8 +6,8 @@
 #ifndef SYNTAX_H
 #define SYNTAX_H
 
-#include "../lexer/token.h"
-#include "../queue/queue.h"
+#include "token.h"
+#include "queue.h"
 
 
 void syn_error(TokenStoragePtr stoken);

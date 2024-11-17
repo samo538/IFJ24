@@ -1,5 +1,5 @@
 /**
- *  @file precedence/precedence.h
+ *  @file precedence.h
  *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
  */
 
@@ -8,10 +8,10 @@
 
 #include <stdbool.h>
 
-#include "../tree/tree.h"
-#include "../lexer/token.h"
-#include "../symtable/symtable.h"
-#include "../queue/queue.h"
+#include "tree.h"
+#include "token.h"
+#include "symtable.h"
+#include "queue.h"
 
 typedef struct PrecResult
 {

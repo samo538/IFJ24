@@ -6,8 +6,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "../queue/queue.h"
-#include "../lexer/lexer.h"
+#include "queue.h"
+#include "lexer.h"
 #include "error.h"
 
 const char *err_message[] = {

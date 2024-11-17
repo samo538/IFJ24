@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "../lexer/lexer.h"
-#include "../lexer/token.h"
-#include "../errors/error.h"
+#include "lexer.h"
+#include "token.h"
+#include "error.h"
 #include "queue_fill.h"
 
 bool q_expect(TokenStoragePtr stoken, enum TokenType type){

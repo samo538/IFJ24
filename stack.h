@@ -1,5 +1,5 @@
 /**
- *  @file precedence/stack.h
+ *  @file stack.h
  *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
  */
 
@@ -8,8 +8,8 @@
 
 #include <stdbool.h>
 
-#include "../tree/tree.h"
-#include "../lexer/token.h"
+#include "tree.h"
+#include "token.h"
 
 typedef struct StackElement
 {

@@ -1,5 +1,5 @@
 /**
- *  @file precedence/stack.c
+ *  @file stack.c
  *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
  */
 

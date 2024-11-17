@@ -1,5 +1,5 @@
 /**
- *  @file precedence/precedence.c
+ *  @file precedence.c
  *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
  */
 
@@ -7,11 +7,11 @@
 
 #include "stack.h"
 #include "precedence.h"
-#include "../lexer/token.h"
-#include "../lexer/lexer.h"
-#include "../tree/tree.h"
-#include "../symtable/symtable.h"
-#include "../queue/queue.h"
+#include "token.h"
+#include "lexer.h"
+#include "tree.h"
+#include "symtable.h"
+#include "queue.h"
 
 enum PrecTable{
     TAKE_NEXT,

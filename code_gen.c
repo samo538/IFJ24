@@ -1,5 +1,5 @@
 /**
- *  @file code_gen/code_gen.c
+ *  @file code_gen.c
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
  */
@@ -174,7 +174,7 @@ void gen_while(TreeElementPtr tree, bool isMain) {
     }
 
     //find DEFINITION NODES and change to assign
-    for(int i = 0;i < tree->NodeCounter;i++) {
+    for(int i = 2;i < tree->NodeCounter;i++) {
         put_def_before_while(tree->Node[i]);
     }
 
@@ -784,9 +784,9 @@ char* get_var_name(TreeElementPtr tree) {
     }
 
     if(tree->Data.TableElement == NULL && tree->Data.Token->type == UNDERSCORE) { //checks for _ var
-    	strcpy(name,"GF@_");
+        strcpy(name,"GF@_");
 
-	return name;
+        return name;
     }
 
     strcpy(name,"LF@var");

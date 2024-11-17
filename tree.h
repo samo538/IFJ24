@@ -1,10 +1,15 @@
+/**
+ *  @file syntax.c
+ *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
+ */
+
 #ifndef TREE_H
 #define TREE_H
 
 #include <stdbool.h>
 
-#include "../lexer/token.h"
-#include "../symtable/symtable.h"
+#include "token.h"
+#include "symtable.h"
 
 enum NodeTypes{
     // Top nodes

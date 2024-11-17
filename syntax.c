@@ -9,14 +9,14 @@
 #include <string.h>
 
 #include "syntax.h"
-#include "../lexer/token.h"
-#include "../lexer/lexer.h"
-#include "../queue/queue.h"
-#include "../symtable/symtable.h"
-#include "../precedence/precedence.h"
-#include "../tree/tree.h"
-#include "../code_gen/code_gen.h"
-#include "../errors/error.h"
+#include "token.h"
+#include "lexer.h"
+#include "queue.h"
+#include "symtable.h"
+#include "precedence.h"
+#include "tree.h"
+#include "code_gen.h"
+#include "error.h"
 
 // expect function for simple syntax checks
 bool t_expect(TokenStoragePtr stoken, enum TokenType type){

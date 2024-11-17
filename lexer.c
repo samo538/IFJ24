@@ -1,5 +1,5 @@
 /**
- *  @file lexer/lexer.c
+ *  @file lexer.c
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
  */
@@ -7,7 +7,7 @@
 
 #include"lexer.h"
 #include "token.h"
-#include "../errors/error.h"
+#include "error.h"
 
 const char* tokenTypeKeywords[]= {
 	"const",
@@ -273,8 +273,13 @@ void choose_type(TokenPtr token, char input) {
       break;
     }
     case '\\': {
+			char c = getchar();
+			if(c != '\\') {
+				lexer_error();
+			}
+
       multi_line_string_type(token,input);
-       break;
+      break;
     }
 	}
 
@@ -355,7 +360,6 @@ void number_type(TokenPtr token, char input) {
 void multi_line_string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
-    input = getchar();
     input = getchar();
     token->value.str[0] = input;
     size_t length = 1;

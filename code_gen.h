@@ -1,5 +1,5 @@
 /**
- *  @file code_gen/code_gen.h
+ *  @file code_gen.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
  */
@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "../tree/tree.h"
+#include "tree.h"
 
 void gen_code(TreeElementPtr tree);
 void gen_main(TreeElementPtr main);

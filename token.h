@@ -1,5 +1,5 @@
 /**
- *  @file lexer/token.h
+ *  @file token.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @brief definice struktury tokenu
  */
