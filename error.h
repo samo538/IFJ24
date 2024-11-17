@@ -1,4 +1,5 @@
 /**
+ *  @project IFJ24
  *  @file error.h
  *  @author Samuel Luptak <xluptas00@stud.fit.vutbr.cz>
  */

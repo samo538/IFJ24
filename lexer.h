@@ -1,4 +1,5 @@
 /**
+ *  @project IFJ24
  *  @file lexer.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  */

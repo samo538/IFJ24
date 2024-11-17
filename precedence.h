@@ -1,4 +1,5 @@
 /**
+ *  @project IFJ24
  *  @file precedence.h
  *  @author Mario Klopan (xklopam00@stud.fit.vutbr.cz)
  */

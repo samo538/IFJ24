@@ -1,4 +1,5 @@
 /**
+ *  @project IFJ24
  *  @file code_gen.c
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
