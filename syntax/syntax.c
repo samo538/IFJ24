@@ -765,7 +765,8 @@ bool if_while_preced(TokenStoragePtr stoken, bool ifelse){
     stoken->current_node = stoken->current_node->Node[stoken->current_node->NodeCounter - 1];
 
     // Inserting Empty Node, because null cond is false
-    TreeInsert(stoken->current_node, NULL);
+    TreeElement *emptynode = TreeInsert(stoken->current_node, NULL);
+    emptynode->Data.NodeType = ID_NODE;
 
     // Inserting the expression
     TreeElementConnect(stoken->current_node, result->Tree);
