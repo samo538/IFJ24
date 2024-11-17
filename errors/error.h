@@ -5,7 +5,10 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-void throw_error(int type);
-void check_ret(bool ret);
+#include "../queue/queue.h"
+
+void throw_error(TokenStoragePtr stoken, int type);
+void check_ret(TokenStoragePtr stoken, bool ret);
+void garbage_collector(TokenStoragePtr stoken, bool err);
 
 #endif

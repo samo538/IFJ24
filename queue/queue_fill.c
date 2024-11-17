@@ -13,7 +13,7 @@
 
 bool q_expect(TokenStoragePtr stoken, enum TokenType type){
     if (stoken->SToken->type == END_OF_FILE){
-        throw_error(2);
+        throw_error(stoken, 2);
     }
     if (stoken->SToken->type == type){
         queue_add_token(stoken->queue, stoken->SToken);
@@ -21,7 +21,7 @@ bool q_expect(TokenStoragePtr stoken, enum TokenType type){
         return true;
     }
     else{
-        throw_error(2);
+        throw_error(stoken, 2);
     }
 }
 
@@ -43,7 +43,7 @@ bool q_u8(TokenStoragePtr stoken, Elem_id *new){
         return true;
     }
     else{
-        throw_error(2);
+        throw_error(stoken, 2);
     }
 }
 bool q_void(TokenStoragePtr stoken){
@@ -57,7 +57,7 @@ bool q_void(TokenStoragePtr stoken){
         return true;
     }
     else{
-        throw_error(2);
+        throw_error(stoken, 2);
     }
 }
 
@@ -121,7 +121,7 @@ bool q_type_keyword(TokenStoragePtr stoken, Elem_id *new){
         return true;
     }
     else{
-        throw_error(2);
+        throw_error(stoken, 2);
     }
 }
 
@@ -156,7 +156,7 @@ bool q_id_param(TokenStoragePtr stoken, Elem_id *new){
         return true;
     }
     else{
-        throw_error(2);
+        throw_error(stoken, 2);
     }
 }
 
@@ -173,7 +173,7 @@ bool q_params(TokenStoragePtr stoken){
         q_type_param(stoken, info_var) &&
         q_expect(stoken, COMMA);
 
-        check_ret(ret);
+        check_ret(stoken, ret);
 
         int *level_stack = malloc(sizeof(int));
         level_stack[0] = 1;
@@ -232,7 +232,7 @@ bool q_id_func(TokenStoragePtr stoken, Elem_id **TableElement){
         return true;
     }
     else{
-        throw_error(2);
+        throw_error(stoken, 2);
     }
 }
 

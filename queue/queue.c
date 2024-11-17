@@ -18,7 +18,7 @@
 void queue_add_token(Queue *queue, TokenPtr token){
     queue->Queue_act = realloc(queue->Queue_act, sizeof(TokenPtr) * (queue->Queue_size + 1));
     if (queue->Queue_act == NULL){
-        throw_error(99);
+        throw_error(NULL, 99);
     }
     queue->Queue_act[queue->Queue_size] = token;
     queue->Queue_size++;
@@ -27,7 +27,9 @@ void queue_add_token(Queue *queue, TokenPtr token){
 TokenPtr queue_next_token(Queue *queue){
     static int counter = 0;
     if (queue->Queue_size <= counter){
-        throw_error(99);
+        TokenPtr tmp = malloc(sizeof(Token));
+        tmp->type = END_OF_FILE;
+        return tmp;
     }
     TokenPtr tmp = queue->Queue_act[counter];
     counter++;
@@ -59,16 +61,16 @@ void queue_fill(TokenStoragePtr stoken, TreeElement *tree_node){
             // New tree element representing the top function
             TreeElement *new_node = TreeInsert(tree_node, NULL);
             if (new_node == NULL){
-                throw_error(99);
+                throw_error(NULL, 99);
             }
             new_node->Data.NodeType = TOP_FUNCTION_NODE;
 
             ret = fn_def_q(stoken, &new_node->Data.TableElement); // First go through
-            check_ret(ret);
+            check_ret(stoken, ret);
             queue_add_token(stoken->queue, stoken->SToken); // Add the last token
 
             if (stoken->SToken->type == END_OF_FILE){
-                throw_error(2);
+                throw_error(stoken, 2);
             }
         }
         else{
@@ -165,6 +167,7 @@ void ifj_table_fill(TokenStoragePtr stoken){
         new_ifj->FnVar.Fn_id.return_type.type = ret_type[i];
         new_ifj->FnVar.Fn_id.return_type.nullable = ret_type_null[i];
         new_ifj->FnVar.Fn_id.num_of_params = num_param[i];
+        new_ifj->FnVar.Fn_id.TableParams = NULL;
         new_ifj->FnVar.Fn_id.type_of_params = malloc(sizeof(Id_type) * num_param[i]);
         for (int j = 0; j < num_param[i]; j++){
             new_ifj->FnVar.Fn_id.type_of_params[j].nullable = false;

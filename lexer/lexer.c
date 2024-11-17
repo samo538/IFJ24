@@ -27,14 +27,14 @@ const char* tokenTypeKeywords[]= {
 };
 
 void lexer_error() {
-	throw_error(1);
+	throw_error(NULL,1);
 }
 
 Token *copy_token(Token *old_token){
 	Token *new_token;
 	new_token = malloc(sizeof(Token));
 	if (new_token == NULL){
-		throw_error(99);
+		throw_error(NULL ,99);
 	}
 	new_token->type = old_token->type;
 	new_token->value = old_token->value;

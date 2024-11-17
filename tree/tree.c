@@ -98,8 +98,8 @@ void TreeNodeDelete(TreeElementPtr node){
             TreeNodeDelete(node->Node[i]);
         }
 
-        dealloc_token(node->Data.Token);
-        
+        //dealloc_token(node->Data.Token);
+
         if(node->NodeCounter > 0){
             free(node->Node);
         }

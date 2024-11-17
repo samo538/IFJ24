@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "../queue/queue.h"
+#include "../lexer/lexer.h"
 #include "error.h"
 
 const char *err_message[] = {
@@ -22,41 +24,39 @@ const char *err_message[] = {
     "internal failure\n"
 };
 
-void throw_error(int type){
+void throw_error(TokenStoragePtr stoken, int type){
     if (type == 99){
         fprintf(stderr,"%s",err_message[10]);
         exit(type);
     }
 
     fprintf(stderr,"%s",err_message[type - 1]);
+    garbage_collector(stoken, true);
     exit(type);
 }
 
-void check_ret(bool ret){
+void check_ret(TokenStoragePtr stoken,bool ret){
     if (!ret){
-        throw_error(2);
+        throw_error(stoken ,2);
     }
 }
 
-/*void garbage_collector(TokenStoragePtr stoken){
+void garbage_collector(TokenStoragePtr stoken, bool err){
     if (stoken != NULL){
-        if (stoken->SToken != NULL){
+        TokenPtr tmp;
+        if (err){
             dealloc_token(stoken->SToken);
             stoken->SToken = NULL;
+            while ((tmp = queue_next_token(stoken->queue))->type != END_OF_FILE){
+                dealloc_token(tmp);
+            }
         }
-        if (stoken->queue != NULL){
-            queue_free(stoken->queue);
-        }
-        if (stoken->glob_table != NULL){
-            TableClear(stoken->glob_table, FUNCTION);
-        }
-        if (stoken->current_fn != NULL){
-            free(stoken->current_fn);
-        }
-        if (stoken->level_stack != NULL){
-            free(stoken->level_stack);
-        }
+        queue_free(stoken->queue);
+        TableClear(stoken->glob_table, FUNCTION);
+        TableClear(stoken->ifj_table, FUNCTION);
+        free(stoken->current_fn);
+        free(stoken->level_stack);
         free(stoken);
         stoken = NULL;
     }
-} */
+}

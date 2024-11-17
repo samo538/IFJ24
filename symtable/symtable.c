@@ -76,11 +76,11 @@ Elem_id *TableAdd(char *key, int *level_stack, int stack_size, SymTable *Table){
     int searched = 0;
     while (Table[index] != NULL){
         if (searched == TABLE_SIZE){ // Table is full
-            throw_error(99);
+            throw_error(NULL, 99);
         }
         if(!strcmp(key, Table[index]->name) && stack_size == Table[index]->stack_size && compare_levels(level_stack, Table[index]->level_stack, stack_size)){
             // If the element is already in the table, Its always a redefinition of a variable/func
-            throw_error(5);
+            throw_error(NULL, 5);
         }
         index = (index + 1) % TABLE_SIZE;
         searched++;
