@@ -167,6 +167,7 @@ bool q_params(TokenStoragePtr stoken){
 
         // storing info about the variable here
         Elem_id *info_var = malloc(sizeof(Elem_id)); // Creating a new local element
+        info_var->FnVar.Var_id.type.nullable = false; // Implicit false
 
         ret = q_id_param(stoken, info_var) &&
         q_expect(stoken, COLON) &&
