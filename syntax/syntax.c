@@ -206,7 +206,7 @@ bool e_var_exp_def(TokenStoragePtr stoken, Elem_id *new){
 
     // Assigning string
     else if(stoken->SToken->type == STRING){
-        throw_error(stoken, 7); // Assigning string not allowed
+        throw_error(stoken, 8); // Assigning string not allowed
     }
     throw_error(stoken, 2);
 }
@@ -680,6 +680,7 @@ bool l_id_assign(TokenStoragePtr stoken, bool *underscore, Elem_id **assign_to){
     if (stoken->SToken->type == UNDERSCORE){
         TreeElement *tree_id = TreeInsert(stoken->current_node, NULL);
         tree_id->Data.NodeType = ID_NODE;
+        tree_id->Data.TableElement = NULL;
         tree_id->Data.Token = copy_token(stoken->SToken);
         *underscore = true;
         return t_expect(stoken, UNDERSCORE);
