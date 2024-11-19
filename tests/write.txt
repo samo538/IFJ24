@@ -1,0 +1,9 @@
+.IFJcode24
+CREATEFRAME
+PUSHFRAME
+WRITE string@Test\032write\010
+WRITE int@12
+WRITE string@\010
+WRITE float@0x1.870a3d70a3d71p+3
+WRITE string@\010
+POPFRAME

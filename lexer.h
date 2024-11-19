@@ -1,5 +1,6 @@
 /**
- *  @file lexer/lexer.h
+ *  @project IFJ24
+ *  @file lexer.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  */
 #ifndef LEXER_H
@@ -14,6 +15,8 @@
 extern const char* tokenTypeKeywords[];
 
 TokenPtr next_token();
+
+Token *copy_token(Token *old_token);
 
 void choose_type(TokenPtr token, char input);
 

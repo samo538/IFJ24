@@ -1,3 +1,0 @@
-# IFJ PROJEKT
-
-rozdelenie: TBA

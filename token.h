@@ -1,5 +1,6 @@
 /**
- *  @file lexer/token.h
+ *  @project IFJ24
+ *  @file token.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
  *  @brief definice struktury tokenu
  */
@@ -9,6 +10,19 @@
 #include<stdio.h>
 
 enum TokenType {
+	PLUS, //+
+	MINUS, //-
+	MULTIPLY, //*
+	DIVIDE, ///
+	OPENING_BRACKET, //(
+	CLOSING_BRACKET, //)
+	ID,
+	EQUAL, //==
+	NOT_EQUAL, //!=
+	LESS, //<
+	MORE, //>
+	LESS_OR_EQUAL, //<=
+	MORE_OR_EQUAL, //>=
 	CONST,
 	IF,
 	ELSE,
@@ -23,24 +37,11 @@ enum TokenType {
 	WHILE,
 	IFJ,
 	U8,
-	ID,
-	EQUAL, //==
-	NOT_EQUAL, //!=
 	ASSIGN, //=
-	LESS, //<
-	LESS_OR_EQUAL, //<=
-	MORE, //>
-	MORE_OR_EQUAL, //>=
-	PLUS, //+
-	MINUS, //-
-	MULTIPLY, //*
-	DIVIDE, ///
 	NULLABLE, //?
 	I32_VAR,
 	F64_VAR,
 	DOT, //.
-	OPENING_BRACKET, //(
-	CLOSING_BRACKET, //)
 	OPENING_CURLY_BRACKET, //{
 	CLOSING_CURLY_BRACKET, //}
 	OPENING_SQUARE_BRACKET, //[

@@ -1,0 +1,134 @@
+.IFJcode24
+DEFVAR GF@_
+CREATEFRAME
+PUSHFRAME
+DEFVAR LF@var1_str1
+MOVE LF@var1_str1 string@abcdefgh
+DEFVAR LF@var1_str2
+MOVE LF@var1_str2 string@ABCDEFGH
+DEFVAR LF@var1_str3
+MOVE LF@var1_str3 string@!@\035$%^&*()_+~-={}[]|:;',<.>/?
+DEFVAR LF@var1_str4
+MOVE LF@var1_str4 string@1234567890
+DEFVAR LF@var1_str5
+MOVE LF@var1_str5 string@\032\032\032\032\032\032\032\032\032\032\032\032\032\032\032\032\032f\032\032\032\032\032\032\032\032\032\032\032
+DEFVAR LF@var1_str6
+MOVE LF@var1_str6 string@d
+CONCAT LF@var1_str6 LF@var1_str1 LF@var1_str2
+WRITE LF@var1_str6
+WRITE string@\010
+CONCAT LF@var1_str6 LF@var1_str6 LF@var1_str3
+WRITE LF@var1_str6
+WRITE string@\010
+CONCAT LF@var1_str6 LF@var1_str6 LF@var1_str4
+WRITE LF@var1_str6
+WRITE string@\010
+CONCAT LF@var1_str6 LF@var1_str6 LF@var1_str5
+WRITE LF@var1_str6
+WRITE string@\010
+DEFVAR LF@var1_len
+STRLEN LF@var1_len LF@var1_str1
+WRITE LF@var1_len
+WRITE string@\010
+STRLEN LF@var1_len LF@var1_str2
+WRITE LF@var1_len
+WRITE string@\010
+STRLEN LF@var1_len LF@var1_str3
+WRITE LF@var1_len
+WRITE string@\010
+STRLEN LF@var1_len LF@var1_str4
+WRITE LF@var1_len
+WRITE string@\010
+STRLEN LF@var1_len LF@var1_str5
+WRITE LF@var1_len
+WRITE string@\010
+STRLEN LF@var1_len LF@var1_str6
+WRITE LF@var1_len
+WRITE string@\010
+DEFVAR LF@var1_i
+PUSHS int@0
+POPS LF@var1_i
+DEFVAR LF@var11_j
+DEFVAR LF@var111_substr
+DEFVAR LF@var111_ord
+DEFVAR LF@var111_ch
+LABEL while0
+PUSHS LF@var1_i
+PUSHS LF@var1_len
+LTS
+PUSHS bool@true
+JUMPIFNEQS whileend0
+PUSHS LF@var1_i
+POPS LF@var11_j
+LABEL while1
+PUSHS LF@var11_j
+PUSHS LF@var1_len
+LTS
+PUSHS bool@true
+JUMPIFNEQS whileend1
+CREATEFRAME
+DEFVAR TF@isnull0
+LT TF@isnull0 LF@var1_i int@0
+JUMPIFEQ isnulllabel0 TF@isnull0 bool@true
+LT TF@isnull0 LF@var11_j int@0
+JUMPIFEQ isnulllabel0 TF@isnull0 bool@true
+GT TF@isnull0 LF@var1_i LF@var11_j
+JUMPIFEQ isnulllabel0 TF@isnull0 bool@true
+DEFVAR TF@slenght0
+STRLEN TF@slenght0 LF@var1_str6
+GT TF@isnull0 LF@var11_j TF@slenght0
+JUMPIFEQ isnulllabel0 TF@isnull0 bool@true
+LT TF@isnull0 LF@var1_i TF@slenght0
+JUMPIFEQ isnulllabel0 TF@isnull0 bool@false
+DEFVAR TF@substringI0
+DEFVAR TF@substringJ0
+MOVE TF@substringI0 LF@var1_i
+MOVE TF@substringJ0 LF@var11_j
+ADD TF@substringJ0 TF@substringJ0 int@1
+DEFVAR TF@tempstring0
+DEFVAR TF@char0
+MOVE TF@tempstring0 string@
+LABEL substringlabel0
+GETCHAR TF@char0 LF@var1_str6 TF@substringI0
+CONCAT TF@tempstring0 TF@tempstring0 TF@char0 
+ADD TF@substringI0 TF@substringI0 int@1
+JUMPIFNEQ substringlabel0 TF@substringI0 TF@substringJ0
+MOVE LF@var111_substr TF@tempstring0
+JUMP subend0
+LABEL isnulllabel0
+MOVE LF@var111_substr nil@nil
+LABEL subend0
+STRI2INT LF@var111_ord LF@var111_substr int@0
+INT2CHAR LF@var111_ch LF@var111_ord
+WRITE LF@var111_ch
+WRITE string@\010
+WRITE LF@var111_ord
+WRITE string@\010
+WRITE LF@var111_substr
+WRITE string@\010
+PUSHS LF@var11_j
+PUSHS int@1
+ADDS
+POPS LF@var11_j
+JUMP  while1
+LABEL whileend1
+PUSHS LF@var1_i
+PUSHS int@1
+ADDS
+POPS LF@var1_i
+JUMP  while0
+LABEL whileend0
+DEFVAR LF@var1_g
+READ LF@var1_g float
+DEFVAR LF@var12__G_26
+MOVE LF@var12__G_26 LF@var1_g
+LABEL if0
+JUMPIFEQ else0 nil@nil LF@var1_g
+WRITE LF@var12__G_26
+JUMP ifend0
+LABEL else0
+WRITE string@gecko\032zle\032nedasa\032cele\032zle\010
+LABEL ifend0
+WRITE string@testahjklfwdegrs\010aefshdgjvl\010sdlfgkkjnds
+POPFRAME
+EXIT int@0

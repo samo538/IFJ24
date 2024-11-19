@@ -1,9 +1,14 @@
 /**
- *  @file lexer/lexer.c
+ *  @project IFJ24
+ *  @file lexer.c
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
+ *  @author Lukas Houzar (xhouzal00@stud.fit.vutbr.cz)
  */
+#include <string.h>
 
 #include"lexer.h"
+#include "token.h"
+#include "error.h"
 
 const char* tokenTypeKeywords[]= {
 	"const",
@@ -20,15 +25,28 @@ const char* tokenTypeKeywords[]= {
 	"while",
 	"ifj",
 	"u8",
-	"import",
 };
 
-void lexer_error() { //TODO: vyměnit za real error
-	printf("ERROR: lexer\n");
+void lexer_error() {
+	throw_error(NULL,1);
+}
+
+Token *copy_token(Token *old_token){
+	Token *new_token;
+	new_token = malloc(sizeof(Token));
+	if (new_token == NULL){
+		throw_error(NULL ,99);
+	}
+	new_token->type = old_token->type;
+	new_token->value = old_token->value;
+	if (new_token->type == STRING || new_token->type == ID){
+		new_token->value.str = strdup(old_token->value.str);
+	}
+	return new_token;
 }
 
 void realloc_str(char** str, size_t* strSize, size_t length) {
-	if(length == *strSize) {
+	while(length >= *strSize) {
 		*strSize += 20;
 		*str = (char*)realloc(*str, sizeof(char) * (*strSize));
 		if(str == NULL) {//TODO: pořešit alloc error
@@ -78,6 +96,17 @@ void choose_type(TokenPtr token, char input) {
 			token->type = ASSIGN;
 			break;
 		}
+		case '!': {
+			char c = getchar();
+			if(c == '=') {
+				token->type = NOT_EQUAL;
+				break;
+			}
+
+			lexer_error();
+
+			return;
+		}
 		case '<': {
 			char c = getchar();
 			if(c == '=') {
@@ -120,7 +149,7 @@ void choose_type(TokenPtr token, char input) {
 				} while(c != '\n' && c != EOF);
 
 				if (c == EOF) {
-					token->type == END_OF_FILE;
+					token->type = END_OF_FILE;
 				}
 
 				return;
@@ -237,15 +266,21 @@ void choose_type(TokenPtr token, char input) {
 			}
 
 			lexer_error();
-			break;
+
+			return;
 		}
 		case '"': {
       string_type(token, input);
       break;
     }
     case '\\': {
+			char c = getchar();
+			if(c != '\\') {
+				lexer_error();
+			}
+
       multi_line_string_type(token,input);
-       break;
+      break;
     }
 	}
 
@@ -266,6 +301,13 @@ void choose_type(TokenPtr token, char input) {
 	if (token->type != COUNT_TOKEN_TYPE) {
 		prevId = false;
 		prevToken = token->type;
+
+		return;
+	}
+
+	//otestování jestli není input něco jiného než whitespace
+	if (input != ' ' && input != '\t' && input != '\n' && input != 13 && input != '\v' && input != 12) {//token->type = COUNT_TOKEN_TYPE => nebyl vybrán token, 13 = carriage return, 12 = form feed, \v = vertical tab
+		lexer_error();
 	}
 }
 
@@ -320,7 +362,6 @@ void multi_line_string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
     input = getchar();
-    input = getchar();
     token->value.str[0] = input;
     size_t length = 1;
 
@@ -329,20 +370,20 @@ void multi_line_string_type(TokenPtr token, char input) {
             input = getchar();
             if ('\n' == input) { break; }
         	if(0 < (int)input && (int)input <= 9) {
-        		token->value.str[length] = '\\';
-				token->value.str[length+1] = '0';
-				token->value.str[length+2] = '0';
-				token->value.str[length+3] = (int)input;
-    			length+=4;
-    			realloc_str(&token->value.str, &strSize, length);
+    				length+=4;
+    				realloc_str(&token->value.str, &strSize, length);
+        		token->value.str[length-4] = '\\';
+						token->value.str[length-3] = '0';
+						token->value.str[length-2] = '0';
+						token->value.str[length-1] = (int)input;
         	}
         	else if((9 < (int)input && (int)input <= 32) || (int)input == 92 || (int)input == 35) {
-        		token->value.str[length] = '\\';
-				token->value.str[length+1] = '0';
-				token->value.str[length+2] = ((int)input /10)+48;
-				token->value.str[length+3] = ((int)input %10)+48;
-    			length+=4;
-    			realloc_str(&token->value.str, &strSize, length);
+    				length+=4;
+    				realloc_str(&token->value.str, &strSize, length);
+        		token->value.str[length-4] = '\\';
+						token->value.str[length-3] = '0';
+						token->value.str[length-2] = ((int)input /10)+48;
+						token->value.str[length-1] = ((int)input %10)+48;
         	}
         	else {
         		token->value.str[length] = input;
@@ -382,52 +423,57 @@ void string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
     input = getchar();
-    token->value.str[0] = input;
-    size_t length = 1;
+    size_t length = 0;
+    if(input == '"') {
+       token->value.str[length] = '\0';
+       token->type = STRING;
+       return;
+    }
+    else {
+        ungetc(input,stdin);
+    }
 
-    while('"' != input) {
+    while(true) {
         input = getchar();
-        if('"' == input) {break;}
+        if('"' == input) { break;}
         if('\n' == input) {lexer_error();}
-
-
         if('\\' == input) {
        	char c = getchar();
         switch(c) {
           	case 'n': {
-          			token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '1';
-                    token->value.str[length+3] = '0';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
-					continue;
+          			token->value.str[length-4] = '\\';
+                token->value.str[length-3] = '0';
+                token->value.str[length-2] = '1';
+                token->value.str[length-1] = '0';
+								continue;
                   break;}
         	case 'r': {
-                  	token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '1';
-                    token->value.str[length+3] = '3';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
+                  	token->value.str[length-4] = '\\';
+                    token->value.str[length-3] = '0';
+                    token->value.str[length-2] = '1';
+                    token->value.str[length-1] = '3';
 					continue;
                   break;}
         	case 't': {
-                  	token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '0';
-                    token->value.str[length+3] = '9';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
+                  	token->value.str[length-4] = '\\';
+                    token->value.str[length-3] = '0';
+                    token->value.str[length-2] = '0';
+                    token->value.str[length-1] = '9';
 					continue;
                   break;}
         	case '\\': {
-                  	token->value.str[length] = '\\';
-                    token->value.str[length+1] = '0';
-                    token->value.str[length+2] = '9';
-                    token->value.str[length+3] = '2';
           			length+=4;
           			realloc_str(&token->value.str, &strSize, length);
+                  	token->value.str[length-4] = '\\';
+                    token->value.str[length-3] = '0';
+                    token->value.str[length-2] = '9';
+                    token->value.str[length-1] = '2';
 					continue;
                   break;}
         	case '\'': {
@@ -477,25 +523,25 @@ void string_type(TokenPtr token, char input) {
           			realloc_str(&token->value.str, &strSize, length);
 					continue;
                   break;}
-            default: {ungetc(c, stdin);}
+            default: {ungetc(c, stdin); lexer_error();}
         	}
 		}
 
     	if(0 < (int)input && (int)input <= 9) {
-    		token->value.str[length] = '\\';
-			token->value.str[length+1] = '0';
-			token->value.str[length+2] = '0';
-			token->value.str[length+3] = (int)input;
     		length+=4;
     		realloc_str(&token->value.str, &strSize, length);
+    		token->value.str[length-4] = '\\';
+			token->value.str[length-3] = '0';
+			token->value.str[length-2] = '0';
+			token->value.str[length-1] = (int)input;
     	}
     	else if((9 < (int)input && (int)input <= 32) || (int)input == 92 || (int)input == 35) {
-			token->value.str[length] = '\\';
-			token->value.str[length+1] = '0';
-			token->value.str[length+2] = ((int)input /10)+48;
-			token->value.str[length+3] = ((int)input %10)+48;
     		length+=4;
     		realloc_str(&token->value.str, &strSize, length);
+			token->value.str[length-4] = '\\';
+			token->value.str[length-3] = '0';
+			token->value.str[length-2] = ((int)input /10)+48;
+			token->value.str[length-1] = ((int)input %10)+48;
     	}
         else {
         	token->value.str[length] = input;
@@ -525,8 +571,8 @@ void id_type(TokenPtr token, char input) {
 	token->value.str[idLength] = '\0'; //ukončení str
 	ungetc(input, stdin);
 
-	for(int i=0;i < ID;i++) { //tokenType ID je hned po posledním keywordu, proto by pole keywords mělo mít velikost ID
-		if(strcmp(tokenTypeKeywords[i], token->value.str) == 0) {
+	for(int i=CONST;i <= U8;i++) { //tokenType U8 je poslední keyword, proto by pole keywords mělo mít velikost U8 - CONST
+		if(strcmp(tokenTypeKeywords[i - CONST], token->value.str) == 0) {
 			token->type = i;
 			free(token->value.str);
 
