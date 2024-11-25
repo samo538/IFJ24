@@ -10,6 +10,9 @@
 int strcpy_counter = 0;
 int substring_counter = 0;
 
+/*
+ * generates code in IFJcode24 from tree passed as argument
+ */
 void gen_code(TreeElementPtr tree) {
     printf(".IFJcode24\n");
     printf("DEFVAR GF@_\n");
@@ -34,6 +37,9 @@ void gen_code(TreeElementPtr tree) {
     }
 }
 
+/*
+ * generates main function that's passed as argument in tree
+ */
 void gen_main(TreeElementPtr main) {
 
     //Local Frame
@@ -48,6 +54,9 @@ void gen_main(TreeElementPtr main) {
     printf("EXIT int@0\n");
 }
 
+/*
+ * selects the appropriate function to generate code according to the function name, caller checks, if is passing ifj function
+ */
 void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
     if(strcmp("write", tree->Data.TableElement->name) == 0) {
         gen_ifj_write(tree);
@@ -79,12 +88,18 @@ void choose_ifj_func(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
+/*
+ * calls choose_node_type for every element of a function, used in gen_main and gen_func
+ */
 void gen_func_switch(TreeElementPtr func, bool isMain) {
     for(int i=0;i < func->NodeCounter;i++) {
         choose_node_type(func->Node[i], isMain);
     }
 }
 
+/*
+ * selects the appropriate function to generate code according to the node typ
+ */
 void choose_node_type(TreeElementPtr func, bool isMain) {
     switch(func->Data.NodeType) {
         case ASSIGN_NODE: {
@@ -117,6 +132,9 @@ void choose_node_type(TreeElementPtr func, bool isMain) {
     }
 }
 
+/*
+ * generates function that is not main, caller checks, if function passed as argument is main
+ */
 void gen_func(TreeElementPtr func) {
     printf("LABEL func_%s\n",func->Data.TableElement->name);
     printf("CREATEFRAME\n");
@@ -139,6 +157,9 @@ void gen_func(TreeElementPtr func) {
     }
 }
 
+/*
+ * puts every definition (DEFVAR) before start of a while, otherwise there would be multiple DEFVAR for a single variable, argument is element of while, changes definition nodes to assign nodes
+ */
 void put_def_before_while(TreeElementPtr tree) {
     if(tree->Data.NodeType == DEFINITION_NODE) {
         char* name = get_var_name(tree->Node[0]);
@@ -162,6 +183,9 @@ void put_def_before_while(TreeElementPtr tree) {
     }
 }
 
+/*
+ * generates while from tree
+ */
 void gen_while(TreeElementPtr tree, bool isMain) {
     static unsigned int whileCounter = 0;
     unsigned int currentWhile = whileCounter;
@@ -236,6 +260,9 @@ void gen_while(TreeElementPtr tree, bool isMain) {
     printf("LABEL whileend%d\n",currentWhile);
 }
 
+/*
+ * generates return from tree, isMain is used to determine, if code should stop execution after return or not
+ */
 void gen_return(TreeElementPtr tree, bool isMain) {
     if(tree->NodeCounter == 1) {
         gen_expression(tree->Node[0]);
@@ -249,6 +276,9 @@ void gen_return(TreeElementPtr tree, bool isMain) {
     }
 }
 
+/*
+ * generates expression from tree
+ */
 void gen_expression(TreeElementPtr tree) {
     for(int i = 0; i < tree->NodeCounter;i++) {
         gen_expression(tree->Node[i]);
@@ -298,6 +328,9 @@ void gen_expression(TreeElementPtr tree) {
     }
 }
 
+/*
+ * generates definiton from tree
+ */
 void gen_definition(TreeElementPtr tree) {
     char* name = get_var_name(tree->Node[0]);
     printf("DEFVAR %s\n",name);
@@ -306,6 +339,9 @@ void gen_definition(TreeElementPtr tree) {
     gen_assign(tree);
 }
 
+/*
+ * generates assign from tree
+ */
 void gen_assign(TreeElementPtr tree) {
     //right node
     switch (tree->Node[1]->Data.NodeType) {
@@ -329,6 +365,9 @@ void gen_assign(TreeElementPtr tree) {
     free(name);
 }
 
+/*
+ * generates function call from tree, push every argument to stack and call function
+ */
 void gen_func_call(TreeElementPtr tree) {
     for(int i = tree->NodeCounter - 1;i >= 0;i--) {
         switch(tree->Node[i]->Data.Token->type) {
@@ -357,6 +396,9 @@ void gen_func_call(TreeElementPtr tree) {
     printf("CALL func_%s\n",tree->Data.TableElement->name);
 }
 
+/*
+ * generates condition from tree
+ */
 void gen_condition(TreeElementPtr tree, bool isMain) {
     static unsigned int ifCounter = 0;
     unsigned int currentIf = ifCounter;
@@ -365,7 +407,7 @@ void gen_condition(TreeElementPtr tree, bool isMain) {
     if(tree->Data.isNullCond) {
         char* newVar = get_var_name(tree->Node[0]);
         char* oldVar = get_var_name(tree->Node[1]);
-        if( ! tree->Data.isDef) {
+        if( ! tree->Data.isDef) { //if isDef = true, newVar is already defined before, because the if is in while
             printf("DEFVAR %s\n",newVar);
             tree->Data.isDef = false;
         }
@@ -778,10 +820,13 @@ void gen_ifj_chr(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
+/*
+ * returns pointer to variable name from tree
+ */
 char* get_var_name(TreeElementPtr tree) {
     char* name = (char*)malloc(sizeof(char)*256);
     if (name == NULL) {
-        exit(99);
+		    throw_error(NULL,99);
     }
 
     if(tree->Data.TableElement == NULL && tree->Data.Token->type == UNDERSCORE) { //checks for _ var
@@ -803,10 +848,13 @@ char* get_var_name(TreeElementPtr tree) {
     return name;
 }
 
+/*
+ * returns pointer to variable name, same function as get_var_name, but the argument is Elem_id* instead of TreeElementPtr and does not get var name for _
+ */
 char* get_var_name_from_table(Elem_id* tableElement) { //used only when generation func parametrs -> no need for _
     char* name = (char*)malloc(sizeof(char)*256);
     if (name == NULL) {
-        exit(99);
+		    throw_error(NULL,99);
     }
     strcpy(name,"LF@var");
     for(int i=0;i < tableElement->stack_size;i++) {

@@ -49,7 +49,7 @@ Token *copy_token(Token *old_token){
 }
 
 /*
- * checks if strSize is sifficient and if it's not, allocates 20 more chars
+ * checks if strSize is sufficient and if it's not, allocates 20 more chars
  */
 void realloc_str(char** str, size_t* strSize, size_t length) {
 	while(length >= *strSize) {
