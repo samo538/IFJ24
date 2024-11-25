@@ -31,11 +31,14 @@ void lexer_error() {
 	throw_error(NULL,1);
 }
 
+/*
+ * creates a copy of old_token and returns pointer to copy
+ */
 Token *copy_token(Token *old_token){
 	Token *new_token;
 	new_token = malloc(sizeof(Token));
 	if (new_token == NULL){
-		throw_error(NULL ,99);
+		throw_error(NULL,99);
 	}
 	new_token->type = old_token->type;
 	new_token->value = old_token->value;
@@ -45,22 +48,26 @@ Token *copy_token(Token *old_token){
 	return new_token;
 }
 
+/*
+ * checks if strSize is sifficient and if it's not, allocates 20 more chars
+ */
 void realloc_str(char** str, size_t* strSize, size_t length) {
 	while(length >= *strSize) {
 		*strSize += 20;
 		*str = (char*)realloc(*str, sizeof(char) * (*strSize));
-		if(str == NULL) {//TODO: pořešit alloc error
-			printf("chyba při realokaci paměti");
+		if(str == NULL) {
+			throw_error(NULL,99);
 		}
 	}
 }
 
+/*
+ * allocates char array of size strSize
+ */
 void alloc_str(char** str, size_t strSize) {
-	*str = (char*)malloc(sizeof(char) * strSize); //string o velikosti strSize znaků
-	if(*str == NULL) {//TODO: pořešit alloc error
-		printf("chyba při alokaci paměti");
-
-		return;
+	*str = (char*)malloc(sizeof(char) * strSize); //Alloc char array of strSize
+	if(*str == NULL) {
+		throw_error(NULL,99);
 	}
 }
 
@@ -71,15 +78,21 @@ void dealloc_token(TokenPtr token) {
 	free(token);
 }
 
+/*
+ * returns pointer to next token from the input
+ */
 TokenPtr next_token() {
 	TokenPtr token = (TokenPtr)malloc(sizeof(Token));
-	token->type = COUNT_TOKEN_TYPE; //placeholder, jediný token type, jenž nemůže být na vstupu
-	while(token->type == COUNT_TOKEN_TYPE) { //dokud se nevybere jiný token type
+	token->type = COUNT_TOKEN_TYPE; //placeholder
+	while(token->type == COUNT_TOKEN_TYPE) { //until token type is changed
 		choose_type(token, getchar());
 	}
 	return token;
 }
 
+/*
+ * choose type of token
+ */
 void choose_type(TokenPtr token, char input) {
 	static bool prevId = false;
 	static bool inBracket = false;
@@ -104,8 +117,6 @@ void choose_type(TokenPtr token, char input) {
 			}
 
 			lexer_error();
-
-			return;
 		}
 		case '<': {
 			char c = getchar();
@@ -144,6 +155,7 @@ void choose_type(TokenPtr token, char input) {
 		case '/': {
 			char c = getchar();
 			if(c == '/') {
+				//comment, skips everything until there is a new line of EOF in input
 				do {
 					c = getchar();
 				} while(c != '\n' && c != EOF);
@@ -152,6 +164,7 @@ void choose_type(TokenPtr token, char input) {
 					token->type = END_OF_FILE;
 				}
 
+				//if last char loaded was EOF, next_token will return token, otherwise this function is called again by next_token
 				return;
 
 			}
@@ -180,7 +193,7 @@ void choose_type(TokenPtr token, char input) {
 				inBracket = false;
 			}
 
-			if(inBracket && prevToken != COMMA) { //vloží ,
+			if(inBracket && prevToken != COMMA) { //inserts ,
 				ungetc(input, stdin);
 				token->type = COMMA;
 				inBracket = false;
@@ -224,6 +237,7 @@ void choose_type(TokenPtr token, char input) {
 		}
 		case '_': {
 			char c = getchar();
+			//check if this token is id
 			if(('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9') || c == '_') {
 				ungetc(c, stdin);
 				id_type(token, input);
@@ -240,10 +254,10 @@ void choose_type(TokenPtr token, char input) {
 		}
 		case '0': {
 			char c = getchar();
+			//I32 cannot start with 0, if it is not 0, F64 cannot start with 0, if it is not 0 or 0.xxx or 0exxx
 			if('0' <= c && c <= '9') {
-				lexer_error();
 
-				break;
+				lexer_error();
 			} else if (c == 'e' || c == 'E' || c == '.') {
 				ungetc(c, stdin);
 				number_type(token, input);
@@ -266,8 +280,6 @@ void choose_type(TokenPtr token, char input) {
 			}
 
 			lexer_error();
-
-			return;
 		}
 		case '"': {
       string_type(token, input);
@@ -298,6 +310,7 @@ void choose_type(TokenPtr token, char input) {
 		}
 	}
 	
+	//check if type was changed
 	if (token->type != COUNT_TOKEN_TYPE) {
 		prevId = false;
 		prevToken = token->type;
@@ -305,12 +318,15 @@ void choose_type(TokenPtr token, char input) {
 		return;
 	}
 
-	//otestování jestli není input něco jiného než whitespace
-	if (input != ' ' && input != '\t' && input != '\n' && input != 13 && input != '\v' && input != 12) {//token->type = COUNT_TOKEN_TYPE => nebyl vybrán token, 13 = carriage return, 12 = form feed, \v = vertical tab
+	//checks if input is something other than whitespace
+	if (input != ' ' && input != '\t' && input != '\n' && input != 13 && input != '\v' && input != 12) {//13 = carriage return, 12 = form feed, \v = vertical tab
 		lexer_error();
 	}
 }
 
+/*
+ * generate a token of type I32/F64 from input
+ */
 void number_type(TokenPtr token, char input) {
 	bool isI32 = true;
 	bool isEXP = true;
@@ -319,7 +335,7 @@ void number_type(TokenPtr token, char input) {
 	token->value.str[0] = input;
 	size_t length = 1;
 	input = getchar();
-	while(('0' <= input && input <= '9') || ((input == 'e' || input == 'E') && isEXP) || (input == '.' && isI32)) { //pokud I32 = false, už bylo e načteno
+	while(('0' <= input && input <= '9') || ((input == 'e' || input == 'E') && isEXP) || (input == '.' && isI32)) { //if I32 = false, e is already in token->value.str
 		token->value.str[length] = input;
 		length++;
 		realloc_str(&token->value.str, &strSize, length);
@@ -334,14 +350,14 @@ void number_type(TokenPtr token, char input) {
 				token->value.str[length] = input;
 				length++;
 				realloc_str(&token->value.str, &strSize, length);
-			} else { //pokud se neprovede podmínka, musí cyklus začít znovu, jinak by se vynechal 1 znak
+			} else { //if the condition is not met, the loop must start again, otherwise 1 character would not be loaded
 				continue;
 			}
 		}
 
 		input = getchar();
 	}
-	token->value.str[length] = '\0'; //ukončení str
+	token->value.str[length] = '\0'; //end of string
 	ungetc(input, stdin);
 
 	if(isI32) {
@@ -358,6 +374,7 @@ void number_type(TokenPtr token, char input) {
 	token->value.f64 = temp;
 	token->type = F64_VAR;
 }
+
 void multi_line_string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
@@ -555,12 +572,16 @@ void string_type(TokenPtr token, char input) {
 }
 
 
+/*
+ * generate a token of type ID from input
+ */
 void id_type(TokenPtr token, char input) {
 	size_t strSize = 20;
 	alloc_str(&token->value.str, strSize);
 	token->value.str[0] = input;
 	size_t idLength = 1;
 	input = getchar();
+	//until there is a char, than cannot be in id name
 	while(('a' <= input && input <= 'z') || ('A' <= input && input <= 'Z') || ('0' <= input && input <= '9') || input == '_') {
 		token->value.str[idLength] = input;
 		idLength++;
@@ -568,10 +589,10 @@ void id_type(TokenPtr token, char input) {
 		
 		input = getchar();
 	}
-	token->value.str[idLength] = '\0'; //ukončení str
+	token->value.str[idLength] = '\0'; //end of string
 	ungetc(input, stdin);
 
-	for(int i=CONST;i <= U8;i++) { //tokenType U8 je poslední keyword, proto by pole keywords mělo mít velikost U8 - CONST
+	for(int i=CONST;i <= U8;i++) { //tokenType U8 is last keyword, that is why array keywords should be of size U8 - CONST
 		if(strcmp(tokenTypeKeywords[i - CONST], token->value.str) == 0) {
 			token->type = i;
 			free(token->value.str);

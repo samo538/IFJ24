@@ -2,7 +2,7 @@
  *  @project IFJ24
  *  @file token.h
  *  @author Petr Nemec (xnemecp00@stud.fit.vutbr.cz)
- *  @brief definice struktury tokenu
+ *  Definition of token
  */
 #ifndef TOKEN_H
 #define TOKEN_H
@@ -59,13 +59,13 @@ enum TokenType {
 
 union TokenValue{
 	int i;
-	double f64; //klasicky float je f32, double f64
+	double f64; //float is f32, double is f64
 	char* str;
 };
 
 typedef struct {
-	enum TokenType type;
-	union TokenValue value;
+	enum TokenType type; //type of token
+	union TokenValue value; //value of token, if token has any value
 } Token, *TokenPtr;
 
 #endif
