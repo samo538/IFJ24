@@ -330,12 +330,17 @@ void choose_type(TokenPtr token, char input) {
 void number_type(TokenPtr token, char input) {
 	bool isI32 = true;
 	bool isEXP = true;
+	bool isSecondPartEmpty = true;
 	size_t strSize = 20;
 	alloc_str(&token->value.str, strSize);
 	token->value.str[0] = input;
 	size_t length = 1;
 	input = getchar();
 	while(('0' <= input && input <= '9') || ((input == 'e' || input == 'E') && isEXP) || (input == '.' && isI32)) { //if I32 = false, e is already in token->value.str
+		if( ! isI32) {
+			isSecondPartEmpty = false;
+		}
+
 		token->value.str[length] = input;
 		length++;
 		realloc_str(&token->value.str, &strSize, length);
@@ -367,6 +372,10 @@ void number_type(TokenPtr token, char input) {
 		token->type = I32_VAR;
 
 		return;
+	}
+
+	if(isSecondPartEmpty) {//number is float
+		lexer_error();
 	}
 
 	double temp = atof(token->value.str);
