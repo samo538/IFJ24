@@ -12,6 +12,7 @@
 #include "symtable.h"
 #include "error.h"
 
+// The _levels functions are explained in greater detail in the documentation
 bool copy_levels(int *level1, int **level2, int level_size){
     if (level1 == NULL){
         return NULL;

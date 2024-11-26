@@ -8,8 +8,11 @@
 
 #include "queue.h"
 
+// Function that does error handling
 void throw_error(TokenStoragePtr stoken, int type);
+// Function that checks the truthfullness of ret
 void check_ret(TokenStoragePtr stoken, bool ret);
+// Function that *should* take care of memory leaks
 void garbage_collector(TokenStoragePtr stoken, bool err);
 
 #endif

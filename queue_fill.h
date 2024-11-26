@@ -8,6 +8,7 @@
 
 #include "queue.h"
 
+// The function that gets called by queue.c to initiate function header parsing
 bool fn_def_q(TokenStoragePtr stoken, Elem_id **token);
 
 #endif

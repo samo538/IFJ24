@@ -11,6 +11,7 @@
 #include "lexer.h"
 #include "error.h"
 
+// Field of error messages
 const char *err_message[] = {
     "lexer error\n",
     "syntax error\n",
@@ -42,6 +43,7 @@ void check_ret(TokenStoragePtr stoken,bool ret){
     }
 }
 
+// This could be better
 void garbage_collector(TokenStoragePtr stoken, bool err){
     if (stoken != NULL){
         TokenPtr tmp;
