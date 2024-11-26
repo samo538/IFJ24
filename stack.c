@@ -9,6 +9,7 @@
 
 #include "stack.h"
 
+//stack initialization
 StackBasePtr StackInit(void){
     
     StackBasePtr stack_base = (StackBasePtr) malloc(sizeof(StackBase));
@@ -24,6 +25,7 @@ StackBasePtr StackInit(void){
     return stack_base;
 }
 
+//stack destroy free all elements 
 bool StackDestroy(StackBasePtr stack){
 
     TreeElementPtr ret = NULL;
@@ -38,11 +40,13 @@ bool StackDestroy(StackBasePtr stack){
     return true;
 }
 
+//read element on top of stack
 TreeElementPtr Top(StackBasePtr stack){
 
     return stack->TopElement->Tree;
 }
 
+//give element on top of stack
 TreeElementPtr Push(StackBasePtr stack, TreeElementPtr tree){
 
     StackElementPtr new_element = (StackElementPtr) malloc(sizeof(StackElement));
@@ -63,6 +67,7 @@ TreeElementPtr Push(StackBasePtr stack, TreeElementPtr tree){
     return new_element->Tree;
 }
 
+//take first element from top of stack
 TreeElementPtr Pop(StackBasePtr stack){
 
     if(stack->BottomElement != NULL){
@@ -94,6 +99,7 @@ TreeElementPtr Pop(StackBasePtr stack){
     return NULL;
 }
 
+//set activity to first element
 TreeElementPtr First(StackBasePtr stack){
     
     if(stack->StackCounter > 0){
@@ -105,6 +111,7 @@ TreeElementPtr First(StackBasePtr stack){
 
 }
 
+//set acitivity to next element 
 TreeElementPtr Down(StackBasePtr stack){
 
     if(stack->ActiveElement != NULL){

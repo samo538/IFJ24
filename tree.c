@@ -9,6 +9,7 @@
 #include "tree.h"
 #include "lexer.h"
 
+//alloc blank root element 
 TreeRootPtr TreeInit(void){
 
     TreeRootPtr tree = malloc(sizeof(TreeRoot));
@@ -32,12 +33,14 @@ TreeRootPtr TreeInit(void){
     return tree;
 }
 
+//destory all elements in tree
 void TreeDestroy(TreeRootPtr tree){
 
     TreeNodeDelete(tree->Root);
     free(tree);
 }
 
+//alloc element 
 TreeElementPtr TreeElementCreate(TokenPtr token){
 
     TreeElementPtr element = malloc(sizeof(TreeElement));
@@ -56,6 +59,7 @@ TreeElementPtr TreeElementCreate(TokenPtr token){
     return element;
 }
 
+//connect two elements  
 TreeElementPtr TreeElementConnect(TreeElementPtr dad, TreeElementPtr son){
 
     if(dad->NodeCounter == 0){
@@ -70,11 +74,8 @@ TreeElementPtr TreeElementConnect(TreeElementPtr dad, TreeElementPtr son){
         dad->Node = realloc(dad->Node, sizeof(TreeElementPtr)*((dad->NodeCounter)+1));
         if(dad->Node == NULL){
             return NULL;
-        }
-        
-        
+        }  
     }
-    
     
     dad->Node[dad->NodeCounter] = son;
     son->DadNode = dad;
@@ -83,6 +84,7 @@ TreeElementPtr TreeElementConnect(TreeElementPtr dad, TreeElementPtr son){
     return dad->Node[(dad->NodeCounter)-1];
 }
 
+//alloc element and connect that element into tree
 TreeElementPtr TreeInsert(TreeElementPtr dad_node, TokenPtr token){
 
     TreeElementPtr son_element = TreeElementCreate(token);
@@ -96,6 +98,7 @@ TreeElementPtr TreeInsert(TreeElementPtr dad_node, TokenPtr token){
     }
 }
 
+//recursively delete all elements to the given element of tree
 void TreeNodeDelete(TreeElementPtr node){
 
     if(node != NULL){
@@ -103,8 +106,6 @@ void TreeNodeDelete(TreeElementPtr node){
 
             TreeNodeDelete(node->Node[i]);
         }
-
-        //dealloc_token(node->Data.Token);
 
         if(node->NodeCounter > 0){
             free(node->Node);

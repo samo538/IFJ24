@@ -14,6 +14,7 @@
 #include "symtable.h"
 #include "queue.h"
 
+//table return values
 enum PrecTable{
     TAKE_NEXT,
     REDUCTION,
@@ -59,6 +60,7 @@ bool run_cycle = true;
 
 */
 
+//recursive function for controlling that all leaves are numbers or variables
 bool leaves_control(TreeElementPtr element){
 
     for(int i = 0; i < element->NodeCounter; i++){
@@ -88,10 +90,12 @@ bool leaves_control(TreeElementPtr element){
     }
 }
 
+//function for reduction by some rule with operator
 int operator_reduction(StackBasePtr stack){
 
     TreeElementPtr ret_element;
 
+    //pop first three elements
     TreeElementPtr E_2 = Pop(stack);
     if(E_2 == NULL){
         goto error_pop;
@@ -115,7 +119,7 @@ int operator_reduction(StackBasePtr stack){
         goto error_pop;
     }
 
-    //typova kontrola
+    //type controlll
     if(E_1->Data.Type == I32_VAR && E_2->Data.Type == I32_VAR){
         operator->Data.Type = I32_VAR;
     }
@@ -141,7 +145,7 @@ int operator_reduction(StackBasePtr stack){
     operator->Data.NodeType = EXPRESSION_NODE;
 
 
-    //vytvorenie podstromu
+    //reduction to tree
     ret_element = TreeElementConnect(operator, E_1);
     if(ret_element == NULL){
         goto error_connect;
@@ -177,10 +181,12 @@ error_connect:
 
 }
 
+//function for reduction number or variable to E, E -> a
 int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table){
 
     TreeElementPtr ret_element;
 
+    //select type of variable or number
     switch (stack->ActiveElement->Tree->Data.Token->type)
     {
     case ID:
@@ -223,6 +229,7 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
 
     stack->ActiveElement->Tree->Data.NodeType = EXPRESSION_NODE;
 
+    //set acticity to next element in stack
     ret_element = Down(stack);
     if(ret_element == NULL){
         error_type = 99;
@@ -232,12 +239,12 @@ int E_reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table)
     return REDUCTION;
 }
 
-
+//function that choose which one reduction to use 
 int reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table){
 
     int ret = 0;
 
-    //ak je aktivny element id alebo cislo tak sa len posunie aktivita dole
+    //choose according to what is on top of stack
     if((stack->ActiveElement->Tree->Data.Token->type == ID) ||
         (stack->ActiveElement->Tree->Data.Token->type == I32_VAR) ||
         (stack->ActiveElement->Tree->Data.Token->type == F64_VAR))
@@ -263,6 +270,7 @@ int reduction(StackBasePtr stack, int *level, int level_size, SymTable *Table){
     return REDUCTION;
 }
 
+//function that take next token and push in to stack
 int take_next(StackBasePtr stack, TokenPtr n_token){
     
     TreeElementPtr element = TreeElementCreate(n_token);
@@ -287,6 +295,7 @@ int take_next(StackBasePtr stack, TokenPtr n_token){
     return TAKE_NEXT;
 }
 
+//function reduce brackets
 int equal(StackBasePtr stack){
 
     TreeElementPtr ret_element;
@@ -353,6 +362,7 @@ int error(StackBasePtr stack){
     return ERROR;
 }
 
+//function find rule in table according to tokne on top of the stack and next token
 int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr stack){
 
     int top_index = stack->ActiveElement->Tree->Data.Token->type;
@@ -383,6 +393,7 @@ int search_for_rule(int prec_table[14][14], TokenPtr next_token, StackBasePtr st
     return rule;
 }
 
+//main function
 PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int level_size, SymTable *Table, Queue *queue){
 
     int prec_table[14][14] = {{REDUCTION, REDUCTION, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, REDUCTION, TAKE_NEXT, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION, REDUCTION},
@@ -401,6 +412,7 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
                                 {TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, ERROR, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, TAKE_NEXT, ERROR},
     };
 
+    //create stack and base element in stack
     StackBasePtr stack = StackInit();
     run_cycle = true;
 
@@ -427,13 +439,13 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
 
     while(run_cycle){
 
-        //overuje ci sa moze vyskytovat relacny operator vo vyraze
+        //control if relation operator can be in experssion
         if((rel_op == false) && (n_token->type >= 7 && n_token->type <= 12)){
             error_type = 7;
             goto error;
         }
 
-        //overuje ci nie je realcny operator prvy vo vyraze
+        //control if relation operator is not first
         if((counter == 0) && (n_token->type >= 7 && n_token->type <= 12)){
             error_type = 7;
             goto error;
@@ -441,9 +453,10 @@ PrecResultPtr preced_analysis(TokenPtr first_token, bool rel_op, int *level, int
 
                 
 
-        //vratenie adresy funkcie z tabulky a jej nasledne volanie
+        //return rule
         int rule = search_for_rule(prec_table, n_token, stack);
         
+        //switch that choose what function have to be called according to rule
         switch (rule)
         {
         case REDUCTION:

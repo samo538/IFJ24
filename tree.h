@@ -58,13 +58,22 @@ typedef struct TreeRoot
 
 }TreeRoot, *TreeRootPtr;
 
+//alloc blank root element 
 TreeRootPtr TreeInit(void);
+
+//tree destroy
 void TreeDestroy(TreeRootPtr);
 
+//create element and insert it into tree
 TreeElementPtr TreeInsert(TreeElementPtr, TokenPtr);
+
+//recursively delete all elements to the given element of tree
 void TreeNodeDelete(TreeElementPtr);
 
+//alloc element
 TreeElementPtr TreeElementCreate(TokenPtr);
+
+//connect created element
 TreeElementPtr TreeElementConnect(TreeElementPtr dad, TreeElementPtr son);
 
 
