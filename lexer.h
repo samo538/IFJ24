@@ -55,8 +55,14 @@ void alloc_str(char** str, size_t strSize);
 
 void dealloc_token(TokenPtr token);
 
+/*
+ * Generates token from string and processes escape sequences
+ */
 void string_type(TokenPtr token, char input);
 
+/*
+ * Generates token from multiline string
+ */
 void multi_line_string_type(TokenPtr token, char input);
 
 #endif

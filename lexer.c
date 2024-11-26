@@ -383,7 +383,9 @@ void number_type(TokenPtr token, char input) {
 	token->value.f64 = temp;
 	token->type = F64_VAR;
 }
-
+/*
+ * Generates token from multiline string
+ */
 void multi_line_string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);
@@ -444,7 +446,9 @@ void multi_line_string_type(TokenPtr token, char input) {
     token->type = STRING;
 }
 
-
+/*
+ * Generates token from string and processes escape sequences
+ */
 void string_type(TokenPtr token, char input) {
     size_t strSize = 20;
     alloc_str(&token->value.str, strSize);

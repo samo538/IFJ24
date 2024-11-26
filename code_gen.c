@@ -477,6 +477,9 @@ void gen_condition(TreeElementPtr tree, bool isMain) {
 
 }
 
+/*
+ * generates ifj.write function
+ */
 void gen_ifj_write(TreeElementPtr tree) {
     TreeElementPtr arg = tree->Node[0];
     if(arg->Data.NodeType == ARG_NODE) {
@@ -504,6 +507,9 @@ void gen_ifj_write(TreeElementPtr tree) {
     }
 }
 
+/*
+ * generates ifj.length function
+ */
 void gen_ifj_length(TreeElementPtr tree, TreeElementPtr var) {
     char* length;
     char* str;
@@ -521,6 +527,9 @@ void gen_ifj_length(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
+/*
+ * generates ifj.string function
+ */
 void gen_ifj_string(TreeElementPtr tree, TreeElementPtr var) {
     char* dest;
     char* str;
@@ -530,7 +539,9 @@ void gen_ifj_string(TreeElementPtr tree, TreeElementPtr var) {
     free(dest);
 }
 
-
+/*
+ * generates ifj.concat function
+ */
 void gen_ifj_concat(TreeElementPtr tree, TreeElementPtr var) {
     char* dest;
     char *str1,*str2;
@@ -566,6 +577,9 @@ void gen_ifj_concat(TreeElementPtr tree, TreeElementPtr var) {
     if(st2) { free(str2);}
 }
 
+/*
+ * generates ifj.readstr function
+ */
 void gen_ifj_readstr(TreeElementPtr tree, TreeElementPtr var) {
     char* dest;
     dest = get_var_name(var);
@@ -573,6 +587,9 @@ void gen_ifj_readstr(TreeElementPtr tree, TreeElementPtr var) {
     free(dest);
 }
 
+/*
+ * generates ifj.readi32 function
+ */
 void gen_ifj_readi32(TreeElementPtr tree, TreeElementPtr var) {
     char* dest;
     dest = get_var_name(var);
@@ -580,6 +597,9 @@ void gen_ifj_readi32(TreeElementPtr tree, TreeElementPtr var) {
     free(dest);
 }
 
+/*
+ * generates ifj.readf64 function
+ */
 void gen_ifj_readf64(TreeElementPtr tree, TreeElementPtr var) {
     char* dest;
     dest = get_var_name(var);
@@ -587,6 +607,9 @@ void gen_ifj_readf64(TreeElementPtr tree, TreeElementPtr var) {
     free(dest);
 }
 
+/*
+ * generates ifj.i2f function
+ */
 void gen_ifj_i2f(TreeElementPtr tree, TreeElementPtr var) {
     char* converted;
     converted = get_var_name(var);
@@ -604,6 +627,9 @@ void gen_ifj_i2f(TreeElementPtr tree, TreeElementPtr var) {
     free(converted);
 }
 
+/*
+ * generates ifj.f2i function
+ */
 void gen_ifj_f2i(TreeElementPtr tree, TreeElementPtr var) {
     char* converted;
     converted = get_var_name(var);
@@ -621,6 +647,9 @@ void gen_ifj_f2i(TreeElementPtr tree, TreeElementPtr var) {
     free(converted);
 }
 
+/*
+ * generates ifj.org function
+ */
 void gen_ifj_ord(TreeElementPtr tree, TreeElementPtr var) {
     char* ascii;
     char* str;
@@ -655,6 +684,9 @@ void gen_ifj_ord(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
+/*
+ * generates ifj.substring function
+ */
 void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
     char* finalString, *origString, *i, *j;
     bool origb,ib,jb;
@@ -748,6 +780,9 @@ void gen_ifj_substring(TreeElementPtr tree, TreeElementPtr var) {
 
 }
 
+/*
+ * generates ifj.strcmp function
+ */
 void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     char *dest;
     char *str1,*str2;
@@ -802,6 +837,9 @@ void gen_ifj_strcmp(TreeElementPtr tree, TreeElementPtr var) {
     free(dest);
 }
 
+/*
+ * generates ifj.chr function
+ */
 void gen_ifj_chr(TreeElementPtr tree, TreeElementPtr var) {
     char* ascii;
     char* str;
