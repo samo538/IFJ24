@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2024.11.20)  27 NOV 2024 17:53
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2024.11.20)  27 NOV 2024 17:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -286,172 +286,23 @@ File: sada.png Graphic file (type png)
 <use sada.png>
 Package pdftex.def Info: sada.png  used on input line 125.
 (pdftex.def)             Requested size: 745.82458pt x 497.21638pt.
-[4 <./diag.png> <./sada.png>] [5] [6]
-Overfull \hbox (38.30908pt too wide) in paragraph at lines 146--183
-\T1/ptm/m/n/12 LON' <op_bracket> -> 'OPE-NING_BRACKET' <cl_bracket> -> 'CLO-SIN
-G_BRACKET' <op_cr_bracket>
- []
-
-
-Overfull \hbox (45.96579pt too wide) in paragraph at lines 146--183
-\T1/ptm/m/n/12 -> 'OPE-NING_CURLY_BRACKET' <cl_cr_bracket> -> 'CLO-SING_CURLY_B
-RACKET' <op_sq_bracket>
- []
-
-
-Overfull \hbox (57.97792pt too wide) in paragraph at lines 146--183
-\T1/ptm/m/n/12 -> 'OPE-NING_SQUARE_BRACKET' <cl_sq_bracket> -> 'CLO-SING_SQUARE
-_BRACKET' <string_prolog>
- []
-
-
-Overfull \hbox (1.25256pt too wide) in paragraph at lines 146--183
-\T1/ptm/m/n/12 <eof> -> 'END_OF_FILE' <const> -> 'CONST' <var> -> 'VAR' <void> 
--> 'VOID' <type_keyword>
- []
-
-
-Overfull \hbox (12.57118pt too wide) in paragraph at lines 146--183
-\T1/ptm/m/n/12 -> <op_sq_bracket> <cl_sq_bracket> 'U8' <type_keyword> -> 'F64' 
-<type_keyword> -> 'I32' <string>
- []
-
-
-! LaTeX Error: Unicode character ε (U+03B5)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.185 	<nullable> -> ε
-                       
-You may provide a definition with
-\DeclareUnicodeCharacter 
-
-
-Overfull \hbox (24.18703pt too wide) in paragraph at lines 187--192
-[]\T1/ptm/m/n/12 Expressions --------------------------------------------------
--------------------------------------------- <var_exp>
- []
-
-
-! LaTeX Error: Unicode character ε (U+03B5)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.196 	<return\_exp> -> ε
-                          
-You may provide a definition with
-\DeclareUnicodeCharacter 
-
-
-Overfull \hbox (9.31897pt too wide) in paragraph at lines 201--204
-[]\T1/ptm/m/n/12 Lower Ru-les -------------------------------------------------
---------------------------------------------- <type>
- []
-
-
-! LaTeX Error: Unicode character ε (U+03B5)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.212 	<type\_vardef> -> ε
-                           
-You may provide a definition with
-\DeclareUnicodeCharacter 
-
-
-! LaTeX Error: Unicode character ε (U+03B5)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.220 	<call\_params> -> ε
-                           
-You may provide a definition with
-\DeclareUnicodeCharacter 
-
-
-Overfull \hbox (40.9502pt too wide) in paragraph at lines 218--226
-[]\T1/ptm/m/n/12 Main Ru-les --------------------------------------------------
--------------------------------------------- <call_params>
- []
-
-
-Overfull \hbox (24.55608pt too wide) in paragraph at lines 218--226
-\T1/ptm/m/n/12 ->  <call_params> -> <string> <comma> <call_params> <call_params
-> -> <int> <comma> <call_params>
- []
-
-
-Overfull \hbox (9.23233pt too wide) in paragraph at lines 218--226
-\T1/ptm/m/n/12 <call_params> -> <float> <comma> <call_params> <call_params> -> 
-<null> <comma> <call_params>
- []
-
-
-Overfull \hbox (12.25812pt too wide) in paragraph at lines 229--236
-\T1/ptm/m/n/12 <op_bracket> <null_exp> <if_while_body> <else> <if_while_body> <
-cycle> -> <while> <op_bracket>
- []
-
-
-! LaTeX Error: Unicode character ε (U+03B5)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.244 	<fn\_body> -> ε
-                       
-You may provide a definition with
-\DeclareUnicodeCharacter 
-
-
-! LaTeX Error: Unicode character ε (U+03B5)
-               not set up for use with LaTeX.
-
-See the LaTeX manual or LaTeX Companion for explanation.
-Type  H <return>  for immediate help.
- ...                                              
-                                                  
-l.247 	<params> -> ε
-                     
-You may provide a definition with
-\DeclareUnicodeCharacter 
-
-
-Overfull \hbox (9.8573pt too wide) in paragraph at lines 246--253
-\T1/ptm/m/n/12 <at_import> <op_bracket> <string_prolog> <cl_bracket> <se-mi-co-
-lon> <start> -> <im-port_def> <func-
- []
-
-[7] [8] [9] [10] (./documentation.aux) ) 
+[4 <./diag.png> <./sada.png>] [5] [6] [7] [8] [9] (./documentation.aux) ) 
 Here is how much of TeX's memory you used:
- 3436 strings out of 476041
- 55013 string characters out of 5793163
+ 3435 strings out of 476041
+ 55008 string characters out of 5793163
  1858388 words of memory out of 6000000
- 23857 multiletter control sequences out of 15000+600000
+ 23856 multiletter control sequences out of 15000+600000
  559692 words of font info for 71 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
  57i,8n,62p,1280b,258s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/share/texlive/texmf-dist/fonts/ty
-pe1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/u
-tmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on documentation.pdf (11 pages, 187472 bytes).
+</usr/
+share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/t
+exmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts
+/type1/urw/times/utmri8a.pfb>
+Output written on documentation.pdf (10 pages, 184125 bytes).
 PDF statistics:
- 65 PDF objects out of 1000 (max. 8388607)
- 37 compressed objects within 1 object stream
+ 62 PDF objects out of 1000 (max. 8388607)
+ 35 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
