@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2024.11.20)  25 NOV 2024 23:10
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2024.11.20)  27 NOV 2024 17:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -96,7 +96,12 @@ File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 File: l3backend-pdftex.def 2023-01-16 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count266
 \l__pdf_internal_box=\box52
-) (./documentation.aux)
+)
+
+LaTeX Warning: Unused global option(s):
+    [Slovak].
+
+(./documentation.aux)
 \openout1 = `documentation.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
@@ -213,7 +218,7 @@ File: Untitled Diagram.png Graphic file (type png)
 Package pdftex.def Info: Untitled Diagram.png  used on input line 67.
 (pdftex.def)             Requested size: 750.16077pt x 348.34055pt.
 [2 <./Untitled Diagram.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 77--85
+Underfull \hbox (badness 10000) in paragraph at lines 78--86
 
  []
 
@@ -223,60 +228,230 @@ File: Untitled Diagram(1).png Graphic file (type png)
 Package pdftex.def Info: Untitled Diagram(1).png  used on input line 92.
 (pdftex.def)             Requested size: 745.82458pt x 496.49368pt.
 
-Underfull \hbox (badness 1796) in paragraph at lines 94--99
+Underfull \hbox (badness 1796) in paragraph at lines 95--112
 []\T1/ptm/m/n/12 Pre kom-plet-nos´ sme sa roz-hodli vi-zu-ali-zo-va´ ASS,
  []
 
 
-Underfull \hbox (badness 1127) in paragraph at lines 94--99
+Underfull \hbox (badness 1127) in paragraph at lines 95--112
 \T1/ptm/m/n/12 ktorý sme na-vrhli pre tento pre-kla-da£. Ako je vidno
  []
 
 
-Underfull \hbox (badness 1033) in paragraph at lines 94--99
+Underfull \hbox (badness 1033) in paragraph at lines 95--112
 \T1/ptm/m/n/12 a to sú: \T1/ptm/m/it/12 count, data, chil-dren\T1/ptm/m/n/12 . 
 Kde \T1/ptm/m/it/12 count \T1/ptm/m/n/12 ur-£uje po-
  []
 
 
-Underfull \hbox (badness 5388) in paragraph at lines 94--99
+Underfull \hbox (badness 2197) in paragraph at lines 95--112
 \T1/ptm/m/n/12 £et detí ktoré daný uzol má. Hlavná £as´, \T1/ptm/m/it/12 data\T
-1/ptm/m/n/12 ,
+1/ptm/m/n/12 , v
  []
 
 
-Underfull \hbox (badness 2990) in paragraph at lines 94--99
-\T1/ptm/m/n/12 v sebe ucho-váva data po-trebné na správne ge-ne-ro-
+Underfull \hbox (badness 4096) in paragraph at lines 95--112
+\T1/ptm/m/n/12 sebe ucho-váva data po-trebné na správne ge-ne-ro-va-
  []
 
 
-Underfull \hbox (badness 4024) in paragraph at lines 94--99
-\T1/ptm/m/n/12 va-nie kódu (viac vi¤. tree.*). Po-sledná £as´ \T1/ptm/m/it/12 c
-hil-
+Underfull \hbox (badness 2460) in paragraph at lines 95--112
+\T1/ptm/m/n/12 nie kódu (viac vi¤. tree.*). Po-sledná £as´ \T1/ptm/m/it/12 chil
+-dren
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 94--99
+Underfull \hbox (badness 3838) in paragraph at lines 95--112
+\T1/ptm/m/n/12 je pole uka-zo-va-´e-lov na deti. V texte ¤a-lej uká-
+ []
+
+
+Underfull \hbox (badness 1824) in paragraph at lines 95--112
+\T1/ptm/m/n/12 ºeme ako sa "kó-dujú"jednotlivé £asti kódu do tohto
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 95--112
 
  []
 
-[3 <./Untitled Diagram(1).png>] [4] [5] [6] [7] [8] (./documentation.aux) ) 
+[3 <./Untitled Diagram(1).png>]
+<diag.png, id=23, 746.5491pt x 1128.1347pt>
+File: diag.png Graphic file (type png)
+<use diag.png>
+Package pdftex.def Info: diag.png  used on input line 115.
+(pdftex.def)             Requested size: 746.54729pt x 1128.13194pt.
+<sada.png, id=24, 745.8264pt x 497.2176pt>
+File: sada.png Graphic file (type png)
+<use sada.png>
+Package pdftex.def Info: sada.png  used on input line 125.
+(pdftex.def)             Requested size: 745.82458pt x 497.21638pt.
+[4 <./diag.png> <./sada.png>] [5] [6]
+Overfull \hbox (38.30908pt too wide) in paragraph at lines 146--183
+\T1/ptm/m/n/12 LON' <op_bracket> -> 'OPE-NING_BRACKET' <cl_bracket> -> 'CLO-SIN
+G_BRACKET' <op_cr_bracket>
+ []
+
+
+Overfull \hbox (45.96579pt too wide) in paragraph at lines 146--183
+\T1/ptm/m/n/12 -> 'OPE-NING_CURLY_BRACKET' <cl_cr_bracket> -> 'CLO-SING_CURLY_B
+RACKET' <op_sq_bracket>
+ []
+
+
+Overfull \hbox (57.97792pt too wide) in paragraph at lines 146--183
+\T1/ptm/m/n/12 -> 'OPE-NING_SQUARE_BRACKET' <cl_sq_bracket> -> 'CLO-SING_SQUARE
+_BRACKET' <string_prolog>
+ []
+
+
+Overfull \hbox (1.25256pt too wide) in paragraph at lines 146--183
+\T1/ptm/m/n/12 <eof> -> 'END_OF_FILE' <const> -> 'CONST' <var> -> 'VAR' <void> 
+-> 'VOID' <type_keyword>
+ []
+
+
+Overfull \hbox (12.57118pt too wide) in paragraph at lines 146--183
+\T1/ptm/m/n/12 -> <op_sq_bracket> <cl_sq_bracket> 'U8' <type_keyword> -> 'F64' 
+<type_keyword> -> 'I32' <string>
+ []
+
+
+! LaTeX Error: Unicode character Îµ (U+03B5)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.185 	<nullable> -> Îµ
+                       
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+Overfull \hbox (24.18703pt too wide) in paragraph at lines 187--192
+[]\T1/ptm/m/n/12 Expressions --------------------------------------------------
+-------------------------------------------- <var_exp>
+ []
+
+
+! LaTeX Error: Unicode character Îµ (U+03B5)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.196 	<return\_exp> -> Îµ
+                          
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+Overfull \hbox (9.31897pt too wide) in paragraph at lines 201--204
+[]\T1/ptm/m/n/12 Lower Ru-les -------------------------------------------------
+--------------------------------------------- <type>
+ []
+
+
+! LaTeX Error: Unicode character Îµ (U+03B5)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.212 	<type\_vardef> -> Îµ
+                           
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+! LaTeX Error: Unicode character Îµ (U+03B5)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.220 	<call\_params> -> Îµ
+                           
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+Overfull \hbox (40.9502pt too wide) in paragraph at lines 218--226
+[]\T1/ptm/m/n/12 Main Ru-les --------------------------------------------------
+-------------------------------------------- <call_params>
+ []
+
+
+Overfull \hbox (24.55608pt too wide) in paragraph at lines 218--226
+\T1/ptm/m/n/12 ->  <call_params> -> <string> <comma> <call_params> <call_params
+> -> <int> <comma> <call_params>
+ []
+
+
+Overfull \hbox (9.23233pt too wide) in paragraph at lines 218--226
+\T1/ptm/m/n/12 <call_params> -> <float> <comma> <call_params> <call_params> -> 
+<null> <comma> <call_params>
+ []
+
+
+Overfull \hbox (12.25812pt too wide) in paragraph at lines 229--236
+\T1/ptm/m/n/12 <op_bracket> <null_exp> <if_while_body> <else> <if_while_body> <
+cycle> -> <while> <op_bracket>
+ []
+
+
+! LaTeX Error: Unicode character Îµ (U+03B5)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.244 	<fn\_body> -> Îµ
+                       
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+! LaTeX Error: Unicode character Îµ (U+03B5)
+               not set up for use with LaTeX.
+
+See the LaTeX manual or LaTeX Companion for explanation.
+Type  H <return>  for immediate help.
+ ...                                              
+                                                  
+l.247 	<params> -> Îµ
+                     
+You may provide a definition with
+\DeclareUnicodeCharacter 
+
+
+Overfull \hbox (9.8573pt too wide) in paragraph at lines 246--253
+\T1/ptm/m/n/12 <at_import> <op_bracket> <string_prolog> <cl_bracket> <se-mi-co-
+lon> <start> -> <im-port_def> <func-
+ []
+
+[7] [8] [9] [10] (./documentation.aux) ) 
 Here is how much of TeX's memory you used:
- 3410 strings out of 476041
- 54697 string characters out of 5793163
- 1856388 words of memory out of 6000000
- 23834 multiletter control sequences out of 15000+600000
+ 3436 strings out of 476041
+ 55013 string characters out of 5793163
+ 1858388 words of memory out of 6000000
+ 23857 multiletter control sequences out of 15000+600000
  559692 words of font info for 71 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
- 57i,8n,62p,1093b,244s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</us
-r/share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive
-/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fon
-ts/type1/urw/times/utmri8a.pfb>
-Output written on documentation.pdf (9 pages, 120780 bytes).
+ 57i,8n,62p,1280b,258s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/ty
+pe1/urw/times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/u
+tmr8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on documentation.pdf (11 pages, 187472 bytes).
 PDF statistics:
- 55 PDF objects out of 1000 (max. 8388607)
- 33 compressed objects within 1 object stream
+ 65 PDF objects out of 1000 (max. 8388607)
+ 37 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 21 words of extra memory for PDF output out of 10000 (max. 10000000)
 
