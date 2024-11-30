@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2024.11.20)  27 NOV 2024 17:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.25 (TeX Live 2023/Fedora 40) (preloaded format=pdflatex 2024.11.20)  29 NOV 2024 14:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -87,15 +87,31 @@ File: pdftex.def 2022/09/22 v1.2b Graphics/color driver for pdftex
 \WF@box=\box51
 \WF@everypar=\toks20
 Package: wrapfig 2003/01/31  v 3.6
+) (/usr/share/texlive/texmf-dist/tex/latex/graphics/rotating.sty
+Package: rotating 2016/08/11 v2.16d rotated objects in LaTeX
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+Package: graphicx 2021/09/16 v1.2d Enhanced LaTeX Graphics (DPC,SPQR)
+\Gin@req@height=\dimen152
+\Gin@req@width=\dimen153
+) (/usr/share/texlive/texmf-dist/tex/latex/base/ifthen.sty
+Package: ifthen 2022/04/13 v1.1d Standard LaTeX ifthen package (DPC)
 )
-LaTeX Font Info:    Trying to load font information for T1+ptm on input line 11
+\c@r@tfl@t=\count266
+\rotFPtop=\skip50
+\rotFPbot=\skip51
+\rot@float@box=\box52
+\rot@mess@toks=\toks21
+) (/usr/share/texlive/texmf-dist/tex/latex/placeins/placeins.sty
+Package: placeins 2005/04/18  v 2.2
+)
+LaTeX Font Info:    Trying to load font information for T1+ptm on input line 13
 .
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/t1ptm.fd
 File: t1ptm.fd 2001/06/04 font definitions for T1/ptm.
 ) (/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-pdftex.def
 File: l3backend-pdftex.def 2023-01-16 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count266
-\l__pdf_internal_box=\box52
+\l__color_backend_stack_int=\count267
+\l__pdf_internal_box=\box53
 )
 
 LaTeX Warning: Unused global option(s):
@@ -104,20 +120,20 @@ LaTeX Warning: Unused global option(s):
 (./documentation.aux)
 \openout1 = `documentation.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
 *geometry* verbose mode - [ preamble ] result:
@@ -154,17 +170,17 @@ LaTeX Font Info:    ... okay on input line 11.
 
 (/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count267
-\scratchdimen=\dimen152
-\scratchbox=\box53
-\nofMPsegments=\count268
-\nofMParguments=\count269
-\everyMPshowfont=\toks21
-\MPscratchCnt=\count270
-\MPscratchDim=\dimen153
-\MPnumerator=\count271
-\makeMPintoPDFobject=\count272
-\everyMPtoPDFconversion=\toks22
+\scratchcounter=\count268
+\scratchdimen=\dimen154
+\scratchbox=\box54
+\nofMPsegments=\count269
+\nofMParguments=\count270
+\everyMPshowfont=\toks22
+\MPscratchCnt=\count271
+\MPscratchDim=\dimen155
+\MPnumerator=\count272
+\makeMPintoPDFobject=\count273
+\everyMPtoPDFconversion=\toks23
 ) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
@@ -177,37 +193,37 @@ e
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}{/usr/share/texlive/texmf-di
 st/fonts/enc/dvips/base/8r.enc}]
 LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 3
-6.
+8.
 (/usr/share/texlive/texmf-dist/tex/latex/psnfss/ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <12> on input line 36.
+(Font)              <12> on input line 38.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <8> on input line 36.
+(Font)              <8> on input line 38.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <6> on input line 36.
+(Font)              <6> on input line 38.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <7> on input line 36.
+(Font)              <7> on input line 38.
 LaTeX Font Info:    External font `cmex10' loaded for size
-(Font)              <5> on input line 36.
+(Font)              <5> on input line 38.
 
-Underfull \hbox (badness 10000) in paragraph at lines 53--54
+Underfull \hbox (badness 10000) in paragraph at lines 55--56
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 54--56
+Underfull \hbox (badness 10000) in paragraph at lines 56--58
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 56--57
+Underfull \hbox (badness 10000) in paragraph at lines 58--59
 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 57--58
+Underfull \hbox (badness 10000) in paragraph at lines 59--60
 
  []
 
@@ -215,63 +231,63 @@ Underfull \hbox (badness 10000) in paragraph at lines 57--58
 <Untitled Diagram.png, id=12, 750.1626pt x 348.3414pt>
 File: Untitled Diagram.png Graphic file (type png)
 <use Untitled Diagram.png>
-Package pdftex.def Info: Untitled Diagram.png  used on input line 67.
+Package pdftex.def Info: Untitled Diagram.png  used on input line 69.
 (pdftex.def)             Requested size: 750.16077pt x 348.34055pt.
 [2 <./Untitled Diagram.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 78--86
+Underfull \hbox (badness 10000) in paragraph at lines 80--88
 
  []
 
 <Untitled Diagram(1).png, id=18, 745.8264pt x 496.4949pt>
 File: Untitled Diagram(1).png Graphic file (type png)
 <use Untitled Diagram(1).png>
-Package pdftex.def Info: Untitled Diagram(1).png  used on input line 92.
+Package pdftex.def Info: Untitled Diagram(1).png  used on input line 94.
 (pdftex.def)             Requested size: 745.82458pt x 496.49368pt.
 
-Underfull \hbox (badness 1796) in paragraph at lines 95--112
+Underfull \hbox (badness 1796) in paragraph at lines 97--114
 []\T1/ptm/m/n/12 Pre kom-plet-nos´ sme sa roz-hodli vi-zu-ali-zo-va´ ASS,
  []
 
 
-Underfull \hbox (badness 1127) in paragraph at lines 95--112
+Underfull \hbox (badness 1127) in paragraph at lines 97--114
 \T1/ptm/m/n/12 ktorý sme na-vrhli pre tento pre-kla-da£. Ako je vidno
  []
 
 
-Underfull \hbox (badness 1033) in paragraph at lines 95--112
+Underfull \hbox (badness 1033) in paragraph at lines 97--114
 \T1/ptm/m/n/12 a to sú: \T1/ptm/m/it/12 count, data, chil-dren\T1/ptm/m/n/12 . 
 Kde \T1/ptm/m/it/12 count \T1/ptm/m/n/12 ur-£uje po-
  []
 
 
-Underfull \hbox (badness 2197) in paragraph at lines 95--112
+Underfull \hbox (badness 2197) in paragraph at lines 97--114
 \T1/ptm/m/n/12 £et detí ktoré daný uzol má. Hlavná £as´, \T1/ptm/m/it/12 data\T
 1/ptm/m/n/12 , v
  []
 
 
-Underfull \hbox (badness 4096) in paragraph at lines 95--112
+Underfull \hbox (badness 4096) in paragraph at lines 97--114
 \T1/ptm/m/n/12 sebe ucho-váva data po-trebné na správne ge-ne-ro-va-
  []
 
 
-Underfull \hbox (badness 2460) in paragraph at lines 95--112
+Underfull \hbox (badness 2460) in paragraph at lines 97--114
 \T1/ptm/m/n/12 nie kódu (viac vi¤. tree.*). Po-sledná £as´ \T1/ptm/m/it/12 chil
 -dren
  []
 
 
-Underfull \hbox (badness 3838) in paragraph at lines 95--112
+Underfull \hbox (badness 3838) in paragraph at lines 97--114
 \T1/ptm/m/n/12 je pole uka-zo-va-´e-lov na deti. V texte ¤a-lej uká-
  []
 
 
-Underfull \hbox (badness 1824) in paragraph at lines 95--112
+Underfull \hbox (badness 1824) in paragraph at lines 97--114
 \T1/ptm/m/n/12 ºeme ako sa "kó-dujú"jednotlivé £asti kódu do tohto
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 95--112
+Underfull \hbox (badness 10000) in paragraph at lines 97--114
 
  []
 
@@ -279,30 +295,83 @@ Underfull \hbox (badness 10000) in paragraph at lines 95--112
 <diag.png, id=23, 746.5491pt x 1128.1347pt>
 File: diag.png Graphic file (type png)
 <use diag.png>
-Package pdftex.def Info: diag.png  used on input line 115.
+Package pdftex.def Info: diag.png  used on input line 117.
 (pdftex.def)             Requested size: 746.54729pt x 1128.13194pt.
 <sada.png, id=24, 745.8264pt x 497.2176pt>
 File: sada.png Graphic file (type png)
 <use sada.png>
-Package pdftex.def Info: sada.png  used on input line 125.
+Package pdftex.def Info: sada.png  used on input line 127.
 (pdftex.def)             Requested size: 745.82458pt x 497.21638pt.
-[4 <./diag.png> <./sada.png>] [5] [6] [7] [8] [9] (./documentation.aux) ) 
+[4 <./diag.png> <./sada.png>] [5]
+<xxx.png, id=33, 904.0977pt x 1030.5702pt>
+File: xxx.png Graphic file (type png)
+<use xxx.png>
+Package pdftex.def Info: xxx.png  used on input line 145.
+(pdftex.def)             Requested size: 904.0955pt x 1030.5677pt.
+[1 <./xxx.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 151--248
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--248
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--248
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 151--248
+
+ []
+
+[2] [3] [4]
+<LL222.png, id=49, 1567.8575pt x 992.70876pt>
+File: LL222.png Graphic file (type png)
+<use LL222.png>
+Package pdftex.def Info: LL222.png  used on input line 253.
+(pdftex.def)             Requested size: 1567.85368pt x 992.70634pt.
+
+LaTeX Warning: Float too large for page by 82.69693pt on input line 255.
+
+[5 <./LL222.png>]
+<LL11.png, id=54, 1543.7675pt x 989.6975pt>
+File: LL11.png Graphic file (type png)
+<use LL11.png>
+Package pdftex.def Info: LL11.png  used on input line 259.
+(pdftex.def)             Requested size: 1543.76373pt x 989.69508pt.
+
+LaTeX Warning: Float too large for page by 71.13385pt on input line 261.
+
+[6 <./LL11.png>]
+<asss.png, id=59, 884.30376pt x 895.345pt>
+File: asss.png Graphic file (type png)
+<use asss.png>
+Package pdftex.def Info: asss.png  used on input line 268.
+(pdftex.def)             Requested size: 884.3016pt x 895.34282pt.
+[7
+
+
+ <./asss.png>] (./documentation.aux) ) 
 Here is how much of TeX's memory you used:
- 3435 strings out of 476041
- 55008 string characters out of 5793163
- 1858388 words of memory out of 6000000
- 23856 multiletter control sequences out of 15000+600000
+ 3708 strings out of 476041
+ 59929 string characters out of 5793163
+ 1859388 words of memory out of 6000000
+ 24112 multiletter control sequences out of 15000+600000
  559692 words of font info for 71 fonts, out of 8000000 for 9000
  1137 hyphenation exceptions out of 8191
- 57i,8n,62p,1280b,258s stack positions out of 10000i,1000n,20000p,200000b,200000s
-</usr/
-share/texlive/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/share/texlive/t
-exmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/share/texlive/texmf-dist/fonts
-/type1/urw/times/utmri8a.pfb>
-Output written on documentation.pdf (10 pages, 184125 bytes).
+ 57i,9n,62p,1365b,291s stack positions out of 10000i,1000n,20000p,200000b,200000s
+</usr/share/texlive/texmf-dist/fonts/type
+1/public/amsfonts/cm/cmmi12.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/
+times/utmb8a.pfb></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmr8a.pf
+b></usr/share/texlive/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on documentation.pdf (13 pages, 573156 bytes).
 PDF statistics:
- 62 PDF objects out of 1000 (max. 8388607)
- 35 compressed objects within 1 object stream
+ 85 PDF objects out of 1000 (max. 8388607)
+ 45 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 21 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 41 words of extra memory for PDF output out of 10000 (max. 10000000)
 

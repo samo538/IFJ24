@@ -7,6 +7,8 @@
 \usepackage{times}
 \usepackage{graphics}
 \usepackage{wrapfig}
+\usepackage{rotating}
+\usepackage{placeins}
 
 \begin{document}
 	\begin{titlepage}
@@ -15,13 +17,13 @@
 			\textsc{{\LARGE Vysoké učení technické v Brně \\[0.5em]}  {\LARGE Fakulta informačních technologií}} \\
 			\vspace{\stretch{0.382}}
 			{\Large Formálne jazyky a prekladače  -- Projekt \\[0.6em]}
-			{\huge Prekladač pre jazyk ZIG} \\[0.6em]
-			{\large Tým xluptas00 varianta TRP-izp}
+			{\huge Prekladač pre jazyk IFJ24} \\[0.6em]
+			{\large Tím xluptas00 varianta TRP-izp}
 			\vspace{\stretch{0.618}}
 			
 		\end{center}
 		\begin{flushright}
-			{ \textbf{Bodové rozdelenie:} 25/25/25/25\% \hfill \textbf{Vedúci: }Samuel Lupták (xluptas00)} \\
+			{ \textbf{Bodové rozdelenie:} 30/25/20/25\% \hfill \textbf{Vedúci: }Samuel Lupták (xluptas00)} \\
 			{ \textbf{Implementované rozšírenia:} žiadne\hfill  Petr Němec (xnemecp00)} \\
 			{ \hfill  Lukáš Houzar (xhouzal00)} \\
 			{\today \hfill Mário Klopan (xklopam00)}
@@ -117,7 +119,7 @@
 		\end{wrapfigure}
 	Tabulku symbolov sme implementovali podla zadania ako hašovaciu tabulku. V prekladači existuje ukazaťeľ na \textit{globálnu tabulku} v ktorej sú záznami definovaných funkcií. Každá funkcia má v sebe odkaz na \textit{lokálnu tabulku} symbolov.  Lokálna tabulka symbolov, obsahuje záznami premenných v daných funkciách. Parametre funkcie sú na začiatku tiež interpretované ako lokálné premenné. Zauímavosťou je určite riešenie rozsahu platnosti lokálnych premenných.
 	 Namiesto riešenia zásobníku tabuliek symbolov, sme vymysleli jednoduchý systém, kde každá premenná má svoj vlastný zásobník čísiel. Tento zásobník určuje 
-	 rozsah premennej následovne: Premenné definované v tele hlavnej funkcie majú velkosť zásobníku 1 a na zásobníku je čislica 1, Pokiaľ definujeme premennú v neakom podbloku, tak na zásobník vložíme hodnotu ktorá je jedinečná pre daný podblok (ilustrujeme obrázkom). Tabulka je kvôli požadovanému implicitnému
+	 rozsah premennej následovne: premenné definované v tele hlavnej funkcie majú velkosť zásobníku 1 a na zásobníku je čislica 1. Pokiaľ definujeme premennú v neakom podbloku, tak na zásobník vložíme hodnotu ktorá je jedinečná pre daný podblok (ilustrujeme obrázkom). Tabulka je kvôli požadovanému implicitnému
 	 zreťazeniu obmedzená na 1000 položiek, čo si uvedomujeme že nie je najvhodnejšie riešiene, avšak veríme že pre projekt bolo dostačujúce. 
 	 \\
 	\begin{figure}[ht]
@@ -129,22 +131,142 @@
 	\newpage
 
 	\subsection{Implementácia ostatných častí}
-	Ostatné časti (Skener, Parser, Generácia kódu, Zásobník, fronta) sú implementované štandardne metódami prednášanými na FIT VUT, preto ich špecifikáciu
+	Ostatné časti (skener, parser, generácia kódu, zásobník, fronta) sú implementované štandardne metódami prednášanými na FIT VUT, preto ich špecifikáciu
 	vynecháme.  
 	
 	\section{Práca v tíme}
-	Na projekte sme pracovali počas celého semestra. Na správu verzií sme využívali platformu GitHub, ktorá nám umožnila prehľadnú organizáciu zdrojového kódu, sledovanie zmien a jednoduché riešenie prípadných konfliktov v kóde. Vďaka tomu mal každý člen tímu vždy prístup k aktuálnej verzii projektu. Na komunikáciu sme používali Discord, ktorý nám poskytol priestor na rýchlu výmenu informácií, plánovanie úloh a riešenie problémov v reálnom čase. Táto platforma bola užitočná najmä pri každodennom zdieľaní poznatkov alebo konzultáciách ohľadom implementácie jednotlivých častí projektu. Okrem online komunikácie sme sa raz týždenne stretávali osobne, aby sme spoločne zhodnotili doterajší pokrok, stanovili priority na nadchádzajúce obdobie a riešili zložitejšie časti projektu, ktoré si vyžadovali detailnú diskusiu. Tento pravidelný rytmus spolupráce zabezpečil plynulý vývoj projektu a pomohol nám efektívne rozdeliť prácu medzi jednotlivých členov tímu. Navyše sme sa rozdelili do tímov po dvoch podľa toho, ako sme ubytovaní na internátoch, čo nám umožnilo ešte rýchlejšiu komunikáciu pri problémoch špecifických pre jednotlivé tímy.
+	Na projekte sme pracovali počas celého semestra. Na správu verzií sme využívali platformu GitHub, ktorá nám umožnila prehľadnú organizáciu zdrojového kódu, sledovanie zmien a jednoduché riešenie prípadných konfliktov v kóde. Vďaka tomu mal každý člen tímu vždy prístup k aktuálnej verzii projektu. Na komunikáciu sme používali Discord, ktorý nám poskytol priestor na rýchlu výmenu informácií, plánovanie úloh a riešenie problémov v reálnom čase. Táto platforma bola užitočná najmä pri každodennom zdieľaní poznatkov alebo konzultáciách ohľadom implementácie jednotlivých častí projektu. Okrem online komunikácie sme sa raz týždenne stretávali osobne, aby sme spoločne zhodnotili doterajší pokrok, stanovili priority na nadchádzajúce obdobie a riešili zložitejšie časti projektu, ktoré si vyžadovali detailnú diskusiu. Tento pravidelný rytmus spolupráce zabezpečil plynulý vývoj projektu a pomohol nám efektívne rozdeliť prácu medzi jednotlivých členov tímu. Navyše sme sa rozdelili do tímov po dvoch podľa toho, ako sme ubytovaní na internátoch, čo nám umožnilo ešte rýchlejšiu komunikáciu pri problémoch špecifických pre jednotlivé tímy. Bodové rozdelenie odráža  čas vložený do projektu jednotlivými členmi tímu.
 	
 	\newpage
+	\pagenumbering{gobble}
 	\section{PRÍLOHA A - Konečný automat}
+	\begin{figure}[ht]
+		\begin{center}
+			\scalebox{0.5}{\includegraphics{xxx.png}}
+		\end{center}
+	\end{figure}
 	
 	\newpage
 	\section{PRÍLOHA B - LL1 gramatika}
-	
-	\newpage
+	<xxx> - xxx je neterminál\\
+	'yyy' - yyy je terminál\\
+	\\
+	Pravidlá tokenov\\
+	----------------------------------------------------------------------------------------------\\
+	1. <ifj> -> 'IFJ'\\
+	2. <at\_import> -> 'IMPORT'\\
+	3. <eq> -> 'ASSIGN'\\
+	4.<comma> -> 'COMMA'\\
+	5. <colon> -> 'COLON'\\
+	6. <op\_bracket> -> 'OPENING\_BRACKET'\\
+	7. <cl\_bracket> -> 'CLOSING\_BRACKET'\\
+	8. <op\_cr\_bracket> -> 'OPENING\_CURLY\_BRACKET'\\
+	9. <cl\_cr\_bracket> -> 'CLOSING\_CURLY\_BRACKET'\\
+	10. <op\_sq\_bracket> -> 'OPENING\_SQUARE\_BRACKET'\\
+	11. <cl\_sq\_bracket> -> 'CLOSING\_SQUARE\_BRACKET'\\
+	12. <string\_prolog> -> 'STRING' (tento string sa lisi od pravidla <string> tym ze musi nadobudat hodnotu ``ifj24.zig'')\\
+	13. <semicolon> -> 'SEMICOLON'\\
+	14. <pub> -> 'PUB'\\
+	15. <fn> -> 'FN'\\
+	16. <dot> -> 'DOT'\\
+	17. <return> -> 'RETURN'\\
+	18. <if> -> 'IF'\\
+	19. <else> -> 'ELSE'\\
+	20. <vertical\_bar> -> 'VERTICAL\_BAR'\\
+	21. <while> -> 'WHILE'\\
+	22. <eof> -> 'END\_OF\_FILE'\\
+	23. <const> -> 'CONST'\\
+	24. <var> -> 'VAR'\\
+	25. <void> -> 'VOID'\\
+	26. <type\_keyword> -> <op\_sq\_bracket> <cl\_sq\_bracket> 'U8'\\
+	27. <type\_keyword> -> 'F64'\\
+	28. <type\_keyword> -> 'I32'\\
+	29. <string> -> 'STRING'\\
+	30. <int> -> 'I32\_VAR'\\
+	31. <float> -> 'F64\_VAR'\\
+	32. <null> -> 'NULL\_VALUE'\\
+	33. <id> -> 'ID'\\
+	34. <id\_ifj> -> 'ID' (id.val sa musi zhodovat s nazvom neakej vstavanej funkcie)\\
+	35. <underline> -> 'UNDERSCORE'\\
+	36. <nullable> -> 'NULLABLE'\\
+	37. <nullable> -> $\epsilon$\\
+	\\
+	Výrazi\\
+	----------------------------------------------------------------------------------------------\\
+	38. <var\_exp> -> <ifj\_call>\\
+	39. <var\_exp> -> <fn\_call>\\
+	40. <var\_exp> -> <exp> <semicolon>\\
+	41. <null\_exp> -> <exp> <cl\_bracket>\\
+	42. <null\_exp> -> <id> <cl\_bracket> <vertical\_bar> <id> <vertical\_bar> // zober 2 tokeny, pokial prvy je ID a druhy je cl\_bracket, vol tuto variantu, inak vol druhu\\
+	43. <return\_exp> -> $\epsilon$\\
+	44. <return\_exp> -> <exp>\\
+	45. <exp> -> // call precedence analyzer\\
+	\\
+    Pomocné pravidlá\\
+	----------------------------------------------------------------------------------------------\\
+	46. <type> -> <nullable> <type\_keyword>\\
+	47. <var\_const> -> <var>\\
+	48. <var\_const> -> <const>\\
+	49. <type\_fndef> -> <type>\\
+	50. <type\_fndef> -> <void>\\
+	51. <type\_vardef> -> <colon> <type>\\
+	52. <type\_vardef> -> $\epsilon$\\
+	53. <id\_assign> -> <underline>\\
+	54. <id\_assing> -> <id>\\
+	\\
+	Hlavné previdlá\\
+	----------------------------------------------------------------------------------------------\\
+	55. <call\_params> -> $\epsilon$\\
+	56. <call\_params> -> <string> <comma> <call\_params>\\
+	57. <call\_params> -> <int> <comma> <call\_params>\\
+	58. <call\_params> -> <float> <comma> <call\_params>\\
+	59. <call\_params> -> <null> <comma> <call\_params>\\
+	60. <call\_params> -> <id> <comma> <call\_params>\\
+	61. <if\_while\_body> -> <op\_cr\_bracket> <fn\_body> <cl\_cr\_bracket>\\
+	62. <var\_def> -> <var\_const> <id> <type\_vardef> <eq> <var\_exp>\\
+	63. <assign> -> <id\_assign> <eq> <var\_exp>\\
+	64. <fn\_call> -> <id> <op\_bracket> <call\_params> <cl\_bracket> <semicolon>\\
+	65. <ifj\_call> -> <ifj> <dot> <ifj\_id> <op\_bracket> <call\_params> <cl\_bracket> <semicolon>\\
+	66. <if\_else> -> <if> <op\_bracket> <null\_exp> <if\_while\_body> <else> <if\_while\_body>\\
+	67. <cycle> -> <while> <op\_bracket> <null\_exp> <if\_while\_body>\\
+	68. <fn\_return> -> <return> <return\_exp> <semicolon>\\
+	69. <fn\_body> -> <var\_def> <fn\_body>\\
+	70. <fn\_body> -> <assign> <fn\_body> // nahliadnutie do tabulky symbolov, pokial je ID variable, tak sa vola tato varianta\\
+	71. <fn\_body> -> <fn\_call> <fn\_body> // nahliadnutie do tabulky symbolov, pokial je ID function alebo nedefinovane, tak sa vola tato varianta\\
+	72. <fn\_body> -> <ifj\_call> <fn\_body> \\
+	73. <fn\_body> -> <if\_else> <fn\_body>\\
+	74. <fn\_body> -> <cycle> <fn\_body>\\
+	75. <fn\_body> -> <fn\_return> <fn\_body>\\
+	76. <fn\_body> -> $\epsilon$\\
+	77. <params> -> <id> <colon> <type> <comma> <params>\\
+	78. <params> -> $\epsilon$\\
+	79. <fn\_def> -> <pub> <fn> <id> <op\_bracket> <params> <cl\_bracket> <type\_fndef> \\
+	80. <functions> -> <fn\_def> <op\_cr\_bracket> <fn\_body> <cl\_cr\_bracket> <functions>\\
+	81. <functions> -> <eof>\\
+	82. <import\_def> -> <const> <ifj> <eq> <at\_import> <op\_bracket> <string\_prolog> <cl\_bracket> <semicolon>\\
+	83. <start> -> <import\_def> <functions>
+	\vfill
 	\section{PRÍLOHA C - LL1 tabulka}
+	\newpage
+	\begin{figure}[ht]
+		\begin{center}
+			\scalebox{0.48}{\includegraphics[angle=90]{LL222.png}}
+		\end{center}
+	\end{figure}
+	\FloatBarrier
+	\begin{figure}[ht]
+		\begin{center}
+			\scalebox{0.48}{\includegraphics[angle=90]{LL11.png}}
+		\end{center}
+	\end{figure}
+	\FloatBarrier
 	
 	\newpage
 	\section{PRÍLOHA D - Precedenčná tabulka}
+	\begin{figure}[ht]
+		\begin{center}
+			\scalebox{0.5}{\includegraphics{asss.png}}
+		\end{center}
+	\end{figure}
 	
 \end{document}
