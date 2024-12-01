@@ -33,32 +33,32 @@
 	
 	\section{Návrh}
 	\noindent Prekladač sa skladá z 3~hlavných častí a 4~pomocných dátových štruktúr.\\
-	\textbf{Hlavné časti} prekladaču (a ich podčasti):
+	\textbf{Hlavné časti} prekladača (a ich podčasti):
 	\begin{itemize}
 		\item Lexikálny analyzátor \footnote[1]{Ďalej len \textit{skener}}
 		\item Dvojprechodový syntaktický a sématický analyzátor \footnote[2]{Ďalej len \textit{parser}}
 		\begin{itemize} 
 			\item Analýza kódu pomocou rekurzívneho zostupu
-			\item Analýza výrazov pomocou precedenčnej analýzi 
+			\item Analýza výrazov pomocou precedenčnej analýzy
 		\end{itemize}
 		\item Generátor výsledného kódu
 	\end{itemize}
 	
 	\noindent\textbf{Pomocné štruktúry} použité v prekladači:
 		\begin{itemize}
-		\item  Tabulka s rozptýlenými položkami s implicitným zreťazením položiek \footnote[3]{Ďalej len \textit{hašovacia tabulka}}
+		\item  Tabuľka s rozptýlenými položkami s implicitným zreťazením položiek \footnote[3]{Ďalej len \textit{hašovacia tabulka}}
 		\item Abstraktný syntaktický strom \footnote[4]{Ďalej len \textit{ASS}}
 		\item Zásobník
 		\item Fronta
 	\end{itemize}
 	
 	\noindent \textbf{Využitie} jednotlivých štruktúr je nasledovné:\\
-	\par\textit{Hašovacia tabulka: } Bola použítá pre implementáciu tabulky symbolov. Podmienka pre implicitné zreťazenie nám 
-	robila mierny problém, pretože teoreticky nekonečný počet identifikátorov sa nemestí do konečne velkej tabulky \\
+	\par\textit{Hašovacia tabulka: } Bola použitá pre implementáciu tabuľky symbolov. Podmienka pre implicitné zreťazenie nám 
+	robila mierny problém, pretože teoreticky nekonečný počet identifikátorov sa nevmestí do konečne veľkej tabuľky \\
 	\par\textit{ASS: } Slúži na komunikáciu medzi parserom a generátorom kódu\\
 	\par\textit{Zásobník: } Je využitý precedenčnou analýzou, ktorá ho používa na spracovanie výrazov\\
-	\par\textit{Fronta: } Má význam pri dvojprechodovej analýze ako uložisko tokenov. Pre dvojprechodovú analýzu sme sa rozhodli po
-	zistení, že definicia funkcie nemusí lexikálne predchádzať jej volaniu.
+	\par\textit{Fronta: } Má význam pri dvojprechodovej analýze ako úložisko tokenov. Pre dvojprechodovú analýzu sme sa rozhodli po
+	zistení, že definícia funkcie nemusí lexikálne predchádzať jej volaniu.
 	
 	\newpage
 	\section{Popis komunikácie}
@@ -71,9 +71,9 @@
 		\end{center}
 	\end{figure}
 	\subsection{Stručný popis}
-	Bolo by vhodné začať tým, že parser (modrá časť diagramu) inicializuje všetky operácie v prekladači.  
+	Parser (modrá časť diagramu) inicializuje všetky operácie v prekladači.  
 	Preklad začína vložením programu v jazyku zig na
-	 vstup. Skener (Na zavolanie) postupne fragmentuje vstup na jednotlivé lexémi a posiela ich vo forme tokenov do parseru.  Ako bolo už spomenuté, tak parser je dvojprechodový. Tokeny idú najprv cez prvý prechod, ktorý kontroluje syntax a sematiku iba pre hlavičky funkcií, ktoré následne ukladá do tabulky symbolov, aby informácie o nich boli dostupné v druhom prechode. Prvý prechod ukladá všetky prečítané tokeny do fronty. Z fronty si tokeny po jednom berie druhý prechod, ktorý kontroluje syntax a sématiku pre ostatok kódu. V prípade že v kóde sa nachádza výraz, zavolá sa precedenčná analýza ktorá tento výraz s pomocov zásobníku spracuje. Druhý prechod zároveň pridáva definované premenné do tabulky symbolov  (Samotnú tabulku symbolov však aj využíva, napr. pre kontrolu redefinície).  Počas druhého prechodu sa zároveň vytvára ASS ktorý po úspešnom dokončení analýzi slúži ako výstup a zároveň vstup do generátoru kódu. Generátor kódu s pomocou tabulky symbolou generuje cieľový kód.
+	 vstup. Skener (Na zavolanie) postupne fragmentuje vstup na jednotlivé lexémi a posiela ich vo forme tokenov do parseru.  Ako bolo už spomenuté, parser je dvojprechodový. Tokeny idú najprv cez prvý prechod, ktorý kontroluje syntax a sématiku iba pre hlavičky funkcií, ktoré následne ukladá do tabulky symbolov, aby informácie o nich boli dostupné v druhom prechode. Prvý prechod ukladá všetky prečítané tokeny do fronty. Z fronty si tokeny po jednom berie druhý prechod, ktorý kontroluje syntax a sématiku pre ostatok kódu. V prípade že v kóde sa nachádza výraz, zavolá sa precedenčná analýza, ktorá tento výraz pomocou zásobníka spracuje. Druhý prechod zároveň pridáva definované premenné do tabuľky symbolov  (samotnú tabuľku symbolov však aj využíva, napr. pre kontrolu redefinície).  Počas druhého prechodu sa zároveň vytvára ASS, ktorý po úspešnom dokončení analýzy slúži ako výstup a zároveň vstup do generátora kódu. Generátor kódu s pomocou tabuľky symbolou generuje cieľový kód.
 	 	
 	\newpage
 	\section{Implementácia}
@@ -85,42 +85,42 @@
 	\textbf{Zásobník: }\textit{stack.*} (xklopam00)\\
 	\textbf{Fronta: }\textit{queue.*} (xluptas00)\\
 	\textbf{Ostatné časti: }\textit{error.*} (xluptas00)\\
-	\par Implementácia dátových štruktúr sa nachádza v jednotlitvých súboroch pomenovaných podla danej štruktúry.
-	\par Implementácia častí samotného prekladača spočíva v súboroch skeneru, parseru, generátoru a súboru \textit{error.*}, ktorý 
+	\par Implementácia dátových štruktúr sa nachádza v jednotlitvých súboroch pomenovaných podľa danej štruktúry.
+	\par Implementácia častí samotného prekladača spočíva v súboroch skenera, parsera, generátora a súboru \textit{error.*}, ktorý 
 	implementuje základné pracovanie s chybami. Prvý prechod je implementovaný v súboroch \textit{queue\_fill.*} a druhý prechod je
-	implementovaný v súboroch \textit{syntax.*}. \textit{syntax.c} zároveň obsahuje funkciu Main. Prílohy A, B, C, D ukazujú využitú teóriu, ktorá slúžila ako podklad pre jednotlivé časti prekladaču.
+	implementovaný v súboroch \textit{syntax.*}. \textit{syntax.c} zároveň obsahuje funkciu Main. Prílohy A, B, C, D ukazujú využitú teóriu, ktorá slúžila ako podklad pre jednotlivé časti prekladača.
 	\subsection{Strom}
 	\begin{wrapfigure}{l}{0.4\textwidth}
 		\scalebox{0.25}{\includegraphics{Untitled Diagram(1).png}}
 		\caption{Štruktúra stromu}
 	\end{wrapfigure}
 	Pre kompletnosť sme sa rozhodli vizualizovať ASS, ktorý sme navrhli pre tento prekladač.
-	Ako je vidno na diagrame, tak každý uzol obsahuje 3 hlavné časti a to sú: \textit{count, data, children}. Kde \textit{count}
-	určuje počet detí ktoré daný uzol má. Hlavná časť, \textit{data}, v sebe uchováva data potrebné na správne generovanie kódu
+	Ako je vidno na diagrame, tak každý uzol obsahuje 3 hlavné časti a to sú: \textit{count, data, children}, kde \textit{count}
+	určuje počet detí, ktoré daný uzol má. Hlavná časť, \textit{data}, v sebe uchováva dáta potrebné na správne generovanie kódu
 	(viac viď. tree.*). Posledná časť \textit{children} je pole ukazovaťelov na deti.  V texte ďalej ukážeme ako sa "kódujú" jednotlivé časti kódu do tohto stromu.
 	\\\\
-	\textbf{Typy uzlov} sú špecifikované v \textit{tree.h:15}. Strom má presne 1 koreň typu \textbf{ROOT\_NODE}  a má presne tolko detí, kolko je funkcií vo
+	\textbf{Typy uzlov} sú špecifikované v \textit{tree.h:15}. Strom má presne 1 koreň typu \textbf{ROOT\_NODE}  a má presne toľko detí, koľko je funkcií vo
 	vstupnom programe. Tieto uzly sú typu \textbf{TOP\_FUNCTION\_NODE} a sú v nich uložené základné informácie o funkciách potrebné pre generáciu kódu.
-	Z jednotlivých uzlov funkcií vychádzajú uzly špecifikujúce jednotlivé časti kódu. Tieto časti kódu sa delia na: \textit{priradenie, definiciu premennej, návrat, vetvenie, cyklus, volanie funkcie}. \\[0.6em]
+	Z jednotlivých uzlov funkcií vychádzajú uzly špecifikujúce jednotlivé časti kódu. Tieto časti kódu sa delia na: \textit{priradenie, definíciu premennej, návrat, vetvenie, cyklus, volanie funkcie}. \\[0.6em]
 	\textit{Priradenie} začína uzlom \textbf{ASSIGN\_NODE}, jeho prvé dieťa určuje do akej premennej sa priraďuje a jeho druhé dieťa určuje čo sa priraďuje (funkcia alebo výraz).\\[0.6em]
-	\textit{Definicia premennej} má ten istý tvar ako \textit{priradenie} až na to že vrchný uzol má typ \textbf{DEFINITION\_NODE}\\[0.6em]
-	\textit{Návrat} začina uzlom typu \textbf{RETURN\_NODE} . Jeho jedniným dieťaťom je strom výrazu, v prípade funkcie nevracajúcej hodnotu nemá deti žiadne.\\[0.6em]
-	\textit{Vetvenie} a \textit{cyklus} začínajú uzlom typu \textbf{WHILE\_NODE} alebo \textbf{IF\_NODE}. Na prvom mieste sa nachádza podmineka.  Následuje postupnosť častí kódu. Pokiaľ sa jedná o podmineku, začiatok druhej vetvy označuje dieťa typu \textbf{ELSE\_NODE} následovaná postupnosťou častí kódu.\\[0.6em]
+	\textit{Definícia premennej} má ten istý tvar ako \textit{priradenie} až na to, že vrchný uzol má typ \textbf{DEFINITION\_NODE}\\[0.6em]
+	\textit{Návrat} začína uzlom typu \textbf{RETURN\_NODE} . Jeho jediným dieťaťom je strom výrazu, v prípade funkcie nevracajúcej hodnotu, nemá deti žiadne.\\[0.6em]
+	\textit{Vetvenie} a \textit{cyklus} začínajú uzlom typu \textbf{WHILE\_NODE} alebo \textbf{IF\_NODE}. Na prvom mieste sa nachádza podmineka.  Nasleduje postupnosť častí kódu. Pokiaľ sa jedná o podmineku, začiatok druhej vetvy označuje dieťa typu \textbf{ELSE\_NODE} nasledovaná postupnosťou častí kódu.\\[0.6em]
 	\textit{Volanie funkcie} začína uzlom \textbf{FUNCTION\_NODE} a jeho deti sú postupnosť argumentov. Podobne fungujú aj vstavané funkcie s miernou zmenou 
-	typu hlavného uzlu\\[0.6em]
-	\noindent Zauimavým doplnkom stromu je inklúzia spätného odkazu na otca v každdom uzle. Toto umožňuje celkom elegantné zarovanie a vynorovanie v 
-	rekurzívnom zostupe. Pokiaľ je napríklad volaná funkcia, program sa zanorý do uzlu \textbf{FUNCTION\_NODE} a zaplní ho uzlami argumentov. po jeho spracovaní sa pomocov spätného odkazu program vynorí z tohto uzlu a je pripravený spracovať ďalšie riadky kódu.\\[0.6em]
-	\noindent \textit{Generácia kódu} následne generuje kód jednoduchým prechádzaním tohoto stromu.
+	typu hlavného uzla.\\[0.6em]
+	\noindent Zaujímavým doplnkom stromu je inklúzia spätného odkazu na otca v každom uzle. Toto umožňuje celkom elegantné zanorovanie a vynorovanie v 
+	rekurzívnom zostupe. Pokiaľ je napríklad volaná funkcia, program sa zanorí do uzlu \textbf{FUNCTION\_NODE} a zaplní ho uzlami argumentov. Po jeho spracovaní sa pomocou spätného odkazu program vynorí z tohto uzlu a je pripravený spracovať ďalšie riadky kódu.\\[0.6em]
+	\noindent \textit{Generácia kódu} následne generuje kód jednoduchým prechádzaním tohto stromu.
 	
-	\subsection{Tabulka symbolov}
+	\subsection{Tabuľka symbolov}
 		\begin{wrapfigure}{l}{0.35\textwidth}
 			\scalebox{0.2}{\includegraphics{diag.png}}
-			\caption{Tabulka symbolov}
+			\caption{Tabuľka symbolov}
 		\end{wrapfigure}
-	Tabulku symbolov sme implementovali podla zadania ako hašovaciu tabulku. V prekladači existuje ukazaťeľ na \textit{globálnu tabulku} v ktorej sú záznami definovaných funkcií. Každá funkcia má v sebe odkaz na \textit{lokálnu tabulku} symbolov.  Lokálna tabulka symbolov, obsahuje záznami premenných v daných funkciách. Parametre funkcie sú na začiatku tiež interpretované ako lokálné premenné. Zauímavosťou je určite riešenie rozsahu platnosti lokálnych premenných.
-	 Namiesto riešenia zásobníku tabuliek symbolov, sme vymysleli jednoduchý systém, kde každá premenná má svoj vlastný zásobník čísiel. Tento zásobník určuje 
-	 rozsah premennej následovne: premenné definované v tele hlavnej funkcie majú velkosť zásobníku 1 a na zásobníku je čislica 1. Pokiaľ definujeme premennú v neakom podbloku, tak na zásobník vložíme hodnotu ktorá je jedinečná pre daný podblok (ilustrujeme obrázkom). Tabulka je kvôli požadovanému implicitnému
-	 zreťazeniu obmedzená na 1000 položiek, čo si uvedomujeme že nie je najvhodnejšie riešiene, avšak veríme že pre projekt bolo dostačujúce. 
+	Tabuľku symbolov sme implementovali podľa zadania ako hašovaciu tabulku. V prekladači existuje ukazovaťeľ na \textit{globálnu tabuľku} v ktorej sú záznamy definovaných funkcií. Každá funkcia má v sebe odkaz na \textit{lokálnu tabuľku} symbolov.  Lokálna tabulka symbolov, obsahuje záznamy premenných v daných funkciách. Parametre funkcie sú na začiatku tiež interpretované ako lokálné premenné. Zaujímavosťou je určite riešenie rozsahu platnosti lokálnych premenných.
+	 Namiesto riešenia zásobníka tabuliek symbolov sme vymysleli jednoduchý systém, kde každá premenná má svoj vlastný zásobník čísel. Tento zásobník určuje 
+	 rozsah premennej následovne: premenné definované v tele hlavnej funkcie majú veľkosť zásobníku 1 a na zásobníku je číslica 1. Pokiaľ definujeme premennú v nejakom podbloku, na zásobník vložíme hodnotu, ktorá je jedinečná pre daný podblok (ilustrujeme obrázkom). Tabuľka je kvôli požadovanému implicitnému
+	 zreťazeniu obmedzená na 1000 položiek, čo si uvedomujeme, že nie je najvhodnejšie riešiene, avšak veríme, že pre projekt bolo dostačujúce. 
 	 \\
 	\begin{figure}[ht]
 		\begin{center}
